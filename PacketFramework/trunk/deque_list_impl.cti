@@ -1,0 +1,350 @@
+// $Id$
+//
+// Copyright (C) 2005 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+// Definition of inline template functions
+
+//#include "deque_list_impl.ih"
+
+// Custom includes
+
+#define prefix__ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::containers::deque_list_impl::array_allocator<T>
+
+template <typename T>
+prefix__ std::pair<
+    typename satcom::containers::deque_list_impl::array_allocator<T>::block_p,
+    typename satcom::containers::deque_list_impl::array_allocator<T>::size_type >
+satcom::containers::deque_list_impl::array_allocator<T>::allocate(size_type size)
+{
+    return std::make_pair(new T[size],size);
+}
+
+template <typename T>
+prefix__ void
+satcom::containers::deque_list_impl::array_allocator<T>::deallocate(block_p block,
+                                                                    size_type size)
+{
+    delete[] block;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::containers::deque_list_impl::block<T,Alloc>
+
+// public members
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list_impl::block<T,Alloc>::ptr
+satcom::containers::deque_list_impl::block<T,Alloc>::create(size_type size)
+{
+    return ptr (new block (size));
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list_impl::block<T,Alloc>::ptr
+satcom::containers::deque_list_impl::block<T,Alloc>::clone()
+{
+    return ptr (new block (*this));
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list_impl::block<T,Alloc>::reference
+satcom::containers::deque_list_impl::block<T,Alloc>::operator[](size_type index)
+    const
+{
+    BOOST_ASSERT (index < size_);
+    return data_[index];
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list_impl::block<T,Alloc>::size_type
+satcom::containers::deque_list_impl::block<T,Alloc>::size()
+    const
+{
+    return size_;
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list_impl::block<T,Alloc>::pointer
+satcom::containers::deque_list_impl::block<T,Alloc>::begin()
+    const
+{
+    return &(data_[0]);
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list_impl::block<T,Alloc>::pointer
+satcom::containers::deque_list_impl::block<T,Alloc>::end()
+    const
+{
+    return begin()+size_;
+}
+
+template <typename T, typename Alloc>
+prefix__ bool satcom::containers::deque_list_impl::block<T,Alloc>::unique()
+    const
+{
+    return refcount_ == 1;
+}
+
+// private members
+
+template <typename T, typename Alloc>
+prefix__ satcom::containers::deque_list_impl::block<T,Alloc>::block(size_type size__)
+{
+    boost::tie (data_, size_) = allocator::allocate (size__);
+}
+
+template <typename T, typename Alloc>
+prefix__ satcom::containers::deque_list_impl::block<T,Alloc>::~block()
+{
+    allocator::deallocate (data_,size_);
+}
+
+template <typename T, typename Alloc>
+prefix__ satcom::containers::deque_list_impl::block<T,Alloc>::block(const block& other__)
+{
+    boost::tie (data_, size_) = allocator::allocate (other__.size_);
+    std::copy (&other__.data_[0], &other__.data_[other__.size_],
+               &data_[0]);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::containers::deque_list_impl::block_ref<T,Alloc>
+
+template <typename T, typename Alloc>
+prefix__ satcom::containers::deque_list_impl::block_ref<T,Alloc>::block_ref()
+    : block_(), begin_(), end_() 
+{}
+
+template <typename T, typename Alloc>
+prefix__ satcom::containers::deque_list_impl::block_ref<T,Alloc>::block_ref(block_ptr block__,
+                                                                       pointer begin__,
+                                                                       pointer end__)
+    : block_(block__), begin_(begin__), end_(end__) 
+{}
+
+template <typename T, typename Alloc>
+prefix__  satcom::containers::deque_list_impl::block_ref<T,Alloc>::block_ref(container* list__)
+    : block_(), begin_(), end_ (static_cast<pointer>(static_cast<void*>(list__)))
+{}
+
+template <typename T, typename Alloc>
+prefix__ bool satcom::containers::deque_list_impl::block_ref<T,Alloc>::is_special()
+{
+    return begin_==0;
+}
+
+template <class T, class Alloc>
+prefix__ typename satcom::containers::deque_list_impl::block_ref<T,Alloc>::container*
+satcom::containers::deque_list_impl::block_ref<T,Alloc>::deque_list()
+{
+    BOOST_ASSERT (is_special());
+    return static_cast<container*>(static_cast<void*>(end_));
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list<T,Alloc>::block_ptr
+satcom::containers::deque_list_impl::block_ref<T,Alloc>::block()
+{
+    BOOST_ASSERT (!is_special());
+    return block_;
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list<T,Alloc>::pointer
+satcom::containers::deque_list_impl::block_ref<T,Alloc>::begin()
+{
+    return begin_;
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list<T,Alloc>::pointer
+satcom::containers::deque_list_impl::block_ref<T,Alloc>::end()
+{
+    if (is_special()) 
+        return 0;
+    return end_;
+}
+
+template <typename T, typename Alloc>
+prefix__ void satcom::containers::deque_list_impl::block_ref<T,Alloc>::set_begin(pointer begin__)
+{
+    begin_ = begin__;
+}
+
+template <typename T, typename Alloc>
+prefix__ void satcom::containers::deque_list_impl::block_ref<T,Alloc>::set_end(pointer end__)
+{
+    end_ = end__;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::containers::deque_list_impl::iterator<T,Alloc>
+
+template <class T, class Alloc>
+prefix__ satcom::containers::deque_list_impl::iterator<T,Alloc>::iterator()
+    : block_(), p_()
+{}
+
+template <class T, class Alloc>
+prefix__
+satcom::containers::deque_list_impl::iterator<T,Alloc>::iterator(block_list_iterator block,
+                                                                 pointer p)
+    : block_ (block), p_ (p)
+{}
+
+
+template <class T, class Alloc>
+prefix__ void satcom::containers::deque_list_impl::iterator<T,Alloc>::increment()
+{
+    BOOST_ASSERT (p_);
+    ++p_;
+    if (p_ >= block_->end()) 
+        // TODO: Make interators insertion save (Handle special case p_>block_->end_)
+        p_ = (++block_)->begin();
+}
+
+template <class T, class Alloc>
+prefix__ void satcom::containers::deque_list_impl::iterator<T,Alloc>::decrement()
+{
+    // decrementing the iterator past begin() will get an end() iterator
+    BOOST_ASSERT (p_);
+    if (p_ <= block_->begin())
+        // TODO: Make iterators insertion save
+        p_ = (--block_)->end();
+    if (p_) --p_;
+}
+
+template <class T, class Alloc>
+prefix__ typename satcom::containers::deque_list_impl::iterator<T,Alloc>::reference
+satcom::containers::deque_list_impl::iterator<T,Alloc>::dereference()
+    const
+{
+    BOOST_ASSERT (p_);
+    return *p_;
+}
+
+template <class T, class Alloc>
+prefix__ bool
+satcom::containers::deque_list_impl::iterator<T,Alloc>::equal(const iterator& other__)
+    const
+{
+    // we need to compare both since a block may be member of a deque_list 
+    // multiple times
+    return block_ == other__.block_ && p_ == other__.p_;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::containers::deque_list_impl::inserter<T,Alloc>
+
+template <class T, class Alloc>
+prefix__
+satcom::containers::deque_list_impl::inserter<T,Alloc>::inserter(block_list_iterator place,
+                                                                 container& dl)
+    : container_ (&dl), place_ (place), cache_()
+{}
+
+template <class T, class Alloc>
+prefix__ void satcom::containers::deque_list_impl::inserter<T,Alloc>::increment()
+{}
+
+template <class T, class Alloc>
+prefix__ void satcom::containers::deque_list_impl::inserter<T,Alloc>::flush()
+{
+    cache_ = 0;
+}
+
+template <class T, class Alloc>
+prefix__ void satcom::containers::deque_list_impl::inserter<T,Alloc>::allocate(size_type size)
+{
+    flush();
+    cache_ = cache::create (size, place_, *container_);
+}
+
+template <class T, class Alloc>
+prefix__ typename satcom::containers::deque_list_impl::inserter<T,Alloc>::size_type
+satcom::containers::deque_list_impl::inserter<T,Alloc>::size()
+{
+    return cache_?cache_->block_->size():0;
+}
+
+template <class T, class Alloc>
+prefix__ typename satcom::containers::deque_list_impl::inserter<T,Alloc>::size_type
+satcom::containers::deque_list_impl::inserter<T,Alloc>::max_size()
+{
+    return cache_?cache_->size_:default_size;
+}
+
+template <class T, class Alloc>
+prefix__ typename satcom::containers::deque_list_impl::inserter<T,Alloc>::pointer
+satcom::containers::deque_list_impl::inserter<T,Alloc>::block_begin()
+{
+    if (!cache_)
+        cache_ = cache::create (default_size, place_, *container_);
+    return cache_->block_->begin();
+}
+
+template <class T, class Alloc>
+prefix__ typename satcom::containers::deque_list_impl::inserter<T,Alloc>::pointer
+satcom::containers::deque_list_impl::inserter<T,Alloc>::block_end()
+{
+    if (!cache_)
+        cache_ = cache::create (default_size, place_, *container_);
+    return cache_->block_->end();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::containers::deque_list_impl::inserter<T,Alloc>::cache
+
+template <class T, class Alloc>
+prefix__ satcom::containers::deque_list_impl::inserter<T,Alloc>::cache::
+cache(size_type size, block_list_iterator place, container& dl)
+    : container_ (dl), place_ (place), block_ (block::create (size)), size_ (0) 
+{}
+
+template <class T, class Alloc>
+prefix__ satcom::containers::deque_list_impl::inserter<T,Alloc>::cache::~cache()
+{
+    if (size_) 
+        container_.insert_block_before (block_, block_->begin(), block_->begin()+size_ , place_);
+}
+
+template <class T, class Alloc>
+prefix__ typename satcom::containers::deque_list_impl::inserter<T,Alloc>::cache::ptr
+satcom::containers::deque_list_impl::inserter<T,Alloc>::cache::create(size_type size,
+                                                                      block_list_iterator place,
+                                                                      container& dl)
+{
+    return ptr (new cache (size,place,dl));
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix__
+
+
+// Local Variables:
+// mode: c++
+// c-file-style: "satcom"
+// End:

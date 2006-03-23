@@ -1,0 +1,76 @@
+// $Id$
+//
+// Copyright (C) 2006 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+// Definition of inline non-template functions
+
+//#include "GenericPacket.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+prefix_ satcom::pkf::GenericPacket::GenericPacket(raw_container::iterator begin,
+                                                  raw_container::iterator end,
+                                                  Packet const * parent, size_type header_len,
+                                                  size_type trailer_len)
+    : Packet(begin, end, parent), header_len_ (header_len), trailer_len_ (trailer_len)
+{}
+
+prefix_ satcom::pkf::GenericPacket::iterator satcom::pkf::GenericPacket::begin_header()
+{
+    return this->begin();
+}
+
+prefix_ satcom::pkf::GenericPacket::iterator satcom::pkf::GenericPacket::end_header()
+{
+    return this->begin() + this->header_len_;
+}
+
+prefix_ satcom::pkf::GenericPacket::size_type satcom::pkf::GenericPacket::header_len()
+{
+    return this->header_len_;
+}
+
+prefix_ satcom::pkf::GenericPacket::iterator satcom::pkf::GenericPacket::begin_trailer()
+{
+    return this->end()-this->trailer_len_;
+}
+
+prefix_ satcom::pkf::GenericPacket::iterator satcom::pkf::GenericPacket::end_trailer()
+{
+    return this->end();
+}
+
+prefix_ satcom::pkf::GenericPacket::size_type satcom::pkf::GenericPacket::trailer_len()
+{
+    return trailer_len_;
+}
+
+///////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// c-file-style: "satcom"
+// End:

@@ -1,0 +1,6 @@
+env = Environment()
+
+env.Program(
+    source = ['test.cc'],
+    target = "test"
+    )

@@ -1,0 +1,76 @@
+// $Id$
+//
+// Copyright (C) 2005 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+// Definition of non-inline template functions
+
+//#include "deque_list.ih"
+
+// Custom includes
+
+#define prefix__
+///////////////////////////////ct.p////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::containers::deque_list<T,Alloc>
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list<T,Alloc>::inserter
+satcom::containers::deque_list<T,Alloc>::inserter_at(iterator p)
+{
+    block_list_iterator block = p.block_;
+    if (p.p_ == block->begin()) 
+        return inserter (block,*this);
+    split_block (block, p.p_);
+    return inserter (++block,*this);
+}
+
+template <typename T, typename Alloc>
+prefix__ void
+satcom::containers::deque_list<T,Alloc>::insert_block_before(block_ptr block, pointer begin,
+                                                             pointer end,
+                                                             block_list_iterator place)
+{}
+
+template <typename T, typename Alloc>
+prefix__ void satcom::containers::deque_list<T,Alloc>::split_block(block_list_iterator block,
+                                                                   pointer place)
+{
+    // Split 'block' at 'place'. The split-off portion will be
+    // inserted *after* 'block' which will be changed accordingly.
+
+    // TODO: Assert, that iterator points to the correct container
+    BOOST_ASSERT (block->begin()<=place && block->end()>place);
+
+    block->set_end (place);
+    block_ref new_block (*block);
+    new_block.set_begin (place);
+    blocks_.insert (++block, new_block);
+}
+
+///////////////////////////////ct.e////////////////////////////////////////
+#undef prefix__
+
+
+// Local Variables:
+// mode: c++
+// c-file-style: "satcom"
+// End:

@@ -1,0 +1,66 @@
+// $Id$
+//
+// Copyright (C) 2005 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+// Definition of inline template functions
+
+//#include "deque_list.ih"
+
+// Custom includes
+#include <boost/tuple/tuple.hpp>
+#include <boost/assert.hpp>
+
+#define prefix__ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::containers::deque_list<T,Alloc>
+
+template <typename T, typename Alloc>
+prefix__ satcom::containers::deque_list<T,Alloc>::deque_list()
+{
+    blocks_.push_back (block_ref(this));
+    blocks_.push_back (block_ref(this));
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list<T,Alloc>::iterator
+satcom::containers::deque_list<T,Alloc>::begin()
+{
+    // TODO: Check iterators to an empty container behave correctly on insert
+    block_list_iterator i = ++blocks_.begin();
+    return iterator (i,i->begin());
+}
+
+template <typename T, typename Alloc>
+prefix__ typename satcom::containers::deque_list<T,Alloc>::iterator
+satcom::containers::deque_list<T,Alloc>::end()
+{
+    return iterator (--blocks_.end(),0);
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix__
+
+
+// Local Variables:
+// mode: c++
+// End:

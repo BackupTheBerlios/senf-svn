@@ -1,0 +1,101 @@
+// $Id$
+//
+// Copyright (C) 2006 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+#ifndef IH_Packet_
+#define IH_Packet_ 1
+
+// Custom includes
+
+///////////////////////////////ih.p////////////////////////////////////////
+
+#ifdef SATCOM_PKF_REFC_DEBUG
+#include <iostream>
+#define SATCOM_PKF_REFC_MSG(x) std::cerr << x
+#else
+#define SATCOM_PKF_REFC_MSG(x)
+#endif
+
+// This deleter is used in the PacketImpl list holding the
+// Packet's. It only decrements the Packet refcount. If this drops to
+// 0 (i.e. the packet is removed from the list and no external
+// reference exists) the packet ist deleted.
+//
+// Since this is called, when the packet is removed from the list, we
+// set the impl_ member to 0 to mark, that the packet is now
+// orphaned and every use should throw an exception ...
+//
+// To make this work we must make sure, that the packet refcount is
+// incremented when we add the packet to the list.
+namespace satcom {
+namespace pkf {
+
+    namespace impl {
+
+        struct ListPacketDeleter {
+            void operator()(Packet * p);
+        };
+    }
+
+    // These methods are used internally to keep PacketImpl_ alive during
+    // method invocations
+    void intrusive_ptr_add_ref(Packet::PacketImpl * p);
+    void intrusive_ptr_release(Packet::PacketImpl * p);
+
+}}
+
+struct satcom::pkf::Packet::PacketImpl
+{
+    raw_container data_;
+    interpreter_list interpreters_;
+    refcount_t refcount_;
+
+    PacketImpl();
+    ~PacketImpl();
+    template <class InputIterator>
+    PacketImpl(InputIterator begin, InputIterator end);
+
+    void add_ref();
+    bool release();
+
+    interpreter_list::iterator appendInterpreter(Packet * p);
+    interpreter_list::iterator prependInterpreter(Packet * p);
+    bool releaseInterpreter(Packet * p);
+    void truncateInterpreters(Packet const * p);
+    void truncateInterpretersAfter(Packet const * p);
+
+    ///////////////////////////////////////////////////////////////////////////
+    // These are here to simplify the friend declaration in Packet
+
+    static void packet_add_ref(Packet const * p);
+    static void packet_release(Packet * p);
+    static PacketImpl* impl(Packet const * p);
+    static interpreter_list::iterator self(Packet const * p);
+};
+
+///////////////////////////////ih.e////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// c-file-style: "satcom"
+// End:

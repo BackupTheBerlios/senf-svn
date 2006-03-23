@@ -1,0 +1,74 @@
+libraries = [
+]
+
+includes = [
+    '#' # needed for the boost preprocessor library
+]
+
+################################
+# Debuging flags
+
+# Possible values:
+#   SATCOM_PKF_REFC_DEBUG - enable reference counter debuging
+debug_defines = [ ]
+debug_cflags  = [ '-O0', '-g', '-fno-inline' ]
+debug_ldflags = [ '-g' ]
+
+################################
+# Final compilation flags
+
+final_defines = [ ]
+final_cflags  = [ '-O3' ]
+final_ldflags = [ ]
+
+################################
+# general flags
+
+defines       = [ ]
+cflags        = [ '-Wall', '-Woverloaded-virtual', '-pedantic', '-ansi' ]
+ldflags       = [ ]
+
+###########################################################################
+
+import glob
+
+testSources = glob.glob("*.test.cc")
+sources = [ x for x in glob.glob("*.cc") if x not in testSources ]
+
+if ARGUMENTS.get('final',0):
+    defines += final_defines
+    cflags += final_cflags
+    ldflags += final_ldflags
+else:
+    defines += debug_defines
+    cflags += debug_cflags
+    ldflags += debug_ldflags
+
+env = Environment(
+    tools      = [ 'default', 'Doxygen', 'BoostUnitTests' ],
+    toolpath   = [ '../sconslib' ],
+    CPPDEFINES = defines,
+    CPPPATH    = includes,
+    LIBS       = libraries,
+    CXXFLAGS   = cflags,
+    LDFLAGS    = ldflags
+)
+
+###########################################################################
+        
+objects = env.Object( sources )
+
+Default(env.BoostUnitTests(
+    target = 'test',
+    source = sources,
+    test_sources = testSources,
+))
+
+env.Doxygen(
+    target = 'doc',
+    source = sources
+)
+
+all = env.Alias('all')
+env.Clean(all, [ '.sconsign' ] + glob.glob("*~"))
+env.Depends(all, '.')
