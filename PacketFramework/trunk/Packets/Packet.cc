@@ -124,6 +124,25 @@ prefix_ bool satcom::pkf::Packet::PacketImpl::releaseInterpreter(Packet * p)
     return rv;
 }
 
+prefix_ void satcom::pkf::Packet::PacketImpl::updateIterators(size_type index,
+                                                              difference_type n)
+{
+    interpreter_list::iterator i (interpreters_.begin());
+    interpreter_list::iterator e (interpreters_.end());
+    for (;i!=e;++i) {
+        if ((*i)->end_ > index) 
+            if (n<0 && (*i)->end_ < index-n)
+                (*i)->end_ = index;
+            else
+                (*i)->end_ += n;
+        if ((*i)->begin_ >= index) 
+            if (n<0 && (*i)->begin_ < index-n)
+                (*i)->begin_ = index;
+            else
+                (*i)->begin_ += n;
+    }
+}
+
 prefix_ void satcom::pkf::Packet::PacketImpl::packet_add_ref(Packet const * p)
 {
     p->add_ref();
@@ -198,6 +217,36 @@ prefix_ void satcom::pkf::Packet::replaceInterpreter(Packet * p)
     impl->truncateInterpreters(this);
     impl->appendInterpreter(p);
 }
+
+prefix_ void satcom::pkf::Packet::insert(iterator pos, byte v)
+{
+    size_type index(pos-impl_->data_.begin());
+    impl_->data_.insert(pos,v);
+    impl_->updateIterators(index,1);
+}
+
+prefix_ void satcom::pkf::Packet::insert(iterator pos, size_type n, byte v)
+{
+    size_type index(pos-impl_->data_.begin());
+    impl_->data_.insert(pos,n,v);
+    impl_->updateIterators(index,n);
+}
+
+prefix_ void satcom::pkf::Packet::erase(iterator pos)
+{
+    size_type index(pos-impl_->data_.begin());
+    impl_->data_.erase(pos);
+    impl_->updateIterators(index,-1);
+}
+
+prefix_ void satcom::pkf::Packet::erase(iterator first, iterator last)
+{
+    size_type index(first-impl_->data_.begin());
+    size_type sz(last-first);
+    impl_->data_.erase(first,last);
+    impl_->updateIterators(index,-sz);
+}
+
 
 //////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_

@@ -27,6 +27,7 @@
 
 // Custom includes
 #include "ParseVec.hh"
+#include "ParseInt.hh"
 
 #include <boost/test/auto_unit_test.hpp>
 #include <boost/test/test_tools.hpp>
@@ -34,11 +35,33 @@
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
+using namespace satcom::pkf;
+
 BOOST_AUTO_UNIT_TEST(parseVec_test)
 {
     unsigned char data[] = { 0x03,                                   // size
                              0x10, 0x11,  0x12, 0x13,  0x14, 0x15,   // data
                              0x20, 0x21,  0x22, 0x23,  0x24, 0x25 };
+    typedef unsigned char * iterator;
+    typedef Parse_Vector<Parse_UInt16<>,Parse_UInt8<>,iterator> Parse_UInt16Vec;
+
+    Parse_UInt8<iterator> sizeParser (data);
+    Parse_UInt16Vec v (sizeParser, data+1);
+    
+    BOOST_CHECK_EQUAL( v[0], 0x1011 );
+    BOOST_CHECK_EQUAL( v[2], 0x1415 );
+    BOOST_CHECK_EQUAL( v.size(), 3u );
+    BOOST_CHECK_EQUAL( v.bytes(), 6u );
+    data[0] = 0x06;
+    BOOST_CHECK_EQUAL( v.size(), 6u );
+    BOOST_CHECK_EQUAL( v.bytes(), 12u );
+    
+    iterator i (data+1);
+    Parse_UInt16Vec::iterator j (v.begin());
+    Parse_UInt16Vec::iterator e (v.end());
+    for (;j!=e;++j, i+=2)
+        BOOST_CHECK_EQUAL( Parse_UInt16<iterator>(i), *j );
+    BOOST_CHECK_EQUAL(i, data+13);
 }
 
 

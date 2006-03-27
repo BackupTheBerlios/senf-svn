@@ -41,12 +41,6 @@ prefix_ satcom::pkf::EthernetPacket::EthernetPacket(InputIterator begin, InputIt
     : Packet(begin, end)
 {}
 
-prefix_ satcom::pkf::EthernetPacket::EthernetPacket(raw_container::iterator begin,
-                                                    raw_container::iterator end,
-                                                    Packet const * parent)
-    : Packet(begin, end, parent)
-{}
-
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_
 

@@ -49,9 +49,7 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
 
         typedef Parse_Array< 6, Parse_UInt8<>, Iterator > Parse_MAC;
-        typedef Parse_UInt16<Iterator> Parse_Type;
-        
-        static unsigned bytes() { return 14; }
+        typedef Parse_UInt16<Iterator>                    Parse_Type;
         
         Parse_MAC  destination() { return Parse_MAC  (i() ); }
         Parse_MAC  source()      { return Parse_MAC  (i() + Parse_MAC::size() ); }
@@ -92,8 +90,6 @@ namespace pkf {
     private:
         template <class InputIterator>
         EthernetPacket(InputIterator begin, InputIterator end);
-        EthernetPacket(raw_container::iterator begin, raw_container::iterator end,
-                       Packet const * parent);
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();

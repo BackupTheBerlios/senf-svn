@@ -54,8 +54,8 @@ prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr
 satcom::pkf::Packet::reinterpret( BOOST_PP_ENUM( BOOST_PP_ITERATION(), pkARG, ) )
 {
     typename ptr_t<OtherPacket>::ptr p (
-        new OtherPacket(this->begin_, this->end_, this,
-                        BOOST_PP_ENUM_PARAMS( BOOST_PP_ITERATION(), a ) ),
+        new OtherPacket( inplace_wrapper(this->begin_), inplace_wrapper(this->end_),
+                         BOOST_PP_ENUM_PARAMS( BOOST_PP_ITERATION(), a ) ),
         false);
     this->replaceInterpreter(p.get());
     return p;
@@ -93,8 +93,9 @@ satcom::pkf::Packet::registerInterpreter(raw_container::iterator begin,
     const
 {
     ptr_t<OtherPacket>::ptr p (
-        new OtherPacket(begin, end, this, 
-                        BOOST_PP_ENUM_PARAMS( BOOST_PP_ITERATION(), a) ),
+        new OtherPacket( inplace_wrapper(begin-impl_->data_.begin()),
+                         inplace_wrapper(end-impl_->data_.begin()),
+                         BOOST_PP_ENUM_PARAMS( BOOST_PP_ITERATION(), a) ),
         false);
     this->registerInterpreter(p.get());
     return p;

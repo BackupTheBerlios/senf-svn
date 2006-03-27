@@ -27,7 +27,7 @@
 #include <utility> // for std::pair
 #include <boost/iterator/iterator_facade.hpp>
 #include "ParserBase.hh"
-#include "ParseArray.hh" // for Parser_Array_iterator
+#include "ParseArray.hh" // for Parse_Array_iterator
 
 //#include "ParseVec.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
@@ -38,6 +38,8 @@ namespace pkf {
     template <class Parser, class SizeParser, class Iterator=nil, class IPacket=nil>
     struct Parse_Vector : protected ParserBase<Iterator,IPacket>
     {
+        typedef typename SizeParser::template rebind<Iterator>::parser size_parser;
+
         ///////////////////////////////////////////////////////////////////////////
         // Parser interface
 
@@ -46,9 +48,9 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         Parse_Vector(SizeParser const & size);
-        explicit Parse_Vector(SizeParser const & size, Iterator const & i);
+        explicit Parse_Vector(size_parser const & size, Iterator const & i);
         
-        unsigned bytes();
+        unsigned bytes() const;
         void init() const;
 
         ///////////////////////////////////////////////////////////////////////////
@@ -70,7 +72,7 @@ namespace pkf {
         value_type operator[](difference_type i) const;
 
     private:
-        SizeParser size_;
+        size_parser size_;
     };
 
 }}

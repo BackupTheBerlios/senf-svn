@@ -103,13 +103,13 @@ prefix_ void satcom::pkf::intrusive_ptr_release(Packet::PacketImpl * p)
 prefix_ satcom::pkf::Packet::iterator satcom::pkf::Packet::begin()
     const
 {
-    return begin_;
+    return impl_->data_.begin()+begin_;
 }
 
 prefix_ satcom::pkf::Packet::iterator satcom::pkf::Packet::end()
     const
 {
-    return end_;
+    return impl_->data_.begin()+end_;
 }
 
 prefix_ size_t satcom::pkf::Packet::size()
@@ -169,9 +169,8 @@ prefix_ bool satcom::pkf::Packet::unlink()
 
 // This constructor appends a new interreter to the interpreter chain
 // of an existing Packet
-prefix_ satcom::pkf::Packet::Packet(raw_container::iterator begin, raw_container::iterator end,
-                                    Packet const * parent)
-    : impl_(0), begin_(begin), end_(end), self_(),
+prefix_ satcom::pkf::Packet::Packet(inplace_wrapper begin, inplace_wrapper end)
+    : impl_(0), begin_(begin.v), end_(end.v), self_(),
       parsed_(false), refcount_(1)
 {
     SATCOM_PKF_REFC_MSG("] Packet::Packet (" << this << "): refcount_ = 1\n");

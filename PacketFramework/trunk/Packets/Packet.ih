@@ -53,6 +53,7 @@ namespace pkf {
         struct ListPacketDeleter {
             void operator()(Packet * p);
         };
+
     }
 
     // These methods are used internally to keep PacketImpl_ alive during
@@ -82,6 +83,8 @@ struct satcom::pkf::Packet::PacketImpl
     void truncateInterpreters(Packet const * p);
     void truncateInterpretersAfter(Packet const * p);
 
+    void updateIterators(size_type index, difference_type n);
+
     ///////////////////////////////////////////////////////////////////////////
     // These are here to simplify the friend declaration in Packet
 
@@ -89,6 +92,14 @@ struct satcom::pkf::Packet::PacketImpl
     static void packet_release(Packet * p);
     static PacketImpl* impl(Packet const * p);
     static interpreter_list::iterator self(Packet const * p);
+};
+
+struct satcom::pkf::Packet::inplace_wrapper
+{
+    inplace_wrapper() : v() {}
+    inplace_wrapper(size_type v_) : v(v_) {}
+    
+    size_type v;
 };
 
 ///////////////////////////////ih.e////////////////////////////////////////

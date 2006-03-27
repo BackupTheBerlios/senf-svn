@@ -33,7 +33,9 @@
 template <class OtherPacket>
 prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packet::reinterpret()
 {
-    typename ptr_t<OtherPacket>::ptr p (new OtherPacket(this->begin_, this->end_, this), false);
+    typename ptr_t<OtherPacket>::ptr p (new OtherPacket(inplace_wrapper(this->begin_), 
+                                                        inplace_wrapper(this->end_)), 
+                                        false);
     // THIS INVALIDATES this !!!!!!!
     this->replaceInterpreter(p.get());
     return p;
@@ -48,7 +50,10 @@ satcom::pkf::Packet::registerInterpreter(raw_container::iterator begin,
                                          raw_container::iterator end)
     const
 {
-    typename ptr_t<OtherPacket>::ptr p (new OtherPacket(begin, end, this), false);
+    typename ptr_t<OtherPacket>::ptr p (
+        new OtherPacket( inplace_wrapper(begin-impl_->data_.begin()),
+                         inplace_wrapper(end-impl_->data_.begin()) ),
+        false);
     this->registerInterpreter(p.get());
     return p;
 }
@@ -64,8 +69,8 @@ prefix_ satcom::pkf::Packet::Packet(InputIterator begin, InputIterator end)
 {
     SATCOM_PKF_REFC_MSG("] Packet::Packet (" << this << "): refcount_ = 1\n");
     boost::intrusive_ptr<PacketImpl> impl (new PacketImpl(begin,end), false);
-    this->begin_ = impl->data_.begin();
-    this->end_ = impl->data_.end();
+    this->begin_ = 0;
+    this->end_ = impl->data_.size();
     // This increments the PacketImpl refcount ...
     impl->appendInterpreter(this);
 }
@@ -86,6 +91,15 @@ prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packe
     while (p && !p->is<OtherPacket>())
         p = p->prev();
     return p->as<OtherPacket>();
+}
+
+template <class InputIterator>
+prefix_ void satcom::pkf::Packet::insert(iterator pos, InputIterator f, InputIterator l)
+{
+    size_type index(pos-impl_->data_.begin());
+    size_type sz (impl_->data_.size());
+    impl_->data_.insert(pos,f,l);
+    impl_->updateIterators(index,impl_->data_.size()-sz);
 }
 
 ///////////////////////////////ct.e////////////////////////////////////////

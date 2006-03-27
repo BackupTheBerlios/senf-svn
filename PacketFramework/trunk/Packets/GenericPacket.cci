@@ -29,13 +29,6 @@
 #define prefix_ inline
 ///////////////////////////////cci.p///////////////////////////////////////
 
-prefix_ satcom::pkf::GenericPacket::GenericPacket(raw_container::iterator begin,
-                                                  raw_container::iterator end,
-                                                  Packet const * parent, size_type header_len,
-                                                  size_type trailer_len)
-    : Packet(begin, end, parent), header_len_ (header_len), trailer_len_ (trailer_len)
-{}
-
 prefix_ satcom::pkf::GenericPacket::iterator satcom::pkf::GenericPacket::begin_header()
 {
     return this->begin();

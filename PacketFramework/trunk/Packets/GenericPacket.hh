@@ -74,9 +74,6 @@ namespace pkf {
         template <class InputIterator>
         GenericPacket(InputIterator begin, InputIterator end,
                       size_type header_len, size_type trailer_len=0);
-        GenericPacket(raw_container::iterator begin, raw_container::iterator end,
-                      Packet const * parent,
-                      size_type header_len, size_type trailer_len=0);
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();

@@ -62,8 +62,6 @@ namespace pkf {
     private:
         template <class InputIterator>
         DataPacket(InputIterator begin, InputIterator end);
-        DataPacket(raw_container::iterator begin, raw_container::iterator end, 
-                   Packet const * parent);
         
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();
@@ -75,7 +73,7 @@ namespace pkf {
 }}
 
 ///////////////////////////////hh.e////////////////////////////////////////
-#include "DataPacket.cci"
+//#include "DataPacket.cci"
 //#include "DataPacket.ct"
 #include "DataPacket.cti"
 #endif

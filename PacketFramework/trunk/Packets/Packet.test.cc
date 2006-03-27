@@ -145,6 +145,89 @@ BOOST_AUTO_UNIT_TEST(Packet_Reinterpret)
     BOOST_CHECK( compare(p->next()->begin(), p->next()->end(), 8) );
 }
 
+BOOST_AUTO_UNIT_TEST(Packet_InsertErase)
+{
+    Packet::ptr p (GenericPacket::create(data, data+sizeof(data), 7, 3));
+    p->next()->reinterpret<GenericPacket>(4);
+    
+    BOOST_CHECK_EQUAL( p->size(), 20u );
+    BOOST_CHECK_EQUAL( p->next()->size(), 10u );
+    BOOST_CHECK_EQUAL( p->next()->next()->size(), 6u );
+
+    BOOST_CHECK_EQUAL( p->next()->next()->begin()[0], 11 );
+    BOOST_CHECK_EQUAL( p->end()[-1], 19 );
+    BOOST_CHECK_EQUAL( p->next()->end()[-1], 16 );
+    BOOST_CHECK_EQUAL( p->next()->next()->end()[-1], 16 );
+
+    p->next()->insert(p->next()->begin()+2, data, data+6);
+
+    BOOST_CHECK_EQUAL( p->size(), 26u );
+    BOOST_CHECK_EQUAL( p->next()->size(), 16u );
+    BOOST_CHECK_EQUAL( p->next()->next()->size(), 6u );
+
+    BOOST_CHECK( compare(p->begin(), p->begin()+9) );
+    BOOST_CHECK( compare(p->begin()+9, p->begin()+15) );
+    BOOST_CHECK( compare(p->begin()+15, p->end(), 9) );
+    BOOST_CHECK( compare(p->next()->begin(), p->next()->begin()+2, 7) );
+    BOOST_CHECK( compare(p->next()->begin()+2, p->next()->begin()+8) );
+    BOOST_CHECK( compare(p->next()->begin()+8, p->next()->end(), 9) );
+    BOOST_CHECK( compare(p->next()->next()->begin(), p->next()->next()->end(), 11) );
+
+    p->next()->erase( p->next()->begin()+2, p->next()->begin()+8 );
+    
+    BOOST_CHECK_EQUAL( p->size(), 20u );
+    BOOST_CHECK_EQUAL( p->next()->size(), 10u );
+    BOOST_CHECK_EQUAL( p->next()->next()->size(), 6u );
+
+    BOOST_CHECK( compare(p->begin(), p->end()) );
+    BOOST_CHECK( compare(p->next()->begin(), p->next()->end(), 7) );
+    BOOST_CHECK( compare(p->next()->next()->begin(), p->next()->next()->end(), 11) );
+
+    p->insert(p->next()->begin()+4, data, data+2);
+
+    BOOST_CHECK_EQUAL( p->size(), 22u );
+    BOOST_CHECK_EQUAL( p->next()->size(), 12u );
+    BOOST_CHECK_EQUAL( p->next()->next()->size(), 6u );
+
+    BOOST_CHECK( compare(p->next()->next()->begin(), p->next()->next()->end(), 11) );
+
+    p->erase(p->next()->begin()+4, p->next()->begin()+6);
+
+    BOOST_CHECK_EQUAL( p->size(), 20u );
+    BOOST_CHECK_EQUAL( p->next()->size(), 10u );
+    BOOST_CHECK_EQUAL( p->next()->next()->size(), 6u );
+
+    BOOST_CHECK( compare(p->begin(), p->end()) );
+    BOOST_CHECK( compare(p->next()->begin(), p->next()->end(), 7) );
+    BOOST_CHECK( compare(p->next()->next()->begin(), p->next()->next()->end(), 11) );
+
+    p->insert(p->next()->begin()+5, data, data+4);
+    
+    BOOST_CHECK_EQUAL( p->size(), 24u );
+    BOOST_CHECK_EQUAL( p->next()->size(), 14u );
+    BOOST_CHECK_EQUAL( p->next()->next()->size(), 10u );
+
+    BOOST_CHECK( compare(p->next()->next()->begin(), p->next()->next()->begin()+1, 11) );
+    BOOST_CHECK( compare(p->next()->next()->begin()+1, p->next()->next()->begin()+5) );
+    BOOST_CHECK( compare(p->next()->next()->begin()+5, p->end(), 12) );
+
+    p->erase(p->next()->begin()+3, p->next()->begin()+9);
+
+    BOOST_CHECK_EQUAL( p->size(), 18u );
+    BOOST_CHECK_EQUAL( p->next()->size(), 8u );
+    BOOST_CHECK_EQUAL( p->next()->next()->size(), 5u );
+
+    BOOST_CHECK( compare(p->next()->next()->begin(), p->next()->next()->end(), 12) );
+    BOOST_CHECK( compare(p->begin(), p->begin()+10) );
+    BOOST_CHECK( compare(p->begin()+10, p->end(), 12) );
+
+    p->erase(p->begin()+5, p->end());
+    
+    BOOST_CHECK_EQUAL( p->size(), 5u );
+    BOOST_CHECK_EQUAL( p->next()->size(), 0u );
+    BOOST_CHECK_EQUAL( p->next()->next()->size(), 0u );
+}
+
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
 

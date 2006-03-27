@@ -29,13 +29,15 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <list>
-#include <deque>
+#include <vector>
 
 #include "Packet.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
 
 namespace satcom {
 namespace pkf {
+    
+    namespace impl { template <class Container> class deque_inserter; }
 
     /** \brief Abstract interface of packet facades
         
@@ -44,19 +46,21 @@ namespace pkf {
       */
     class Packet : boost::noncopyable
     {
+    public:
+        typedef boost::uint8_t byte;
+
         // These types are implementation details. They are however
         // needed to provide the correct typedefs for the user
         // interface. Hiding these classes would incur a huge
         // additional indirection overhead.
 
-    public:
-        typedef boost::uint8_t byte;
-
     private:
-        typedef std::deque<byte> raw_container;
+        typedef std::vector<byte> raw_container;
         typedef boost::shared_ptr<Packet> interpreter_list_ptr;
         typedef std::list<interpreter_list_ptr> interpreter_list;
         typedef unsigned refcount_t;
+    public:
+        struct inplace_wrapper;
 
     public:
 
@@ -67,6 +71,8 @@ namespace pkf {
         typedef ptr_t<Packet>::ptr ptr;
         typedef raw_container::iterator iterator;
         typedef raw_container::size_type size_type;
+        typedef raw_container::difference_type difference_type;
+        typedef impl::deque_inserter<raw_container> inserter;
 
         // no public constructors
         // no copy
@@ -75,17 +81,20 @@ namespace pkf {
 
         ///////////////////////////////////////////////////////////////////////////
 
-        iterator begin() const;
-        iterator end() const;
-        size_t size() const;
+        // Interpreter chain navigation
 
         ptr next() const;
         ptr prev() const;
         ptr head() const;
         ptr last() const;
         
+        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr find_next();
+        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr find_prev();
+
         template <class OtherPacket> bool is() const;
         template <class OtherPacket> typename ptr_t<OtherPacket>::ptr as();
+
+        // Changing the interpreter chain
 
         template <class OtherPacket>
         typename ptr_t<OtherPacket>::ptr reinterpret();
@@ -95,8 +104,21 @@ namespace pkf {
 #       define BOOST_PP_ITERATION_PARAMS_1 (4, (2, 9, "Packet.mpp", 1))
 #       include BOOST_PP_ITERATE()
 
-        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr find_next();
-        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr find_prev();
+        // Raw data access
+
+        iterator begin() const;
+        iterator end() const;
+        size_t size() const;
+
+        // Modifying the raw packet data
+
+        void insert(iterator pos, byte v);
+        void insert(iterator pos, size_type n, byte v);
+        template <class InputIterator> 
+        void insert(iterator pos, InputIterator f, InputIterator l);
+
+        void erase(iterator pos);
+        void erase(iterator first, iterator last);
 
     private:
 
@@ -104,11 +126,9 @@ namespace pkf {
         virtual void v_finalize() = 0;
 
     protected:
-        // Construct a packet from external raw data
         template <class InputIterator>
         Packet(InputIterator begin, InputIterator end);
-        Packet(raw_container::iterator begin, raw_container::iterator end,
-               Packet const * parent);
+        Packet(inplace_wrapper begin, inplace_wrapper end);
         virtual ~Packet();
         
         template <class OtherPacket>
@@ -131,13 +151,15 @@ namespace pkf {
         void replaceInterpreter(Packet * p);
 
     public:
+        // If this is non-public, the access control gets far to
+        // complicated ...
         class PacketImpl;
     private:
         friend class PacketImpl;
 
         PacketImpl* impl_;
-        iterator begin_;
-        iterator end_;
+        size_type begin_;
+        size_type end_;
         interpreter_list::iterator self_;
         mutable bool parsed_;
         mutable refcount_t refcount_;
