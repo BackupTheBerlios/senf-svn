@@ -67,6 +67,13 @@ satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::size()
 }
 
 template <class Parser, class SizeParser, class Iterator, class IPacket>
+prefix_ bool satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::empty()
+    const
+{
+    return size()==0;
+}
+
+template <class Parser, class SizeParser, class Iterator, class IPacket>
 prefix_ 
 typename satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::iterator
 satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::begin()
@@ -109,6 +116,94 @@ satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::operator[](differ
     const
 {
     return begin()[i];
+}
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>
+
+template <class Parser, class SizeParser, class Container>
+template <class P, class SP, class I, class IP>
+prefix_ satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::
+Parse_Vector_wrapper(Parse_Vector<P,SP,I,IP> const & vector, Container & container)
+    : i_(vector.i()-container.begin()), size_i_(vector.size_.i()-container.begin()),
+      container_(container) 
+{}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ typename satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::size_type
+satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::size()
+    const
+{
+    return SizeParser(container_.begin()+size_i_).value();
+}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ bool satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::empty()
+    const
+{
+    return size() == 0;
+}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ typename satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::iterator
+satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::begin()
+    const
+{
+    return iterator(container_.begin() + i_);
+}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ typename satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::iterator
+satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::end()
+    const
+{
+    return iterator(container_.begin() + i_ + Parser::bytes()*size());
+}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ typename satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::range_type
+satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::range()
+    const
+{
+    return std::make_pair(begin(), end());
+}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ typename satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::value_type
+satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::operator[](difference_type i)
+    const
+{
+    return begin()[i];
+}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ void satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::shift(iterator pos,
+                                                                               size_type n)
+{
+    container_.insert(pos.raw(),n*Parser::bytes(),0);
+    SizeParser(container_.begin()+size_i_) += n;
+}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ void satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::erase(iterator pos,
+                                                                               size_type n)
+{
+    container_.erase(pos.raw(),pos.raw()+n*Parser::bytes());
+    SizeParser(container_.begin()+size_i_) -= n;
+}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ void satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::erase(iterator f,
+                                                                               iterator l)
+{
+    erase(f,l-f);
+}
+
+template <class Parser, class SizeParser, class Container>
+prefix_ void satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::clear()
+{
+    container_.erase(container_.begin()+i_,container_.begin()+i_+size()*Parser::bytes());
+    SizeParser(container_.begin()+size_i_) = 0;
 }
 
 ///////////////////////////////cti.e///////////////////////////////////////

@@ -39,7 +39,7 @@ namespace pkf {
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_Int8
 	: public impl::ParseIntOps<Parse_Int8<Iterator,IPacket>,boost::int8_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     { 
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_Int8<I,P> parser; };
@@ -63,7 +63,7 @@ namespace pkf {
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_UInt8
 	: public impl::ParseIntOps<Parse_UInt8<Iterator,IPacket>,boost::uint8_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_UInt8<I,P> parser; };
@@ -87,7 +87,7 @@ namespace pkf {
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_Int16
 	: public impl::ParseIntOps<Parse_Int16<Iterator,IPacket>,boost::int16_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_Int16<I,P> parser; };
@@ -111,7 +111,7 @@ namespace pkf {
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_UInt16
 	: public impl::ParseIntOps<Parse_UInt16<Iterator,IPacket>,boost::uint16_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_UInt16<I,P> parser; };
@@ -135,7 +135,7 @@ namespace pkf {
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_Int24
 	: public impl::ParseIntOps<Parse_Int24<Iterator,IPacket>,boost::int32_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_Int24<I,P> parser; };
@@ -160,7 +160,7 @@ namespace pkf {
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_UInt24
 	: public impl::ParseIntOps<Parse_UInt24<Iterator,IPacket>,boost::uint32_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_UInt24<I,P> parser; };
@@ -184,7 +184,7 @@ namespace pkf {
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_Int32
 	: public impl::ParseIntOps<Parse_Int32<Iterator,IPacket>,boost::int32_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_Int32<I,P> parser; };
@@ -208,7 +208,7 @@ namespace pkf {
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_UInt32
 	: public impl::ParseIntOps<Parse_UInt32<Iterator,IPacket>,boost::uint32_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_UInt32<I,P> parser; };
@@ -232,7 +232,7 @@ namespace pkf {
     template <unsigned start, unsigned end, class Iterator=nil, class IPacket=nil>
     struct Parse_IntField
 	: public impl::ParseIntOps<Parse_IntField<start,end,Iterator,IPacket>,boost::int32_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_IntField<start,end,I,P> parser; };
@@ -264,7 +264,7 @@ namespace pkf {
     template <unsigned start, unsigned end, class Iterator=nil, class IPacket=nil>
     struct Parse_UIntField
 	: public impl::ParseIntOps<Parse_UIntField<start,end,Iterator,IPacket>,boost::uint32_t>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_UIntField<start,end,I,P> parser; };
@@ -292,7 +292,7 @@ namespace pkf {
     template <unsigned bit, class Iterator=nil, class IPacket=nil>
     struct Parse_Flag
 	: public impl::ParseIntOps<Parse_Flag<bit,Iterator,IPacket>,bool>,
-          protected ParserBase<Iterator,IPacket>
+          public ParserBase<Iterator,IPacket>
     {
         template <class I=nil, class P=nil>
         struct rebind { typedef Parse_Flag<bit,I,P> parser; };

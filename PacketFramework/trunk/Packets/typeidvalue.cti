@@ -20,26 +20,40 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Definition of non-inline non-template functions
+// Definition of inline template functions
 
-#include "EthernetPacket.hh"
-//#include "EthernetPacket.ih"
+//#include "typeidvalue.ih"
 
 // Custom includes
 
-#define prefix_
-///////////////////////////////cc.p////////////////////////////////////////
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
 
-prefix_ void satcom::pkf::EthernetPacket::v_nextInterpreter()
-    const
-{
-    registerInterpreter(type(),begin()+bytes(),end());
-}
-
-prefix_ void satcom::pkf::EthernetPacket::v_finalize()
+template <class Type>
+prefix_ satcom::lib::TypeIdValue::TypeIdValue(Type *)
+    : value_(new ValueImpl<Type>()) 
 {}
 
-///////////////////////////////cc.e////////////////////////////////////////
+template <class Type>
+prefix_ std::type_info const & satcom::lib::TypeIdValue::ValueImpl<Type>::id()
+{
+    return typeid(Type);
+}
+
+template <class Type>
+prefix_ satcom::lib::TypeIdValue::Value *
+satcom::lib::TypeIdValue::ValueImpl<Type>::clone()
+{
+    return new ValueImpl<Type>();
+}
+
+template <class Type>
+prefix_ satcom::lib::TypeIdValue const satcom::lib::typeIdValue()
+{
+    return TypeIdValue(static_cast<Type*>(0));
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_
 
 

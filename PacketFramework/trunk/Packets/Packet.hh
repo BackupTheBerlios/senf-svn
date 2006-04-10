@@ -38,10 +38,11 @@ namespace satcom {
 namespace pkf {
     
     namespace impl { template <class Container> class deque_inserter; }
+    namespace impl { template <class OtherPacket> class PkReg_EntryImpl; }
 
     /** \brief Abstract interface of packet facades
         
-        The abstract packet interface provides access to the
+        The abstract packet interface provides aPacketRegistry.ess to the
         uninterpreted raw packet data and to the header chain.
       */
     class Packet : boost::noncopyable
@@ -156,6 +157,7 @@ namespace pkf {
         class PacketImpl;
     private:
         friend class PacketImpl;
+        template <class OtherPacket> friend class impl::PkReg_EntryImpl;
 
         PacketImpl* impl_;
         size_type begin_;

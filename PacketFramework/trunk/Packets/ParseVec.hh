@@ -26,6 +26,7 @@
 // Custom includes
 #include <utility> // for std::pair
 #include <boost/iterator/iterator_facade.hpp>
+#include <boost/utility.hpp> // for boost::noncopyable
 #include "ParserBase.hh"
 #include "ParseArray.hh" // for Parse_Array_iterator
 
@@ -35,8 +36,10 @@
 namespace satcom {
 namespace pkf {
 
+    template <class Parser, class SizeParser, class Container> class Parse_Vector_wrapper;
+
     template <class Parser, class SizeParser, class Iterator=nil, class IPacket=nil>
-    struct Parse_Vector : protected ParserBase<Iterator,IPacket>
+    struct Parse_Vector : public ParserBase<Iterator,IPacket>
     {
         typedef typename SizeParser::template rebind<Iterator>::parser size_parser;
 
@@ -44,11 +47,11 @@ namespace pkf {
         // Parser interface
 
         template <class I=nil, class P=nil> 
-        struct rebind { typedef Parse_Vector<Parser,I,P> parser; };
+        struct rebind { typedef Parse_Vector<Parser,SizeParser,I,P> parser; };
         typedef Iterator byte_iterator;
-
+        
         Parse_Vector(SizeParser const & size);
-        explicit Parse_Vector(size_parser const & size, Iterator const & i);
+        Parse_Vector(size_parser const & size, Iterator const & i);
         
         unsigned bytes() const;
         void init() const;
@@ -62,7 +65,11 @@ namespace pkf {
         typedef int difference_type;
         typedef std::pair<iterator,iterator> range_type;
 
+        template <class Container>
+        struct wrapper { typedef Parse_Vector_wrapper<value_type, size_parser, Container> t; };
+
         size_type size() const;
+        bool empty() const;
 
         iterator begin() const;
         iterator end() const;
@@ -71,15 +78,92 @@ namespace pkf {
 
         value_type operator[](difference_type i) const;
 
-    private:
+     private:
         size_parser size_;
+        
+        template <class P, class SP, class C> friend class Parse_Vector_wrapper;
+    };
+
+    /** \brief
+        
+        Holds a reference to the container !
+      */
+    template <class Parser, class SizeParser, class Container>
+    class Parse_Vector_wrapper
+        : public boost::noncopyable
+    {
+    public:
+        ///////////////////////////////////////////////////////////////////////////
+        // Types
+
+        typedef Container container;
+        typedef SizeParser size_parser;
+        typedef typename Parser::byte_iterator byte_iterator;
+        typedef Parser value_type;
+        typedef impl::Parse_Array_iterator<value_type,byte_iterator> iterator;
+        typedef unsigned size_type;
+        typedef int difference_type;
+        typedef std::pair<iterator,iterator> range_type;
+
+        ///////////////////////////////////////////////////////////////////////////
+        ///\name Structors and default members
+        ///@{
+
+        template <class P, class SP, class I, class IP>
+        Parse_Vector_wrapper(Parse_Vector<P,SP,I,IP> const & vector, Container & container);
+
+        // no default constructor
+        // no copy
+        // default destructor
+        // no conversion constructors
+
+        ///@}
+        ///////////////////////////////////////////////////////////////////////////
+        ///\name APacketRegistry.essors
+        ///@{
+
+        size_type size() const;
+        bool empty() const;
+
+        iterator begin() const;
+        iterator end() const;
+        range_type range() const;
+
+        value_type operator[](difference_type i) const;
+
+        ///@}
+        ///////////////////////////////////////////////////////////////////////////
+        ///\name Mutators
+        ///@{
+
+        void shift(iterator pos, size_type n=1); 
+        template <class Value>
+        void insert(iterator pos, Value const & t); 
+        template <class Value>
+        void insert(iterator pos, size_type n, Value const & t); 
+        template <class InputIterator>
+        void insert(iterator pos, InputIterator f, InputIterator l); 
+        
+        void erase(iterator pos, size_type n=1); 
+        void erase(iterator f, iterator l); 
+        void clear(); 
+
+        ///@}
+
+    protected:
+
+    private:
+        
+        size_type i_;
+        size_type size_i_;
+        Container & container_;
     };
 
 }}
 
 ///////////////////////////////hh.e////////////////////////////////////////
 //#include "ParseVec.cci"
-//#include "ParseVec.ct"
+#include "ParseVec.ct"
 #include "ParseVec.cti"
 #endif
 

@@ -22,13 +22,13 @@
 
 // Definition of inline template functions
 
-//#include "ParseArray.ih"
+#include "ParseArray.ih"
 
 // Custom includes
 #include <algorithm> // for std::copy_n
 
 #define prefix_ inline
-///////////////////////////////cti.p///////////////////////////////////////
+///////////////////////////////PacketRegistry..p///////////////////////////////////////
 
 template <unsigned elements, class Parser, class Iterator, class IPacket>
 prefix_ satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::Parse_Array()
@@ -112,6 +112,13 @@ satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::operator=(InputItera
 }
 
 ///////////////////////////////////////////////////////////////////////////
+
+template <class Parser, class Iterator>
+prefix_ Iterator satcom::pkf::impl::Parse_Array_iterator<Parser,Iterator>::raw()
+    const
+{
+    return i_;
+}
 
 template <class Parser, class Iterator>
 prefix_ Parser satcom::pkf::impl::Parse_Array_iterator<Parser,Iterator>::operator[](int i)

@@ -25,7 +25,6 @@
 
 // Custom includes
 #include <utility> // for std::pair
-#include <boost/iterator/iterator_facade.hpp>
 #include "ParserBase.hh"
 
 //#include "ParseArray.mpp"
@@ -39,7 +38,7 @@ namespace pkf {
     /* Parse_Array has the external interface of a container class
      */
     template <unsigned elements, class Parser, class Iterator=nil, class IPacket=nil>
-    struct Parse_Array : protected ParserBase<Iterator,IPacket>
+    struct Parse_Array : public ParserBase<Iterator,IPacket>
     {
         ///////////////////////////////////////////////////////////////////////////
         // Parser interface
@@ -76,35 +75,6 @@ namespace pkf {
         Parse_Array const & operator= (InputIterator const & i);
     };
 
-    template <class Parser, class Iterator>
-    class impl::Parse_Array_iterator
-        : public boost::iterator_facade< Parse_Array_iterator<Parser,Iterator>,
-                                         Parser,
-                                         boost::random_access_traversal_tag,
-                                         Parser >
-    {
-    public:
-        Parse_Array_iterator();
-        explicit Parse_Array_iterator(Iterator const & i);
-
-        // Needed to elide the []-proxy of iterator_facade
-        Parser operator[](int i) const;
-
-    protected:
-
-    private:
-        friend class boost::iterator_core_access;
-
-        Parser dereference() const;
-        bool equal(Parse_Array_iterator const & other) const;
-        int distance_to(Parse_Array_iterator const & other) const;
-        void increment();
-        void decrement();
-        void advance(int n);
-
-        Iterator i_;
-    };
-        
 }}
 
 ///////////////////////////////hh.e////////////////////////////////////////

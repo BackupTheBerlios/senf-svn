@@ -27,6 +27,7 @@
 #include "Packet.hh"
 #include "ParseInt.hh"
 #include "ParseArray.hh"
+#include "PacketRegistry.hh"
 
 //#include "EthernetPacket.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
@@ -35,7 +36,7 @@ namespace satcom {
 namespace pkf {
     
     template <class Iterator=nil, class IPacket=nil>
-    struct Parse_Ethernet : protected ParserBase<Iterator,IPacket>
+    struct Parse_Ethernet : public ParserBase<Iterator,IPacket>
     {
         template <class I, class P=nil>
         struct rebind { typedef Parse_Ethernet<I,P> parser; };
@@ -49,24 +50,29 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
 
         typedef Parse_Array< 6, Parse_UInt8<>, Iterator > Parse_MAC;
-        typedef Parse_UInt16<Iterator>                    Parse_Type;
+        typedef Parse_UInt16< Iterator >                  Parse_Type;
         
-        Parse_MAC  destination() { return Parse_MAC  (i() ); }
-        Parse_MAC  source()      { return Parse_MAC  (i() + Parse_MAC::size() ); }
-        Parse_Type type()        { return Parse_Type (i() + 2*Parse_MAC::size() ); }
+        Parse_MAC  destination() const { return Parse_MAC  (i() ); }
+        Parse_MAC  source()      const { return Parse_MAC  (i() + Parse_MAC::size() ); }
+        Parse_Type type()        const { return Parse_Type (i() + 2*Parse_MAC::size() ); }
 
         void init() { 
-            destination().init(); 
-            source().init(); 
+            destination().init();
+            source().init();
             type().init();
         }
     };
 
-    /** \brief
-      */
+    struct EtherTypes {
+        typedef boost::uint16_t key_t;
+    };
+
     class EthernetPacket
-        : public Packet, public Parse_Ethernet<Packet::iterator, EthernetPacket>
+        : public Packet, 
+          public Parse_Ethernet<Packet::iterator, EthernetPacket>, 
+          public PacketRegistryMixin<EtherTypes,EthernetPacket>
     {
+        using PacketRegistryMixin<EtherTypes,EthernetPacket>::registerInterpreter;
     public:
         ///////////////////////////////////////////////////////////////////////////
         // Types
@@ -85,8 +91,6 @@ namespace pkf {
 
         ///@}
 
-    protected:
-
     private:
         template <class InputIterator>
         EthernetPacket(InputIterator begin, InputIterator end);
@@ -96,7 +100,6 @@ namespace pkf {
 
         friend class Packet;
     };
-
 
 }}
 

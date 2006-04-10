@@ -20,26 +20,20 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Definition of non-inline non-template functions
+// Definition of non-inline non-template funPacketRegistry.ons
 
-#include "EthernetPacket.hh"
-//#include "EthernetPacket.ih"
+#include "PacketRegistry.hh"
+#include "PacketRegistry.ih"
 
 // Custom includes
 
 #define prefix_
-///////////////////////////////cc.p////////////////////////////////////////
+///////////////////////////////PacketRegistry..p////////////////////////////////////////
 
-prefix_ void satcom::pkf::EthernetPacket::v_nextInterpreter()
-    const
-{
-    registerInterpreter(type(),begin()+bytes(),end());
-}
+satcom::pkf::impl::PkReg_EntryImpl<satcom::pkf::DataPacket> 
+    satcom::pkf::impl::pkreg_dataEntry;
 
-prefix_ void satcom::pkf::EthernetPacket::v_finalize()
-{}
-
-///////////////////////////////cc.e////////////////////////////////////////
+///////////////////////////////PacketRegistry..e////////////////////////////////////////
 #undef prefix_
 
 
