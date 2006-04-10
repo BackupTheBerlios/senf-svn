@@ -41,6 +41,18 @@ prefix_ satcom::pkf::EthernetPacket::EthernetPacket(InputIterator begin, InputIt
     : Packet(begin, end)
 {}
 
+template <class InputIterator>
+prefix_ satcom::pkf::EthVLanPacket::ptr satcom::pkf::EthVLanPacket::create(InputIterator begin,
+                                                                           InputIterator end)
+{
+    return ptr(new EthVLanPacket(begin,end), false);
+}
+
+template <class InputIterator>
+prefix_ satcom::pkf::EthVLanPacket::EthVLanPacket(InputIterator begin, InputIterator end)
+    : Packet(begin, end)
+{}
+
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_
 

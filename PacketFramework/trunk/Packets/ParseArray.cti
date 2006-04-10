@@ -28,7 +28,7 @@
 #include <algorithm> // for std::copy_n
 
 #define prefix_ inline
-///////////////////////////////PacketRegistry..p///////////////////////////////////////
+///////////////////////////////cti.p///////////////////////////////////////
 
 template <unsigned elements, class Parser, class Iterator, class IPacket>
 prefix_ satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::Parse_Array()

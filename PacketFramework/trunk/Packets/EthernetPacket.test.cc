@@ -61,6 +61,27 @@ BOOST_AUTO_UNIT_TEST(ethernetPacket_packet)
     BOOST_CHECK_EQUAL( p->type(), 0x1011 );
 }
 
+BOOST_AUTO_UNIT_TEST(ethernetPacket_chain)
+{
+    unsigned char data[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,  // destination MAC
+                             0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C,  // source MAC
+                             0x81, 0x00,                          // EtherType: VLan
+                             0x92, 0x34,                          // VLAN prio, cfi, id
+                             0xab, 0xcd,                          // EtherType
+                             0xf0, 0xf1, 0xf2, 0xf3, 0xf4 };      // Payload
+
+    EthernetPacket::ptr p (EthernetPacket::create(data, data+sizeof(data)));
+
+    BOOST_CHECK( p->next()->is<EthVLanPacket>() );
+    EthVLanPacket::ptr v (p->next()->as<EthVLanPacket>());
+    BOOST_CHECK_EQUAL( v->priority(), 4u );
+    BOOST_CHECK( v->cfi() );
+    BOOST_CHECK_EQUAL( v->vlanId(), 0x234u );
+    BOOST_CHECK_EQUAL( v->type(), 0xabcd );
+    BOOST_CHECK( v->next()->is<DataPacket>() );
+    BOOST_CHECK_EQUAL( *v->next()->begin(), 0xf0 );
+}
+
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
 

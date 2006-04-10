@@ -49,8 +49,8 @@ namespace pkf {
         
         ///////////////////////////////////////////////////////////////////////////
 
-        typedef Parse_Array< 6, Parse_UInt8<>, Iterator > Parse_MAC;
-        typedef Parse_UInt16< Iterator >                  Parse_Type;
+        typedef Parse_Array  < 6, Parse_UInt8<>, Iterator > Parse_MAC;
+        typedef Parse_UInt16 < Iterator  >                  Parse_Type;
         
         Parse_MAC  destination() const { return Parse_MAC  (i() ); }
         Parse_MAC  source()      const { return Parse_MAC  (i() + Parse_MAC::size() ); }
@@ -94,6 +94,65 @@ namespace pkf {
     private:
         template <class InputIterator>
         EthernetPacket(InputIterator begin, InputIterator end);
+
+        virtual void v_nextInterpreter() const;
+        virtual void v_finalize();
+
+        friend class Packet;
+    };
+
+    template <class Iterator=nil, class IPacket=nil>
+    struct Parse_EthVLan : public ParserBase<Iterator,IPacket>
+    {
+        template <class I, class P=nil>
+        struct rebind { typedef Parse_Ethernet<I,P> parser; };
+        typedef Iterator byte_iterator;
+
+        Parse_EthVLan() {}
+        Parse_EthVLan(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
+
+        static unsigned bytes() { return 4; }
+        
+        ///////////////////////////////////////////////////////////////////////////
+        
+        typedef Parse_UIntField < 0,  3, Iterator > Parse_Priority;
+        typedef Parse_Flag          < 3, Iterator > Parse_CFI;
+        typedef Parse_UIntField < 4, 16, Iterator > Parse_VLanId;
+        typedef Parse_UInt16           < Iterator > Parse_Type;
+
+        Parse_Priority priority() const { return Parse_Priority(i()); }
+        Parse_CFI      cfi()      const { return Parse_CFI(i()); }
+        Parse_VLanId   vlanId()   const { return Parse_VLanId(i()); }
+        Parse_Type     type()     const { return Parse_Type(i()+2); }
+    };
+
+    class EthVLanPacket
+        : public Packet,
+          public Parse_EthVLan<Packet::iterator, EthVLanPacket>,
+          public PacketRegistryMixin<EtherTypes, EthVLanPacket>
+    {
+        using PacketRegistryMixin<EtherTypes, EthVLanPacket>::registerInterpreter;
+    public:
+        ///////////////////////////////////////////////////////////////////////////
+        // Types
+
+        typedef ptr_t<EthVLanPacket>::ptr ptr;
+
+        ///////////////////////////////////////////////////////////////////////////
+        ///\name Structors and default members
+        ///@{
+
+        // no public constructors
+        // no conversion constructors
+        
+        template <class InputIterator>
+        static ptr create(InputIterator begin, InputIterator end);        
+
+        ///@}
+
+    private:
+        template <class InputIterator>
+        EthVLanPacket(InputIterator begin, InputIterator end);
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();

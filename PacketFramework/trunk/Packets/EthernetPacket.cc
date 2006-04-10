@@ -30,6 +30,12 @@
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
+namespace {
+    namespace pkf = satcom::pkf;
+    pkf::PacketRegistry<pkf::EtherTypes>::RegistrationProxy<pkf::EthVLanPacket> 
+        registerEthVLanPacket(0x8100);
+}
+
 prefix_ void satcom::pkf::EthernetPacket::v_nextInterpreter()
     const
 {
@@ -37,6 +43,15 @@ prefix_ void satcom::pkf::EthernetPacket::v_nextInterpreter()
 }
 
 prefix_ void satcom::pkf::EthernetPacket::v_finalize()
+{}
+
+prefix_ void satcom::pkf::EthVLanPacket::v_nextInterpreter()
+    const
+{
+    registerInterpreter(type(),begin()+bytes(),end());
+}
+
+prefix_ void satcom::pkf::EthVLanPacket::v_finalize()
 {}
 
 ///////////////////////////////cc.e////////////////////////////////////////

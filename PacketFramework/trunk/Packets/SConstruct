@@ -56,7 +56,6 @@ env = Environment(
 
 ###########################################################################
 
-print sources
 objects = env.Object( sources )
 
 Default(env.BoostUnitTests(
