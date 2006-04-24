@@ -65,7 +65,7 @@
 // removed from the interpreters list.
 prefix_ void satcom::pkf::impl::ListPacketDeleter::operator()(Packet * p)
 {
-    Packet::PacketImpl * impl = satcom::pkf::Packet::PacketImpl::impl(p);
+    PacketImpl * impl = PacketImpl::impl(p);
     if (impl->releaseInterpreter(p))
         delete impl;
 }
@@ -73,7 +73,7 @@ prefix_ void satcom::pkf::impl::ListPacketDeleter::operator()(Packet * p)
 // struct PacketImpl
 
 prefix_ satcom::pkf::Packet::interpreter_list::iterator
-satcom::pkf::Packet::PacketImpl::appendInterpreter(Packet * p)
+satcom::pkf::impl::PacketImpl::appendInterpreter(Packet * p)
 {
     BOOST_ASSERT( p->impl_ == 0 );
     
@@ -88,7 +88,7 @@ satcom::pkf::Packet::PacketImpl::appendInterpreter(Packet * p)
 }
 
 prefix_ satcom::pkf::Packet::interpreter_list::iterator
-satcom::pkf::Packet::PacketImpl::prependInterpreter(Packet * p)
+satcom::pkf::impl::PacketImpl::prependInterpreter(Packet * p)
 {
     BOOST_ASSERT( p->impl_ == 0 );
 
@@ -104,7 +104,7 @@ satcom::pkf::Packet::PacketImpl::prependInterpreter(Packet * p)
 
 // Called, whenever a Packet is removed from the list by the
 // ListPacketDeleter;
-prefix_ bool satcom::pkf::Packet::PacketImpl::releaseInterpreter(Packet * p)
+prefix_ bool satcom::pkf::impl::PacketImpl::releaseInterpreter(Packet * p)
 {
     // We have to be extra careful here: This method might be called
     // AFTER the PacketImpl instance has already been destructed while
@@ -124,11 +124,11 @@ prefix_ bool satcom::pkf::Packet::PacketImpl::releaseInterpreter(Packet * p)
     return rv;
 }
 
-prefix_ void satcom::pkf::Packet::PacketImpl::updateIterators(size_type index,
-                                                              difference_type n)
+prefix_ void satcom::pkf::impl::PacketImpl::updateIterators(Packet::size_type index,
+                                                            Packet::difference_type n)
 {
-    interpreter_list::iterator i (interpreters_.begin());
-    interpreter_list::iterator e (interpreters_.end());
+    Packet::interpreter_list::iterator i (interpreters_.begin());
+    Packet::interpreter_list::iterator e (interpreters_.end());
     for (;i!=e;++i) {
         if ((*i)->end_ > index) 
             if (n<0 && (*i)->end_ < index-n)
@@ -143,14 +143,14 @@ prefix_ void satcom::pkf::Packet::PacketImpl::updateIterators(size_type index,
     }
 }
 
-prefix_ void satcom::pkf::Packet::PacketImpl::packet_add_ref(Packet const * p)
+prefix_ void satcom::pkf::impl::PacketImpl::packet_add_ref(Packet const * p)
 {
     p->add_ref();
     if (p->impl_)
         p->impl_->add_ref();
 }
 
-prefix_ void satcom::pkf::Packet::PacketImpl::packet_release(Packet * p)
+prefix_ void satcom::pkf::impl::PacketImpl::packet_release(Packet * p)
 { 
     bool del (p->release());
     if (p->impl_ && p->impl_->release())
@@ -213,7 +213,7 @@ prefix_ void satcom::pkf::Packet::replaceInterpreter(Packet * p)
     BOOST_ASSERT( !p->impl_ );
     // We need to increment the refcount of impl_ beforehand,
     // otherwise it might get deleted by the truncateInterpreters call
-    boost::intrusive_ptr<PacketImpl> impl (this->impl_,true);
+    boost::intrusive_ptr<impl::PacketImpl> impl (this->impl_,true);
     impl->truncateInterpreters(this);
     impl->appendInterpreter(p);
 }

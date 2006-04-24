@@ -68,7 +68,7 @@ prefix_ satcom::pkf::Packet::Packet(InputIterator begin, InputIterator end)
       parsed_(false), refcount_(1)
 {
     SATCOM_PKF_REFC_MSG("] Packet::Packet (" << this << "): refcount_ = 1\n");
-    boost::intrusive_ptr<PacketImpl> impl (new PacketImpl(begin,end), false);
+    boost::intrusive_ptr<impl::PacketImpl> impl (new impl::PacketImpl(begin,end), false);
     this->begin_ = 0;
     this->end_ = impl->data_.size();
     // This increments the PacketImpl refcount ...

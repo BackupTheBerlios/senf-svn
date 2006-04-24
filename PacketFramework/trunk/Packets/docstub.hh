@@ -20,37 +20,37 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Definition of inline template functions
-
-#include "Packet.ih"
+#ifndef HH_docstub_
+#define HH_docstub_ 1
 
 // Custom includes
 
-#define prefix_ inline
-///////////////////////////////cti.p///////////////////////////////////////
+//#include "docstub.mpp"
+///////////////////////////////hh.p////////////////////////////////////////
 
-template <typename OtherPacket>
-prefix_ bool satcom::pkf::Packet::is()
-    const
-{
-    return dynamic_cast<OtherPacket const *>(this);
+namespace boost {
+
+    struct noncopyable {};
+    template <class Derived> struct totally_ordered {};
+    template <class Derived, class Value, class Traversal, class Reference> struct iterator_facade {};
+    template <class T> struct intrusive_ptr { T * ptr; };
+    template <class T> struct shared_ptr { T * ptr; };
+    
 }
 
-template <typename OtherPacket>
-prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packet::as()
-{
-    return ptr_t<OtherPacket>::ptr(dynamic_cast<OtherPacket*>(this),true);
+namespace std {
+
+    struct exception {};
+    template <class T> struct vector { T * elements; };
+    template <class T> struct list { T * elements; };
+    
 }
 
-template <class InputIterator>
-prefix_ satcom::pkf::impl::PacketImpl::PacketImpl(InputIterator begin, InputIterator end)
-    : data_(begin, end), interpreters_(), refcount_(1)
-{
-    SATCOM_PKF_REFC_MSG("] PacketImpl::PacketImpl (" << this << "): refcount_ = 1\n");
-}
-
-///////////////////////////////cti.e///////////////////////////////////////
-#undef prefix_
+///////////////////////////////hh.e////////////////////////////////////////
+//#include "docstub.cci"
+//#include "docstub.ct"
+//#include "docstub.cti"
+#endif
 
 
 // Local Variables:

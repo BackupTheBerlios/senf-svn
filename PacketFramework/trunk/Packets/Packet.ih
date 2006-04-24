@@ -54,45 +54,45 @@ namespace pkf {
             void operator()(Packet * p);
         };
 
+        struct PacketImpl
+        {
+            Packet::raw_container data_;
+            Packet::interpreter_list interpreters_;
+            Packet::refcount_t refcount_;
+
+            PacketImpl();
+            ~PacketImpl();
+            template <class InputIterator>
+            PacketImpl(InputIterator begin, InputIterator end);
+
+            void add_ref();
+            bool release();
+
+            Packet::interpreter_list::iterator appendInterpreter(Packet * p);
+            Packet::interpreter_list::iterator prependInterpreter(Packet * p);
+            bool releaseInterpreter(Packet * p);
+            void truncateInterpreters(Packet const * p);
+            void truncateInterpretersAfter(Packet const * p);
+
+            void updateIterators(Packet::size_type index, Packet::difference_type n);
+
+            ///////////////////////////////////////////////////////////////////////////
+            // These are here to simplify the friend declaration in Packet
+
+            static void packet_add_ref(Packet const * p);
+            static void packet_release(Packet * p);
+            static PacketImpl* impl(Packet const * p);
+            static Packet::interpreter_list::iterator self(Packet const * p);
+        };
+
+        // These methods are used internally to keep PacketImpl_ alive during
+        // method invocations
+        void intrusive_ptr_add_ref(PacketImpl * p);
+        void intrusive_ptr_release(PacketImpl * p);
+
     }
 
-    // These methods are used internally to keep PacketImpl_ alive during
-    // method invocations
-    void intrusive_ptr_add_ref(Packet::PacketImpl * p);
-    void intrusive_ptr_release(Packet::PacketImpl * p);
-
 }}
-
-struct satcom::pkf::Packet::PacketImpl
-{
-    raw_container data_;
-    interpreter_list interpreters_;
-    refcount_t refcount_;
-
-    PacketImpl();
-    ~PacketImpl();
-    template <class InputIterator>
-    PacketImpl(InputIterator begin, InputIterator end);
-
-    void add_ref();
-    bool release();
-
-    interpreter_list::iterator appendInterpreter(Packet * p);
-    interpreter_list::iterator prependInterpreter(Packet * p);
-    bool releaseInterpreter(Packet * p);
-    void truncateInterpreters(Packet const * p);
-    void truncateInterpretersAfter(Packet const * p);
-
-    void updateIterators(size_type index, difference_type n);
-
-    ///////////////////////////////////////////////////////////////////////////
-    // These are here to simplify the friend declaration in Packet
-
-    static void packet_add_ref(Packet const * p);
-    static void packet_release(Packet * p);
-    static PacketImpl* impl(Packet const * p);
-    static interpreter_list::iterator self(Packet const * p);
-};
 
 struct satcom::pkf::Packet::inplace_wrapper
 {

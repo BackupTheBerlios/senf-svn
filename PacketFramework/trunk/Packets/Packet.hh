@@ -20,6 +20,80 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+/** \mainpage The SatCom Packet Framework
+
+    \section arch Overall Architecture
+
+    The general Architecture of the Packet Framework (pkf for short)
+    is seperated into two components: The basic packet handling and
+    the parser framework.
+
+    The basic packet handling implements a packet interpreter
+    chain. Every packet is represented as a chain of interpreters
+    where each interpreter is a facade looking into the same
+    packet. Each interpreter will interpret a specific header of a
+    packet. For example, an ethernet frame might have an interpreter
+    chain consisting of EthernetPacket, IPPacket, UDPPacket and
+    DataPacket. Each of these interpreters will interpret a section of
+    the raw data bytes. The interpreter ranges overlap since every
+    packet also includes it's payload.
+
+    The parser framework is used to interpret the raw bytes of a
+    specific packet and parse the values present in that packet. For
+    example, Parse_Ethernet will parse the ethernet source MAC,
+    destination MAC and ethertype given any random access iterator to
+    the first byte of the ethernet frame. Parsers are extremely light
+    classes. They are temporary classes passed around by value. In
+    most cases, they are just comprised of a single pointer adorned
+    with type information.
+
+    \section handling Packet Handling
+
+    The packet handling is implemented within
+    satcom::pkf::Packet. This class is the baseclass to all packet
+    interpreter facades. To implement a new packet type, publically
+    derive from satcom::pkf::Packet and implement the virtual
+    interface (see the class documentation for details).
+
+    \section framework Parser Framework
+
+    The parser framework provides an abstract framwork to parse packet
+    oriented data. A Parser is a template class taking an arbitrary
+    iterator as input and allowing random access to data elements of
+    the interpreted type, like source and destination MAC of an
+    ethernet frame. The parser framework is to be used hierarchically
+    and recursively, the parser methods should return further parsers
+    which can return further parsers and so on.
+
+    The parser framework contains some basic parsers to be used to
+    build up more complex parsers:
+
+     - ParseInt.hh: Lots of parsers for integer numbers like
+       satcom::pkf::Parse_UInt8, for integer bitfields like
+       satcom::pkf::Parse_UIntField and satcom::pkf::Parse_Flag to
+       parse boolean flags.
+
+     - ParseArray.hh: The satcom::pkf::Parse_Array parser to parse
+       arbitrary fixed-size arrays of fixed-size elements (that is
+       sub-parsers).
+
+     - ParseVec.hh: The satcom::pkf::Parse_Vector parser to parse
+       dynamically sized arrays of fixed-size elements (that is
+       sub-parsers).
+
+    \section stuff Other Utilities
+
+    The pkf also comprises some additional utilities to support the
+    development of packet classes. 
+
+    The satcom::pkf::PacketRegistry implements a registry of packets
+    keyed by an arbitrary type. The registry is used to find a packet
+    type given some kind of id (like the ethertype value from the
+    ethernet header). Together with it's support classes (especially
+    satcom::pkf::PacketRegistryMixin) this class greatly simplifies
+    implementing the needed table lookups.
+ */
+
 #ifndef HH_Packet_
 #define HH_Packet_ 1
 
@@ -37,12 +111,12 @@
 namespace satcom {
 namespace pkf {
     
-    namespace impl { template <class Container> class deque_inserter; }
     namespace impl { template <class OtherPacket> class PkReg_EntryImpl; }
+    namespace impl { class PacketImpl; }
 
     /** \brief Abstract interface of packet facades
         
-        The abstract packet interface provides aPacketRegistry.ess to the
+        The abstract packet interface provides access to the
         uninterpreted raw packet data and to the header chain.
       */
     class Packet : boost::noncopyable
@@ -58,7 +132,7 @@ namespace pkf {
     private:
         typedef std::vector<byte> raw_container;
         typedef boost::shared_ptr<Packet> interpreter_list_ptr;
-        typedef std::list<interpreter_list_ptr> interpreter_list;
+        typedef std::list<satcom::pkf::Packet::interpreter_list_ptr > interpreter_list;
         typedef unsigned refcount_t;
     public:
         struct inplace_wrapper;
@@ -73,7 +147,6 @@ namespace pkf {
         typedef raw_container::iterator iterator;
         typedef raw_container::size_type size_type;
         typedef raw_container::difference_type difference_type;
-        typedef impl::deque_inserter<raw_container> inserter;
 
         // no public constructors
         // no copy
@@ -151,15 +224,11 @@ namespace pkf {
         void registerInterpreter(Packet * p) const;
         void replaceInterpreter(Packet * p);
 
-    public:
-        // If this is non-public, the access control gets far to
-        // complicated ...
-        class PacketImpl;
     private:
-        friend class PacketImpl;
+        friend class impl::PacketImpl;
         template <class OtherPacket> friend class impl::PkReg_EntryImpl;
 
-        PacketImpl* impl_;
+        impl::PacketImpl* impl_;
         size_type begin_;
         size_type end_;
         interpreter_list::iterator self_;

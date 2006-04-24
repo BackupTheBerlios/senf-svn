@@ -29,13 +29,13 @@
 #define prefix_ inline
 ///////////////////////////////cci.p///////////////////////////////////////
 
-prefix_ satcom::pkf::Packet::PacketImpl::PacketImpl()
+prefix_ satcom::pkf::impl::PacketImpl::PacketImpl()
     : data_(), interpreters_(), refcount_(1)
 {
     SATCOM_PKF_REFC_MSG("] PacketImpl::PacketImpl (" << this << "): refcount_ = 1\n");
 }
 
-prefix_ satcom::pkf::Packet::PacketImpl::~PacketImpl()
+prefix_ satcom::pkf::impl::PacketImpl::~PacketImpl()
 {
     BOOST_ASSERT( !refcount_ );
     SATCOM_PKF_REFC_MSG("] PacketImpl::~PacketImpl (" << this << ")\n");
@@ -43,13 +43,13 @@ prefix_ satcom::pkf::Packet::PacketImpl::~PacketImpl()
 
 // PacketImpl::add_ref and PacketImpl::release are only called from
 // intrusive_ptr_add_ref and intrusive_ptr_release
-prefix_ void satcom::pkf::Packet::PacketImpl::add_ref()
+prefix_ void satcom::pkf::impl::PacketImpl::add_ref()
 { 
     ++refcount_;
     SATCOM_PKF_REFC_MSG("] PacketImpl::add_ref (" << this << "): refcount_ = " << refcount_ << "\n");
 }
 
-prefix_ bool satcom::pkf::Packet::PacketImpl::release()
+prefix_ bool satcom::pkf::impl::PacketImpl::release()
 { 
     BOOST_ASSERT( refcount_ > 0 );
     --refcount_;
@@ -57,19 +57,19 @@ prefix_ bool satcom::pkf::Packet::PacketImpl::release()
     return ! refcount_;
 }
 
-prefix_ void satcom::pkf::Packet::PacketImpl::truncateInterpreters(Packet const * p)
+prefix_ void satcom::pkf::impl::PacketImpl::truncateInterpreters(Packet const * p)
 {
     BOOST_ASSERT( p->impl_ == this );
     this->interpreters_.erase(p->self_,this->interpreters_.end());
 }
 
-prefix_ void satcom::pkf::Packet::PacketImpl::truncateInterpretersAfter(Packet const * p)
+prefix_ void satcom::pkf::impl::PacketImpl::truncateInterpretersAfter(Packet const * p)
 {
     BOOST_ASSERT( p->impl_ == this );
     this->interpreters_.erase(boost::next(p->self_),this->interpreters_.end());
 }
 
-prefix_ satcom::pkf::Packet::PacketImpl* satcom::pkf::Packet::PacketImpl::impl(Packet const * p)
+prefix_ satcom::pkf::impl::PacketImpl* satcom::pkf::impl::PacketImpl::impl(Packet const * p)
 {
     return p->impl_;
 }
@@ -78,20 +78,20 @@ prefix_ satcom::pkf::Packet::PacketImpl* satcom::pkf::Packet::PacketImpl::impl(P
 // refcount both the Packet and the owning PacketImpl. 
 prefix_ void satcom::pkf::intrusive_ptr_add_ref(Packet const * p)
 {
-    Packet::PacketImpl::packet_add_ref(p);
+    impl::PacketImpl::packet_add_ref(p);
 }
 
 prefix_ void satcom::pkf::intrusive_ptr_release(Packet * p)
 {
-    Packet::PacketImpl::packet_release(p);
+    impl::PacketImpl::packet_release(p);
 }
 
-prefix_ void satcom::pkf::intrusive_ptr_add_ref(Packet::PacketImpl * p)
+prefix_ void satcom::pkf::impl::intrusive_ptr_add_ref(PacketImpl * p)
 {
     p->add_ref();
 }
 
-prefix_ void satcom::pkf::intrusive_ptr_release(Packet::PacketImpl * p)
+prefix_ void satcom::pkf::impl::intrusive_ptr_release(PacketImpl * p)
 {
     if (p->release())
         delete p;
