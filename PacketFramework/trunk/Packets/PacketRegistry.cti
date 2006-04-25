@@ -42,7 +42,7 @@ template <class OtherPacket>
 prefix_ satcom::pkf::PacketRegistry<Tag>::RegistrationProxy<OtherPacket>::
 RegistrationProxy(typename Tag::key_t key)
 {
-    PacketRegistry<Tag>::registerPacket<OtherPacket>(key);
+    PacketRegistry<Tag>::template registerPacket<OtherPacket>(key);
 }
 
 template <class Tag>

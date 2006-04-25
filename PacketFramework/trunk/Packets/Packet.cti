@@ -39,7 +39,7 @@ prefix_ bool satcom::pkf::Packet::is()
 template <typename OtherPacket>
 prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packet::as()
 {
-    return ptr_t<OtherPacket>::ptr(dynamic_cast<OtherPacket*>(this),true);
+    return typename ptr_t<OtherPacket>::ptr(dynamic_cast<OtherPacket*>(this),true);
 }
 
 template <class InputIterator>

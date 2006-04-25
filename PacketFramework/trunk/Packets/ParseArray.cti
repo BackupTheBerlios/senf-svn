@@ -68,7 +68,7 @@ prefix_ typename satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::ite
 satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::begin()
     const
 {
-    return iterator(i());
+    return iterator(this->i());
 }
 
 template <unsigned elements, class Parser, class Iterator, class IPacket>
@@ -76,7 +76,7 @@ prefix_ typename satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::ite
 satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::end()
     const
 {
-    return iterator(i()+bytes());
+    return iterator(this->i()+bytes());
 }
 
 template <unsigned elements, class Parser, class Iterator, class IPacket>

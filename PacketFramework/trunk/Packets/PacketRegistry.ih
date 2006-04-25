@@ -41,8 +41,8 @@ namespace impl {
     };
 
     template <class OtherPacket>
-    struct satcom::pkf::impl::PkReg_EntryImpl
-        : public satcom::pkf::impl::PkReg_Entry
+    struct PkReg_EntryImpl
+        : public PkReg_Entry
     {
         virtual void registerInterpreter(Packet const * p, Packet::iterator b, Packet::iterator e);
         virtual Packet::ptr reinterpret(Packet * p);

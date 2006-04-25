@@ -55,8 +55,8 @@ namespace pkf {
 
         typedef boost::int8_t value_type;
 
-        value_type value() const { return i()[0]; }
-        void value(value_type v) { i()[0] = v; }
+        value_type value() const { return this->i()[0]; }
+        void value(value_type v) { this->i()[0] = v; }
         Parse_Int8 const & operator= (value_type other) { value(other); return *this; }
     };
 
@@ -79,8 +79,8 @@ namespace pkf {
 
         typedef boost::uint8_t value_type;
 
-        value_type value() const { return i()[0]; }
-        void value(value_type v) { i()[0] = v; }
+        value_type value() const { return this->i()[0]; }
+        void value(value_type v) { this->i()[0] = v; }
         Parse_UInt8 const & operator= (value_type other) { value(other); return *this; }
     };
 
@@ -103,8 +103,8 @@ namespace pkf {
 
         typedef boost::int16_t value_type;
 
-        value_type value() const { return impl::parse_uint16(i()); }
-        void value(value_type v) { impl::write_uint16(i(),v); }
+        value_type value() const { return impl::parse_uint16(this->i()); }
+        void value(value_type v) { impl::write_uint16(this->i(),v); }
         Parse_Int16 const & operator= (value_type other) { value(other); return *this; }
     };
 
@@ -127,8 +127,8 @@ namespace pkf {
 
         typedef boost::uint16_t value_type;
 
-        value_type value() const { return impl::parse_uint16(i()); }
-        void value(value_type v) { impl::write_uint16(i(),v); }
+        value_type value() const { return impl::parse_uint16(this->i()); }
+        void value(value_type v) { impl::write_uint16(this->i(),v); }
         Parse_UInt16 const & operator= (value_type other) { value(other); return *this; }
     };
 
@@ -152,8 +152,8 @@ namespace pkf {
         typedef boost::int32_t value_type;
 
         value_type value() const { 
-            value_type v (impl::parse_uint24(i())); return v&0x800000 ? v|0xff000000 : v; }
-        void value(value_type v) { impl::write_uint24(i(),v); }
+            value_type v (impl::parse_uint24(this->i())); return v&0x800000 ? v|0xff000000 : v; }
+        void value(value_type v) { impl::write_uint24(this->i(),v); }
         Parse_Int24 const & operator= (value_type other) { value(other); return *this; }
     };
 
@@ -176,8 +176,8 @@ namespace pkf {
 
         typedef boost::uint32_t value_type;
 
-        value_type value() const { return impl::parse_uint24(i()); }
-        void value(value_type v) { impl::write_uint24(i(),v); }
+        value_type value() const { return impl::parse_uint24(this->i()); }
+        void value(value_type v) { impl::write_uint24(this->i(),v); }
         Parse_UInt24 const & operator= (value_type other) { value(other); return *this; }
     };
 
@@ -200,8 +200,8 @@ namespace pkf {
 
         typedef boost::int32_t value_type;
 
-        value_type value() const { return impl::parse_uint32(i()); }
-        void value(value_type v) { impl::write_uint32(i(),v); }
+        value_type value() const { return impl::parse_uint32(this->i()); }
+        void value(value_type v) { impl::write_uint32(this->i(),v); }
         Parse_Int32 const & operator= (value_type other) { value(other); return *this; }
     };
 
@@ -224,8 +224,8 @@ namespace pkf {
 
         typedef boost::uint32_t value_type;
 
-        value_type value() const { return impl::parse_uint32(i()); }
-        void value(value_type v) { impl::write_uint32(i(),v); }
+        value_type value() const { return impl::parse_uint32(this->i()); }
+        void value(value_type v) { impl::write_uint32(this->i(),v); }
         Parse_UInt32 const & operator= (value_type other) { value(other); return *this; }
     };
 
@@ -249,11 +249,11 @@ namespace pkf {
         typedef boost::int32_t value_type;
 
         value_type value() const { 
-            value_type v (impl::parse_bitfield<Iterator,start,end>::parse(i()));
+            value_type v (impl::parse_bitfield<Iterator,start,end>::parse(this->i()));
             return v&boost::high_bit_mask_t<end-start-1>::high_bit ?
                 v | ~boost::low_bits_mask_t<end-start>::sig_bits : v;
         }
-        void value(value_type v) { impl::parse_bitfield<Iterator,start,end>::write(i(),v); }
+        void value(value_type v) { impl::parse_bitfield<Iterator,start,end>::write(this->i(),v); }
         Parse_IntField const & operator= (value_type other) { value(other); return *this; }
 
     private:
@@ -280,8 +280,8 @@ namespace pkf {
 
         typedef boost::uint32_t value_type;
 
-        value_type value() const { return impl::parse_bitfield<Iterator,start,end>::parse(i()); }
-        void value(value_type v) { impl::parse_bitfield<Iterator,start,end>::write(i(),v); }
+        value_type value() const { return impl::parse_bitfield<Iterator,start,end>::parse(this->i()); }
+        void value(value_type v) { impl::parse_bitfield<Iterator,start,end>::write(this->i(),v); }
         Parse_UIntField const & operator= (value_type other) { value(other); return *this; }
 
     private:
@@ -308,10 +308,10 @@ namespace pkf {
 
         typedef bool value_type;
 
-        value_type value() const { return i()[bit/8] & (1<<(7-(bit%8))); }
+        value_type value() const { return this->i()[bit/8] & (1<<(7-(bit%8))); }
         void value(value_type v) { 
-            if (v) i()[0] |= 1<<(7-(bit%8));
-            else   i()[0] &= ~(1<<(7-(bit%8)));
+            if (v) this->i()[0] |= 1<<(7-(bit%8));
+            else   this->i()[0] &= ~(1<<(7-(bit%8)));
         }
         Parse_Flag const & operator= (value_type other) { value(other); return *this; }
     };

@@ -1,8 +1,11 @@
 libraries = [
+    'pthread'
 ]
 
 includes = [
-    '#' # needed for the boost preprocessor library
+    '#', # needed for the boost preprocessor library
+    '/usr/local/include/stlport',
+    '/usr/local/include/boost-1_33_1'
 ]
 
 ################################
@@ -10,22 +13,23 @@ includes = [
 
 # Possible values:
 #   SATCOM_PKF_REFC_DEBUG - enable reference counter debuging
+#   _STLP_DEBUG - enable stlport debug-mode
 debug_defines = [ ]
 debug_cflags  = [ '-O0', '-g', '-fno-inline' ]
-debug_ldflags = [ '-g' ]
+debug_ldflags = [ '-g', '-lstlport_gcc' ]
 
 ################################
 # Final compilation flags
 
 final_defines = [ ]
 final_cflags  = [ '-O3' ]
-final_ldflags = [ ]
+final_ldflags = [ '-lstlport_gcc' ]
 
 ################################
 # general flags
 
 defines       = [ ]
-cflags        = [ '-Wall', '-Woverloaded-virtual', '-pedantic', '-ansi' ]
+cflags        = [ '-Wall', '-Woverloaded-virtual', '-Wno-long-long', '-pedantic', '-ansi' ]
 ldflags       = [ ]
 
 ###########################################################################
@@ -49,9 +53,12 @@ env = Environment(
     toolpath   = [ '../sconslib' ],
     CPPDEFINES = defines,
     CPPPATH    = includes,
-    LIBS       = libraries,
     CXXFLAGS   = cflags,
-    LDFLAGS    = ldflags
+    LINKFLAGS  = ldflags,
+    LIBS       = libraries,
+    BOOSTTESTLIB = 'boost_unit_test_framework-gcc-mt-p',
+    CC         = "gcc-3.4",
+    CXX        = "gcc-3.4"
 )
 
 ###########################################################################

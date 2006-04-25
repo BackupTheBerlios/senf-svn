@@ -44,7 +44,7 @@ namespace pkf {
         // Parser interface
 
         template <class I=nil, class P=nil> 
-        struct rebind { typedef Parse_Array<size,Parser,I,P> parser; };
+        struct rebind { typedef Parse_Array<elements,Parser,I,P> parser; };
         typedef Iterator byte_iterator;
 
         Parse_Array();

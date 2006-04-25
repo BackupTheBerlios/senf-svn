@@ -48,20 +48,20 @@ namespace impl {
             template <class Other> Derived const & operator op ## =  (Other other) \
                 { derived().value( derived().value() op other ); return derived(); }
 
-        unary(~);
-        unary(!);
-        unary(-);
+        unary(~)
+        unary(!)
+        unary(-)
 
-        mutator(+);
-        mutator(-);
-        mutator(*);
-        mutator(/);
-        mutator(%);
-        mutator(<<);
-        mutator(>>);
-        mutator(&);
-        mutator(|);
-        mutator(^);
+        mutator(+)
+        mutator(-)
+        mutator(*)
+        mutator(/)
+        mutator(%)
+        mutator(<<)
+        mutator(>>)
+        mutator(&)
+        mutator(|)
+        mutator(^)
 
 #       undef unary
 #       undef mutator

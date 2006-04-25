@@ -52,9 +52,9 @@ namespace pkf {
         typedef Parse_Array  < 6, Parse_UInt8<>, Iterator > Parse_MAC;
         typedef Parse_UInt16 < Iterator  >                  Parse_Type;
         
-        Parse_MAC  destination() const { return Parse_MAC  (i() ); }
-        Parse_MAC  source()      const { return Parse_MAC  (i() + Parse_MAC::size() ); }
-        Parse_Type type()        const { return Parse_Type (i() + 2*Parse_MAC::size() ); }
+        Parse_MAC  destination() const { return Parse_MAC  (this->i() ); }
+        Parse_MAC  source()      const { return Parse_MAC  (this->i() + Parse_MAC::size() ); }
+        Parse_Type type()        const { return Parse_Type (this->i() + 2*Parse_MAC::size() ); }
 
         void init() { 
             destination().init();
@@ -120,10 +120,10 @@ namespace pkf {
         typedef Parse_UIntField < 4, 16, Iterator > Parse_VLanId;
         typedef Parse_UInt16           < Iterator > Parse_Type;
 
-        Parse_Priority priority() const { return Parse_Priority(i()); }
-        Parse_CFI      cfi()      const { return Parse_CFI(i()); }
-        Parse_VLanId   vlanId()   const { return Parse_VLanId(i()); }
-        Parse_Type     type()     const { return Parse_Type(i()+2); }
+        Parse_Priority priority() const { return Parse_Priority(this->i()); }
+        Parse_CFI      cfi()      const { return Parse_CFI(this->i()); }
+        Parse_VLanId   vlanId()   const { return Parse_VLanId(this->i()); }
+        Parse_Type     type()     const { return Parse_Type(this->i()+2); }
     };
 
     class EthVLanPacket

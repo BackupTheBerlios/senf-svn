@@ -79,7 +79,7 @@ typename satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::iterator
 satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::begin()
     const
 {
-    return iterator(i());
+    return iterator(this->i());
 }
 
 template <class Parser, class SizeParser, class Iterator, class IPacket>
@@ -88,7 +88,7 @@ typename satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::iterator
 satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::end()
     const
 {
-    return iterator(i()+bytes());
+    return iterator(this->i()+bytes());
 }
 
 template <class Parser, class SizeParser, class Iterator, class IPacket>

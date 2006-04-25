@@ -182,10 +182,10 @@ namespace {
     
     template < class P >
     class TestPacket 
-        : public Packet, public P::rebind< Packet::iterator,TestPacket<P> >::parser
+        : public Packet, public P::template rebind< Packet::iterator,TestPacket<P> >::parser
     {
     public:
-        typedef typename P::rebind<Packet::iterator,TestPacket>::parser parser;
+        typedef typename P::template rebind<Packet::iterator,TestPacket>::parser parser;
         typedef typename ptr_t<TestPacket>::ptr ptr;
 
         template <class InputIterator>
