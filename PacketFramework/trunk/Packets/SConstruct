@@ -1,14 +1,14 @@
 import sys, os, os.path, glob
 satscons = os.getcwd()
-while satscons and not os.path.isdir(os.path.join(satscons,"satscons")): satscons = os.path.dirname(satscons)
-if not satscons: print "satscons directory not found"; Exit(1)
+while satscons!='/' and not os.path.isdir(os.path.join(satscons,"satscons")): satscons = os.path.dirname(satscons)
+if satscons=='/': print "satscons directory not found"; Exit(1)
 satscons = os.path.join(satscons,"satscons")
 sys.path.append(satscons)
 
 opts = Options('SConfig')
 opts.Add('CXX', 'C++ compiler to use', 'g++')
 opts.Add('BOOST_INCLUDES', 'Boost include directory', '')
-opts.Add('BOOST_VARIANT', 'The boost variant to use', '-gcc-gdp')
+opts.Add('BOOST_VARIANT', 'The boost variant to use', '')
 opts.Add('BOOST_LIBDIR', 'The directory of the boost libraries', '')
 opts.Add('STLPORT_INCLUDES', 'STLport include directory', '')
 opts.Add('STLPORT_LIB', 'Name of the stlport library or empty to not use stlport', '')
@@ -81,5 +81,5 @@ env.Doxygen(
 )
 
 all = env.Alias('all')
-env.Clean(all, [ '.sconsign' ] + glob.glob("*~"))
+env.Clean(all, [ '.sconsign', '.sconf_temp', 'config.log' ] + glob.glob("*~"))
 env.Depends(all, '.')
