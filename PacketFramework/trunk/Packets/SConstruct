@@ -1,65 +1,69 @@
-libraries = [
-    'pthread'
-]
+import sys, os, os.path, glob
+satscons = os.getcwd()
+while satscons and not os.path.isdir(os.path.join(satscons,"satscons")): satscons = os.path.dirname(satscons)
+if not satscons: print "satscons directory not found"; Exit(1)
+satscons = os.path.join(satscons,"satscons")
+sys.path.append(satscons)
 
-includes = [
-    '#', # needed for the boost preprocessor library
-    '/usr/local/include/stlport',
-    '/usr/local/include/boost-1_33_1'
-]
+opts = Options('SConfig')
+opts.Add('CXX', 'C++ compiler to use', 'g++')
+opts.Add('BOOST_INCLUDES', 'Boost include directory', '')
+opts.Add('BOOST_VARIANT', 'The boost variant to use', '-gcc-gdp')
+opts.Add('BOOST_LIBDIR', 'The directory of the boost libraries', '')
+opts.Add('STLPORT_INCLUDES', 'STLport include directory', '')
+opts.Add('STLPORT_LIB', 'Name of the stlport library or empty to not use stlport', '')
+opts.Add('STLPORT_LIBDIR', 'The directory of the stlport libraries','')
+opts.Add(BoolOption('final','Enable optimization',0))
+env = Environment(options=opts)
+Help(opts.GenerateHelpText(env))
+conf = env.Configure()
 
-################################
-# Debuging flags
+conf.env.Tool('Doxygen', [satscons])
+conf.env.Tool('BoostUnitTests', [satscons])
 
-# Possible values:
-#   SATCOM_PKF_REFC_DEBUG - enable reference counter debuging
-#   _STLP_DEBUG - enable stlport debug-mode
-debug_defines = [ ]
-debug_cflags  = [ '-O0', '-g', '-fno-inline' ]
-debug_ldflags = [ '-g', '-lstlport_gcc' ]
+conf.env['STLPORT_DEBUGLIB'] = ''
+if conf.env['STLPORT_LIB']:
+    conf.env['STLPORT_DEBUGLIB'] = conf.env['STLPORT_LIB'] + '_stldebug'
 
-################################
-# Final compilation flags
+conf.env['BOOSTTESTLIB'] = 'libboost_unit_test_framework' + env['BOOST_VARIANT']
 
-final_defines = [ ]
-final_cflags  = [ '-O3' ]
-final_ldflags = [ '-lstlport_gcc' ]
+conf.env.Append(
+    LIBPATH = [ '$BOOST_LIBDIR', '$STLPORT_LIBDIR' ],
+    CPPPATH = [ '$BOOST_INCLUDES', '$STLPORT_INCLUDES' ]
+)
 
-################################
-# general flags
-
-defines       = [ ]
-cflags        = [ '-Wall', '-Woverloaded-virtual', '-Wno-long-long', '-pedantic', '-ansi' ]
-ldflags       = [ ]
+if conf.env['final']:
+    conf.env.Append(LIBS = '$STLPORT_LIB' )
+else:
+    conf.env.Append(LIBS =  '$STLPORT_DEBUGLIB' )
+    
 
 ###########################################################################
 
-import glob
+conf.env.Append(
+    CXXFLAGS   = [ '-Wall', '-Woverloaded-virtual', '-Wno-long-long',
+                   '-pedantic', '-ansi' ],
+    CPPPATH    = [ '#' ],
+    CPPDEFINES = [ ],
+    LIBS       = [ ]
+)
+
+if conf.env['final']:
+    conf.env.Append(
+        CXXFLAGS = [ '-O3' ]
+    )
+else:
+    conf.env.Append(
+        CXXFLAGS = [ '-O0', '-g', '-fno-inline' ],
+        LINKFLAGS = [ '-g' ]
+    )
+
+###########################################################################
+
+env = conf.Finish()
 
 testSources = glob.glob("*.test.cc")
 sources = [ x for x in glob.glob("*.cc") if x not in testSources ]
-
-if ARGUMENTS.get('final',0):
-    defines += final_defines
-    cflags += final_cflags
-    ldflags += final_ldflags
-else:
-    defines += debug_defines
-    cflags += debug_cflags
-    ldflags += debug_ldflags
-
-env = Environment(
-    tools      = [ 'default', 'Doxygen', 'BoostUnitTests' ],
-    toolpath   = [ '../sconslib' ],
-    CPPDEFINES = defines,
-    CPPPATH    = includes,
-    CXXFLAGS   = cflags,
-    LINKFLAGS  = ldflags,
-    LIBS       = libraries,
-    BOOSTTESTLIB = 'boost_unit_test_framework-gcc-mt-p',
-    CC         = "gcc-3.4",
-    CXX        = "gcc-3.4"
-)
 
 ###########################################################################
 

@@ -25,7 +25,13 @@
 #include "ParseArray.ih"
 
 // Custom includes
-#include <algorithm> // for std::copy_n
+#include <algorithm>
+#if defined(_STLP_ALGORITHM) || (__GNUC__<4 && __GNUC_MINOR__<4)
+#define copy_n std::copy_n
+#else
+#include <ext/algorithm>
+#define copy_n __gnu_cxx::copy_n
+#endif
 
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
@@ -108,7 +114,7 @@ template <class InputIterator>
 prefix_ satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket> const &
 satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::operator=(InputIterator const & i)
 {
-    std::copy_n(i,size(),begin());
+    copy_n(i,size(),begin());
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -181,6 +187,7 @@ satcom::pkf::impl::Parse_Array_iterator<Parser,Iterator>::advance(int n)
     i_ += n*Parser::bytes();
 }
 
+#undef copy_n
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_
 
