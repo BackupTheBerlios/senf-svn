@@ -32,10 +32,11 @@ conf.env.Append(
     CPPPATH = [ '$BOOST_INCLUDES', '$STLPORT_INCLUDES' ]
 )
 
-if conf.env['final'] and conf.env['STLPORT_LIB']:
-    conf.env.Append(LIBS = '$STLPORT_LIB' )
-else:
-    conf.env.Append(LIBS =  '$STLPORT_DEBUGLIB', CPPDEFINES = '_STLP_DEBUG' )
+if conf.env['STLPORT_LIB']:
+    if conf.env['final']:
+        conf.env.Append(LIBS = '$STLPORT_LIB' )
+    else:
+        conf.env.Append(LIBS =  '$STLPORT_DEBUGLIB', CPPDEFINES = '_STLP_DEBUG' )
     
 
 ###########################################################################
