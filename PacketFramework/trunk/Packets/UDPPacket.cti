@@ -37,9 +37,11 @@ satcom::pkf::UDPPacket::create(InputIterator begin, InputIterator end)
 }
 
 template <class InputIterator>
-prefix_ satcom::pkf::UDPPacket::UDPPacket(InputIterator begin, InputIterator end)
-    : Packet(begin, end)
-{}
+prefix_ satcom::pkf::UDPPacket::UDPPacket(InputIterator b, InputIterator e)
+    : Packet(b, e)
+{
+    if (!check(end())) throw TruncatedPacketException();
+}
 
 
 

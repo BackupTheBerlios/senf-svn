@@ -27,6 +27,7 @@
 #include "IpV4Packet.hh"
 
 // Custom includes
+#include "DataPacket.hh"
 
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
@@ -38,7 +39,9 @@ namespace {
 
 prefix_ void satcom::pkf::UDPPacket::v_nextInterpreter()
     const
-{}
+{
+    registerInterpreter<DataPacket>(begin()+bytes(),end());
+}
 
 prefix_ void satcom::pkf::UDPPacket::v_finalize()
 {}

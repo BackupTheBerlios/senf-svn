@@ -53,6 +53,14 @@ prefix_ unsigned satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::byt
 }
 
 template <unsigned elements, class Parser, class Iterator, class IPacket>
+prefix_ bool
+satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::check(Iterator const & e)
+    const
+{
+    return e-this->i() >= bytes();
+}
+
+template <unsigned elements, class Parser, class Iterator, class IPacket>
 prefix_ void satcom::pkf::Parse_Array<elements,Parser,Iterator,IPacket>::init()
     const
 {

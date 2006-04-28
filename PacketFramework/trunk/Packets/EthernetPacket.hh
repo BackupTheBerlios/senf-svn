@@ -46,6 +46,7 @@ namespace pkf {
         Parse_Ethernet(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
 
         static unsigned bytes() { return 14; }
+        bool check(Iterator const & e) { return e-this->i() >= static_cast<int>(bytes()); }
         
         ///////////////////////////////////////////////////////////////////////////
 
@@ -106,6 +107,7 @@ namespace pkf {
         Parse_EthVLan(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
 
         static unsigned bytes() { return 4; }
+        bool check(Iterator const & e) { return e-this->i() >= bytes(); }
         
         ///////////////////////////////////////////////////////////////////////////
         

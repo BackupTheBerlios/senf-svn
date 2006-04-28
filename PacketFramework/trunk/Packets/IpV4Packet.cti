@@ -37,9 +37,11 @@ satcom::pkf::IpV4Packet::create(InputIterator begin, InputIterator end)
 }
 
 template <class InputIterator>
-prefix_ satcom::pkf::IpV4Packet::IpV4Packet(InputIterator begin, InputIterator end)
-    : Packet(begin, end)
-{}
+prefix_ satcom::pkf::IpV4Packet::IpV4Packet(InputIterator b, InputIterator e)
+    : Packet(b, e)
+{
+    if (!check(end())) throw TruncatedPacketException();
+}
 
 
 

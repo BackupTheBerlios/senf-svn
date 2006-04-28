@@ -46,6 +46,7 @@ namespace pkf {
         Parse_RTP(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
 
         static unsigned bytes() { return 12; }
+        bool check(Iterator const & e) const { return e-this->i() >= static_cast<int>(bytes()); }
         
         ///////////////////////////////////////////////////////////////////////////
 

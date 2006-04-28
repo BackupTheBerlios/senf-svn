@@ -46,35 +46,22 @@ namespace pkf {
         Parse_UDP(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
 
         static unsigned bytes() { return 8; }
-        
+        bool check(Iterator const & e) const { return e-this->i() >= static_cast<int>(bytes()); }
+
         ///////////////////////////////////////////////////////////////////////////
 
-        typedef Parse_UInt16     < Iterator >          Parse_16bit;  
+        typedef Parse_UInt16 < Iterator > Parse_16bit;  
         
         Parse_16bit source()          const { return Parse_16bit      (this->i()     ); }
         Parse_16bit destination()     const { return Parse_16bit      (this->i() + 2 ); }
         Parse_16bit length()          const { return Parse_16bit      (this->i() + 4 ); }
         Parse_16bit crc()             const { return Parse_16bit      (this->i() + 6 ); }
-
-      
-        void init() { 
-            source().init();
-            destination().init();
-            length().init();
-            crc().init();
-        }
-    };
-
-    struct UDPTypes {
-        typedef boost::uint16_t key_t;
     };
 
     class UDPPacket
         : public Packet, 
-          public Parse_UDP<Packet::iterator, UDPPacket>, 
-          public PacketRegistryMixin<UDPTypes,UDPPacket>
+          public Parse_UDP<Packet::iterator, UDPPacket>
     {
-        using PacketRegistryMixin<UDPTypes,UDPPacket>::registerInterpreter;
     public:
         ///////////////////////////////////////////////////////////////////////////
         // Types

@@ -37,11 +37,11 @@ satcom::pkf::RTPPacket::create(InputIterator begin, InputIterator end)
 }
 
 template <class InputIterator>
-prefix_ satcom::pkf::RTPPacket::RTPPacket(InputIterator begin, InputIterator end)
-    : Packet(begin, end)
-{}
-
-
+prefix_ satcom::pkf::RTPPacket::RTPPacket(InputIterator b, InputIterator e)
+    : Packet(b, e)
+{
+    if (!check(end())) throw TruncatedPacketException();
+}
 
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_

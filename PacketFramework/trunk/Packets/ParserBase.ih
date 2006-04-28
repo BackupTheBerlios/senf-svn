@@ -20,33 +20,39 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Definition of inline template functions
-
-//#include "GenericPacket.ih"
+#ifndef IH_ParserBase_
+#define IH_ParserBase_ 1
 
 // Custom includes
 
-#define prefix_ inline
-///////////////////////////////cti.p///////////////////////////////////////
+///////////////////////////////ih.p////////////////////////////////////////
 
-template <class InputIterator>
-prefix_ satcom::pkf::GenericPacket::ptr
-satcom::pkf::GenericPacket::create(InputIterator begin, InputIterator end,
-                                   size_type header_len, size_type trailer_len)
-{
-    return ptr(new GenericPacket(begin, end, header_len, trailer_len), false);
-}
+namespace satcom {
+namespace pkf {
+namespace impl {
 
-template <class InputIterator>
-prefix_ satcom::pkf::GenericPacket::GenericPacket(InputIterator b, InputIterator e,
-                                                  size_type header_len, size_type trailer_len)
-    : Packet(b, e), header_len_ (header_len), trailer_len_ (trailer_len)
-{
-    if (header_len+trailer_len > size()) throw TruncatedPacketException();
-}
+    template <class Parser>
+    struct Parser_traits_fixed_size {
+        static const bool fixed_size = sizeof(
+            Parser_traits_fixed_size_check(&Parser::bytes))-sizeof(int);
+    };
 
-///////////////////////////////cti.e///////////////////////////////////////
-#undef prefix_
+    template <unsigned N>
+    struct Parser_traits_sentinel
+    {
+        int v[N];
+    };
+
+    template <class T>
+    Parser_traits_sentinel<2> Parser_traits_fixed_size_check(T);
+
+    template <class R,class T>
+    Parser_traits_sentinel<1> Parser_traits_fixed_size_check(R (T::*)());
+
+}}}
+
+///////////////////////////////ih.e////////////////////////////////////////
+#endif
 
 
 // Local Variables:

@@ -46,6 +46,7 @@ namespace pkf {
         Parse_IpV4(Iterator const & i) : ParserBase<Iterator,IpV4Packet>(i) {}
 
         static unsigned bytes() { return 20; }
+        bool check(Iterator const & e) { return e-this->i() >= static_cast<int>(bytes()); }
         
         ///////////////////////////////////////////////////////////////////////////
 
@@ -64,7 +65,7 @@ namespace pkf {
         Parse_8bit     tos()         const { return Parse_8bit    (this->i() + 1  ); }
         Parse_16bit    length()      const { return Parse_16bit   (this->i() + 2  ); }
         Parse_16bit    identifier()  const { return Parse_16bit   (this->i() + 4  ); }
-        Parse_R        r()           const { return Parse_R       (this->i() + 6  ); }
+        Parse_R        reserved()    const { return Parse_R       (this->i() + 6  ); }
         Parse_DF       df()          const { return Parse_DF      (this->i() + 6  ); }
         Parse_MF       mf()          const { return Parse_MF      (this->i() + 6  ); }
         Parse_Frag     frag()        const { return Parse_Frag    (this->i() + 6  ); }

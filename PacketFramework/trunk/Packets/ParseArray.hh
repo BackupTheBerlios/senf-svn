@@ -51,6 +51,7 @@ namespace pkf {
         explicit Parse_Array(Iterator const & i);
         
         static unsigned bytes();
+        bool check(Iterator const & e) const;
         void init() const;
 
         ///////////////////////////////////////////////////////////////////////////

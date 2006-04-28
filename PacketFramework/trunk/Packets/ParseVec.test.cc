@@ -134,6 +134,15 @@ BOOST_AUTO_UNIT_TEST(parseVec_wrapper)
     BOOST_CHECK_EQUAL( data.size(), 1u );
 }
 
+// This really belongs into ParserBase.test.cc but it's simpler here
+BOOST_AUTO_UNIT_TEST(parserTraits_test)
+{
+    // Really, this could be checked by BOOST_STATIC_ASSERT since 
+    // it's compile-time ...
+    BOOST_CHECK( Parser_traits< Parse_UInt32<> >::fixed_size );
+    BOOST_CHECK( (! Parser_traits< Parse_Vector< Parse_UInt16<>,Parse_UInt16<> > >::fixed_size) );
+}
+
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
 

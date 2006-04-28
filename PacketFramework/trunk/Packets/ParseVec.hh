@@ -54,6 +54,7 @@ namespace pkf {
         Parse_Vector(size_parser const & size, Iterator const & i);
         
         unsigned bytes() const;
+        void check(Iterator const & e) const;
         void init() const;
 
         ///////////////////////////////////////////////////////////////////////////

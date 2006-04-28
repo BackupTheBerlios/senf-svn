@@ -46,15 +46,15 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_parser)
     typedef unsigned char * iterator;
     Parse_RTP<iterator> p(data);
 
-    BOOST_CHECK_EQUAL( p.version(),            0x00       );
-    BOOST_CHECK_EQUAL( p.padding(),            0          );
-    BOOST_CHECK_EQUAL( p.extension(),          0          );
-    BOOST_CHECK_EQUAL( p.csrcCount(),          0x01       );    
-    BOOST_CHECK_EQUAL( p.marker(),             0          );
-    BOOST_CHECK_EQUAL( p.payloadType(),        0x02       );
-    BOOST_CHECK_EQUAL( p.seqNumber(),          0x0304     );
-    BOOST_CHECK_EQUAL( p.timestamp(),          0x05060708 );
-    BOOST_CHECK_EQUAL( p.ssrc(),               0x090A0B0C );
+    BOOST_CHECK_EQUAL( p.version(),            0x00u       );
+    BOOST_CHECK_EQUAL( p.padding(),            0           );
+    BOOST_CHECK_EQUAL( p.extension(),          0           );
+    BOOST_CHECK_EQUAL( p.csrcCount(),          0x01u       );    
+    BOOST_CHECK_EQUAL( p.marker(),             0           );
+    BOOST_CHECK_EQUAL( p.payloadType(),        0x02u       );
+    BOOST_CHECK_EQUAL( p.seqNumber(),          0x0304u     );
+    BOOST_CHECK_EQUAL( p.timestamp(),          0x05060708u );
+    BOOST_CHECK_EQUAL( p.ssrc(),               0x090A0B0Cu );
     
 }
 
@@ -69,15 +69,15 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_packet)
 
     RTPPacket::ptr p (RTPPacket::create(data, data+sizeof(data)));
 
-    BOOST_CHECK_EQUAL( p->version(),            0x00       );
-    BOOST_CHECK_EQUAL( p->padding(),            0          );
-    BOOST_CHECK_EQUAL( p->extension(),          0          );
-    BOOST_CHECK_EQUAL( p->csrcCount(),          0x01       );    
-    BOOST_CHECK_EQUAL( p->marker(),             0          );
-    BOOST_CHECK_EQUAL( p->payloadType(),        0x02       );
-    BOOST_CHECK_EQUAL( p->seqNumber(),          0x0304     );
-    BOOST_CHECK_EQUAL( p->timestamp(),          0x05060708 );
-    BOOST_CHECK_EQUAL( p->ssrc(),               0x090A0B0C );
+    BOOST_CHECK_EQUAL( p->version(),            0x00u       );
+    BOOST_CHECK_EQUAL( p->padding(),            0           );
+    BOOST_CHECK_EQUAL( p->extension(),          0           );
+    BOOST_CHECK_EQUAL( p->csrcCount(),          0x01u       );    
+    BOOST_CHECK_EQUAL( p->marker(),             0           );
+    BOOST_CHECK_EQUAL( p->payloadType(),        0x02u       );
+    BOOST_CHECK_EQUAL( p->seqNumber(),          0x0304u     );
+    BOOST_CHECK_EQUAL( p->timestamp(),          0x05060708u );
+    BOOST_CHECK_EQUAL( p->ssrc(),               0x090A0B0Cu );
 
 }
 

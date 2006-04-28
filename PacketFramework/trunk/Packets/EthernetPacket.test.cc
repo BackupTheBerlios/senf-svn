@@ -59,6 +59,9 @@ BOOST_AUTO_UNIT_TEST(ethernetPacket_packet)
     BOOST_CHECK_EQUAL( p->destination()[3], 0x04 );
     BOOST_CHECK_EQUAL( p->source()[0], 0x07 );
     BOOST_CHECK_EQUAL( p->type(), 0x1011 );
+
+    BOOST_CHECK_THROW( EthernetPacket::create(data, data+sizeof(data)-1), 
+                       TruncatedPacketException );
 }
 
 BOOST_AUTO_UNIT_TEST(ethernetPacket_chain)

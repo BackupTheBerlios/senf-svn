@@ -49,6 +49,14 @@ prefix_ unsigned satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::
 }
 
 template <class Parser, class SizeParser, class Iterator, class IPacket>
+prefix_ void
+satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::check(Iterator const & e)
+    const
+{
+    return e-this->i() >= bytes();
+}
+
+template <class Parser, class SizeParser, class Iterator, class IPacket>
 prefix_ void satcom::pkf::Parse_Vector<Parser,SizeParser,Iterator,IPacket>::init()
     const
 {

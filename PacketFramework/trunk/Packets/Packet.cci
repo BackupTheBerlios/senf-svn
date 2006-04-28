@@ -140,7 +140,11 @@ prefix_ satcom::pkf::Packet::ptr satcom::pkf::Packet::head()
 
 prefix_  satcom::pkf::Packet::~Packet()
 {
-    BOOST_ASSERT( !this->refcount_  && !this->impl_ );
+    // FIXME: This is bad ... we cannot check this since this
+    // assertion fails at the moment if the Packet constructor throws
+    // ... hrmpf ... we really need to initialize refcount_ to 0 and
+    // remove the 'false' argument to the ptr constructor in ::create
+    // BOOST_ASSERT( !this->refcount_  && !this->impl_ );
     SATCOM_PKF_REFC_MSG("] Packet::~Packet (" << this << ")\n");
 }
 

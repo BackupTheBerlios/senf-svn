@@ -24,8 +24,9 @@
 #define HH_ParserBase_ 1
 
 // Custom includes
+#include <boost/type_traits/is_member_function_pointer.hpp>
 
-//#include <Packet.mpp>
+#include "ParserBase.ih"
 ///////////////////////////////hh.p////////////////////////////////////////
 
 namespace satcom {
@@ -93,6 +94,18 @@ namespace pkf {
     private:
 
         Iterator i_;
+    };
+
+    template <class Parser>
+    struct Parser_traits {
+        typedef Parser parser;
+        typedef typename Parser::byte_iterator byte_iterator;
+        static const bool fixed_size = impl::Parser_traits_fixed_size<Parser>::fixed_size;
+
+        template <class I=nil, class P=nil>
+        struct rebind {
+            typedef typename Parser::template rebind<I,P>::parser parser;
+        };
     };
 
 }}
