@@ -24,7 +24,6 @@
 
 #include "EthernetPacket.hh"
 //#include "EthernetPacket.ih"
-#include "IpV4Packet.hh"
 
 // Custom includes
 
@@ -35,9 +34,6 @@ namespace {
     namespace pkf = satcom::pkf;
     pkf::PacketRegistry<pkf::EtherTypes>::RegistrationProxy<pkf::EthVLanPacket> 
         registerEthVLanPacket(0x8100);
-
-    pkf::PacketRegistry<pkf::EtherTypes>::RegistrationProxy<pkf::IpV4Packet> 
-        registerIpV4Packet(0x8000);
 }
 
 prefix_ void satcom::pkf::EthernetPacket::v_nextInterpreter()

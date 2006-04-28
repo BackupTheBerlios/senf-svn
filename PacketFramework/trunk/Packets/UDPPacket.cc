@@ -22,28 +22,25 @@
 
 // Definition of non-inline non-template functions
 
+#include "UDPPacket.hh"
+//#include "UDPPacket.ih"
 #include "IpV4Packet.hh"
-//#include "IpV4Packet.ih"
-#include "EthernetPacket.hh"
 
 // Custom includes
 
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
-
 namespace {
     namespace pkf = satcom::pkf;
-    pkf::PacketRegistry<pkf::EtherTypes>::RegistrationProxy<pkf::IpV4Packet> 
-        registerIpV4Packet(0x0800);
+    pkf::PacketRegistry<pkf::IpV4Types>::RegistrationProxy<pkf::UDPPacket> 
+        registerUDPPacket(17);
 }
 
-prefix_ void satcom::pkf::IpV4Packet::v_nextInterpreter()
+prefix_ void satcom::pkf::UDPPacket::v_nextInterpreter()
     const
-{
-    registerInterpreter(protocol(),begin()+bytes(),end());
-}
+{}
 
-prefix_ void satcom::pkf::IpV4Packet::v_finalize()
+prefix_ void satcom::pkf::UDPPacket::v_finalize()
 {}
 
 

@@ -45,12 +45,12 @@ namespace pkf {
         Parse_IpV4() {}
         Parse_IpV4(Iterator const & i) : ParserBase<Iterator,IpV4Packet>(i) {}
 
-        static unsigned bytes() { return 14; }
+        static unsigned bytes() { return 20; }
         
         ///////////////////////////////////////////////////////////////////////////
 
-        typedef Parse_UIntField  <0, 4, Iterator >    Parse_Version;
-        typedef Parse_UIntField  <3, 8, Iterator >    Parse_IHL;
+        typedef Parse_UIntField  < 0, 4, Iterator >   Parse_Version;
+        typedef Parse_UIntField  < 4, 8, Iterator >   Parse_IHL;
         typedef Parse_UInt8      < Iterator >         Parse_8bit;
         typedef Parse_UInt16     < Iterator >         Parse_16bit;
         typedef Parse_Flag       < 0, Iterator >      Parse_R;

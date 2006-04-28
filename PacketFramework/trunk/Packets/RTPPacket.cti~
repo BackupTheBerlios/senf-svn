@@ -20,35 +20,30 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Definition of non-inline non-template functions
+// Definition of inline template functions
 
-#include "IpV4Packet.hh"
-//#include "IpV4Packet.ih"
-#include "EthernetPacket.hh"
+//#include "IPPacket.ih"
 
 // Custom includes
 
-#define prefix_
-///////////////////////////////cc.p////////////////////////////////////////
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
 
-namespace {
-    namespace pkf = satcom::pkf;
-    pkf::PacketRegistry<pkf::EtherTypes>::RegistrationProxy<pkf::IpV4Packet> 
-        registerIpV4Packet(0x0800);
-}
-
-prefix_ void satcom::pkf::IpV4Packet::v_nextInterpreter()
-    const
+template <class InputIterator>
+prefix_ satcom::pkf::IPPacket::ptr
+satcom::pkf::IPPacket::create(InputIterator begin, InputIterator end)
 {
-    registerInterpreter(protocol(),begin()+bytes(),end());
+    return ptr(new IPPacket(begin,end), false);
 }
 
-prefix_ void satcom::pkf::IpV4Packet::v_finalize()
+template <class InputIterator>
+prefix_ satcom::pkf::IPPacket::IPPacket(InputIterator begin, InputIterator end)
+    : Packet(begin, end)
 {}
 
 
 
-///////////////////////////////cc.e////////////////////////////////////////
+///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_
 
 

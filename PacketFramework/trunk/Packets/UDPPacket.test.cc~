@@ -20,31 +20,50 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Definition of non-inline non-template functions
+// Unit tests
 
-#include "IpV4Packet.hh"
-//#include "IpV4Packet.ih"
-#include "EthernetPacket.hh"
+//#include "UDPPacket.test.hh"
+//#include "UDPPacket.test.ih"
 
 // Custom includes
+#include "UDPPacket.hh"
+
+#include <boost/test/auto_unit_test.hpp>
+#include <boost/test/test_tools.hpp>
 
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
-namespace {
-    namespace pkf = satcom::pkf;
-    pkf::PacketRegistry<pkf::EtherTypes>::RegistrationProxy<pkf::IpV4Packet> 
-        registerIpV4Packet(0x0800);
-}
+using namespace satcom::pkf;
 
-prefix_ void satcom::pkf::IpV4Packet::v_nextInterpreter()
-    const
+BOOST_AUTO_UNIT_TEST(udpPacket_parser)
 {
-    registerInterpreter(protocol(),begin()+bytes(),end());
+    unsigned char data[] = { 0x01, 0x02, 0x03, 0x04 };                        
+
+    typedef unsigned char * iterator;
+    Parse_UDP<iterator> p(data);
+
+    BOOST_CHECK_EQUAL( p.source(),            0x01       );
+    BOOST_CHECK_EQUAL( p.destination(),       0x02       );
+    BOOST_CHECK_EQUAL( p.length(),            0x03       );
+    BOOST_CHECK_EQUAL( p.crc(),               0x04       );    
+    
 }
 
-prefix_ void satcom::pkf::IpV4Packet::v_finalize()
-{}
+		      
+BOOST_AUTO_UNIT_TEST(udpPacket_packet)
+{
+
+    unsigned char data[] = { 0x01, 0x02, 0x03, 0x04 };  
+
+    UDPPacket::ptr p (UDPPacket::create(data, data+sizeof(data)));
+
+    BOOST_CHECK_EQUAL( p->source(),            0x01       );
+    BOOST_CHECK_EQUAL( p->destination(),       0x02       );
+    BOOST_CHECK_EQUAL( p->length(),            0x03       );
+    BOOST_CHECK_EQUAL( p->crc(),               0x04       );    
+
+}
 
 
 
