@@ -55,12 +55,6 @@ namespace pkf {
         Parse_MAC  destination() const { return Parse_MAC  (this->i() ); }
         Parse_MAC  source()      const { return Parse_MAC  (this->i() + Parse_MAC::size() ); }
         Parse_Type type()        const { return Parse_Type (this->i() + 2*Parse_MAC::size() ); }
-
-        void init() { 
-            destination().init();
-            source().init();
-            type().init();
-        }
     };
 
     struct EtherTypes {

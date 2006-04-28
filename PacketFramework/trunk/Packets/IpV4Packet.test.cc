@@ -48,20 +48,20 @@ BOOST_AUTO_UNIT_TEST(ipV4Packet_parser)
     typedef unsigned char * iterator;
     Parse_IpV4<iterator> p(data);
 
-    BOOST_CHECK_EQUAL( p.version(),     0x00       );
-    BOOST_CHECK_EQUAL( p.ihl(),         0x01       );
-    BOOST_CHECK_EQUAL( p.tos(),         0x02       );
-    BOOST_CHECK_EQUAL( p.length(),      0x0304     );    
-    BOOST_CHECK_EQUAL( p.identifier(),  0x0506     );
-    BOOST_CHECK_EQUAL( p.r(),           0          );
-    BOOST_CHECK_EQUAL( p.df(),          0          );
-    BOOST_CHECK_EQUAL( p.mf(),          0          );
-    BOOST_CHECK_EQUAL( p.frag(),        0x0708     );
-    BOOST_CHECK_EQUAL( p.ttl(),         0x09       );
-    BOOST_CHECK_EQUAL( p.protocol(),    0x0A       );
-    BOOST_CHECK_EQUAL( p.crc(),         0x0B0C     );
-    BOOST_CHECK_EQUAL( p.source(),      0x11121314 );
-    BOOST_CHECK_EQUAL( p.destination(), 0x15161718 );
+    BOOST_CHECK_EQUAL( p.version(),     0x00u       );
+    BOOST_CHECK_EQUAL( p.ihl(),         0x01u       );
+    BOOST_CHECK_EQUAL( p.tos(),         0x02u       );
+    BOOST_CHECK_EQUAL( p.length(),      0x0304u     );    
+    BOOST_CHECK_EQUAL( p.identifier(),  0x0506u     );
+    BOOST_CHECK_EQUAL( p.r(),           0           );
+    BOOST_CHECK_EQUAL( p.df(),          0           );
+    BOOST_CHECK_EQUAL( p.mf(),          0           );
+    BOOST_CHECK_EQUAL( p.frag(),        0x0708u     );
+    BOOST_CHECK_EQUAL( p.ttl(),         0x09u       );
+    BOOST_CHECK_EQUAL( p.protocol(),    0x0Au       );
+    BOOST_CHECK_EQUAL( p.crc(),         0x0B0Cu     );
+    BOOST_CHECK_EQUAL( p.source(),      0x11121314u );
+    BOOST_CHECK_EQUAL( p.destination(), 0x15161718u );
     
 }
 
@@ -78,20 +78,20 @@ BOOST_AUTO_UNIT_TEST(ipV4Packet_packet)
 
     IpV4Packet::ptr p (IpV4Packet::create(data, data+sizeof(data)));
 
-    BOOST_CHECK_EQUAL( p->version(),     0x00       );
-    BOOST_CHECK_EQUAL( p->ihl(),         0x01       );
-    BOOST_CHECK_EQUAL( p->tos(),         0x02       );
-    BOOST_CHECK_EQUAL( p->length(),      0x0304     );   
-    BOOST_CHECK_EQUAL( p->identifier(),  0x0506     );
-    BOOST_CHECK_EQUAL( p->r(),           0          );
-    BOOST_CHECK_EQUAL( p->df(),          0          );
-    BOOST_CHECK_EQUAL( p->mf(),          0          );
-    BOOST_CHECK_EQUAL( p->frag(),        0x0708     );
-    BOOST_CHECK_EQUAL( p->ttl(),         0x09       );
-    BOOST_CHECK_EQUAL( p->protocol(),    0x0A       );
-    BOOST_CHECK_EQUAL( p->crc(),         0x0B0C     );
-    BOOST_CHECK_EQUAL( p->source(),      0x11121314 );
-    BOOST_CHECK_EQUAL( p->destination(), 0x15161718 );
+    BOOST_CHECK_EQUAL( p->version(),     0x00u       );
+    BOOST_CHECK_EQUAL( p->ihl(),         0x01u       );
+    BOOST_CHECK_EQUAL( p->tos(),         0x02u       );
+    BOOST_CHECK_EQUAL( p->length(),      0x0304u     );   
+    BOOST_CHECK_EQUAL( p->identifier(),  0x0506u     );
+    BOOST_CHECK_EQUAL( p->r(),           0           );
+    BOOST_CHECK_EQUAL( p->df(),          0           );
+    BOOST_CHECK_EQUAL( p->mf(),          0           );
+    BOOST_CHECK_EQUAL( p->frag(),        0x0708u     );
+    BOOST_CHECK_EQUAL( p->ttl(),         0x09u       );
+    BOOST_CHECK_EQUAL( p->protocol(),    0x0Au       );
+    BOOST_CHECK_EQUAL( p->crc(),         0x0B0Cu     );
+    BOOST_CHECK_EQUAL( p->source(),      0x11121314u );
+    BOOST_CHECK_EQUAL( p->destination(), 0x15161718u );
 
 
 }

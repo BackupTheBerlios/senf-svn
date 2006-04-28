@@ -49,47 +49,30 @@ namespace pkf {
         
         ///////////////////////////////////////////////////////////////////////////
 
-        typedef Parse_UIntField  < 0, 4, Iterator >   Parse_Version;
-        typedef Parse_UIntField  < 4, 8, Iterator >   Parse_IHL;
-        typedef Parse_UInt8      < Iterator >         Parse_8bit;
-        typedef Parse_UInt16     < Iterator >         Parse_16bit;
-        typedef Parse_Flag       < 0, Iterator >      Parse_R;
-        typedef Parse_Flag       < 1, Iterator >      Parse_DF;
-        typedef Parse_Flag       < 2, Iterator >      Parse_MF;
-        typedef Parse_UIntField  < 3, 16, Iterator >  Parse_Frag;
-        typedef Parse_UInt32 < Iterator  >            Parse_32bit;  
+        typedef Parse_UIntField <  0,  4, Iterator > Parse_Version;
+        typedef Parse_UIntField <  4,  8, Iterator > Parse_IHL;
+        typedef Parse_UInt8     <         Iterator > Parse_8bit;
+        typedef Parse_UInt16    <         Iterator > Parse_16bit;
+        typedef Parse_Flag      <  0,     Iterator > Parse_R;
+        typedef Parse_Flag      <  1,     Iterator > Parse_DF;
+        typedef Parse_Flag      <  2,     Iterator > Parse_MF;
+        typedef Parse_UIntField <  3, 16, Iterator > Parse_Frag;
+        typedef Parse_UInt32    <         Iterator > Parse_32bit;  
         
-        Parse_Version  version()  const { return Parse_Version (this->i()      ); }
-        Parse_IHL  ihl()          const { return Parse_IHL     (this->i()      ); }
-        Parse_8bit  tos()         const { return Parse_8bit    (this->i() + 1  ); }
-        Parse_16bit length()      const { return Parse_16bit   (this->i() + 2  ); }
-        Parse_16bit identifier()  const { return Parse_16bit   (this->i() + 4  ); }
-        Parse_R  r()              const { return Parse_R       (this->i() + 6  ); }
-        Parse_DF  df()            const { return Parse_DF      (this->i() + 6  ); }
-        Parse_MF  mf()            const { return Parse_MF      (this->i() + 6  ); }
-        Parse_Frag frag()         const { return Parse_Frag    (this->i() + 6  ); }
-        Parse_8bit  ttl()         const { return Parse_8bit    (this->i() + 8  ); }
-	Parse_8bit  protocol()    const { return Parse_8bit    (this->i() + 9  ); } 
-	Parse_16bit  crc()        const { return Parse_16bit   (this->i() + 10 ); }
-	Parse_32bit source()      const { return Parse_32bit   (this->i() + 12 ); }
-        Parse_32bit destination() const { return Parse_32bit   (this->i() + 16 ); }
-        
-
-        void init() { 
-            version().init();
-            ihl().init();
-            tos().init();
-            length().init();
-	    r().init();
-	    df().init();
-	    mf().init();
-	    frag().init();
-            ttl().init();
-            protocol().init();
-            crc().init();
-	    source().init();
-	    destination().init();
-        }
+        Parse_Version  version()     const { return Parse_Version (this->i()      ); }
+        Parse_IHL      ihl()         const { return Parse_IHL     (this->i()      ); }
+        Parse_8bit     tos()         const { return Parse_8bit    (this->i() + 1  ); }
+        Parse_16bit    length()      const { return Parse_16bit   (this->i() + 2  ); }
+        Parse_16bit    identifier()  const { return Parse_16bit   (this->i() + 4  ); }
+        Parse_R        r()           const { return Parse_R       (this->i() + 6  ); }
+        Parse_DF       df()          const { return Parse_DF      (this->i() + 6  ); }
+        Parse_MF       mf()          const { return Parse_MF      (this->i() + 6  ); }
+        Parse_Frag     frag()        const { return Parse_Frag    (this->i() + 6  ); }
+        Parse_8bit     ttl()         const { return Parse_8bit    (this->i() + 8  ); }
+	Parse_8bit     protocol()    const { return Parse_8bit    (this->i() + 9  ); } 
+	Parse_16bit    crc()         const { return Parse_16bit   (this->i() + 10 ); }
+	Parse_32bit    source()      const { return Parse_32bit   (this->i() + 12 ); }
+        Parse_32bit    destination() const { return Parse_32bit   (this->i() + 16 ); }
     };
 
     struct IpV4Types {
@@ -98,7 +81,7 @@ namespace pkf {
 
     class IpV4Packet
         : public Packet, 
-          public Parse_IpV4<Packet::iterator, IpV4Packet>, 
+          public Parse_IpV4<Packet::iterator,IpV4Packet>, 
           public PacketRegistryMixin<IpV4Types,IpV4Packet>
     {
         using PacketRegistryMixin<IpV4Types,IpV4Packet>::registerInterpreter;
