@@ -68,19 +68,6 @@ namespace pkf {
         Parse_Seq     seqNumber()   const { return Parse_Seq     (this->i() + 2 ); }
         Parse_32bit   timestamp()   const { return Parse_32bit   (this->i() + 4 ); }
         Parse_32bit   ssrc()        const { return Parse_32bit   (this->i() + 8 ); }
-       
-
-        void init() { 
-            version().init();
-            padding().init();
-            extension().init();
-            csrcCount().init();
-	    marker.init();
-	    payloadType().init();
-	    seqNumber().init();
-	    timestamp().init();
-            ssrc().init();
-        }
     };
 
     struct RTPTypes {

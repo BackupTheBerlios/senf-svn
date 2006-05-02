@@ -34,17 +34,6 @@
 #define SATCOM_PKF_REFC_MSG(x)
 #endif
 
-// This deleter is used in the PacketImpl list holding the
-// Packet's. It only decrements the Packet refcount. If this drops to
-// 0 (i.e. the packet is removed from the list and no external
-// reference exists) the packet ist deleted.
-//
-// Since this is called, when the packet is removed from the list, we
-// set the impl_ member to 0 to mark, that the packet is now
-// orphaned and every use should throw an exception ...
-//
-// To make this work we must make sure, that the packet refcount is
-// incremented when we add the packet to the list.
 namespace satcom {
 namespace pkf {
 
@@ -54,6 +43,17 @@ namespace pkf {
             void operator()(Packet * p);
         };
 
+        // This deleter is used in the PacketImpl list holding the
+        // Packet's. It only decrements the Packet refcount. If this
+        // drops to 0 (i.e. the packet is removed from the list and no
+        // external reference exists) the packet ist deleted.
+        //
+        // Since this is called, when the packet is removed from the
+        // list, we set the impl_ member to 0 to mark, that the packet
+        // is now orphaned and every use should throw an exception ...
+        //
+        // To make this work we must make sure, that the packet
+        // refcount is incremented when we add the packet to the list.
         struct PacketImpl
         {
             Packet::raw_container data_;

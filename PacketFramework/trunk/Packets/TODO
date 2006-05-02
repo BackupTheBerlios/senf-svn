@@ -1,10 +1,9 @@
-Validierung des Paketes beim ersten Parsen: Sicherstellen, das bei
-Objekten mit flexibler Länge, der Parser nicht über das Ende des
-Paketes hinausliest.
+Bessere check implementierung ?
+
+reference-counting: Packet's mit 0 refcount erstellen und dann in
+create hochzählen. Was spricht eigentlich dagegen ???
 
 Listen flexibler Länge mit Objekten flexibler größe parsen ->
 ParseList in vereinfachter Form implementieren
 
 Klasse für IPv6 (v4?) Adressen als Parser und als value type
-
-STLport debug-mode + boost_unit_test framework zum laufen kriegen
