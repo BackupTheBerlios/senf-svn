@@ -38,9 +38,13 @@ using namespace satcom::pkf;
 
 BOOST_AUTO_UNIT_TEST(rtpPacket_parser)
 {
-    unsigned char data[] = { 0x01, 0x02, 0x03, 0x04, 
+    unsigned char data[] = { 0x13, 0x02, 0x03, 0x04, 
 			     0x05, 0x06, 0x07, 0x08, 
-			     0x09, 0x0A, 0x0B, 0x0C,   
+			     0x09, 0x0A, 0x0B, 0x0C,
+
+                             0x11, 0x12, 0x13, 0x14, // CSRC 1
+                             0x15, 0x16, 0x17, 0x18, // CSRC 2
+                             0x19, 0x1A, 0x1B, 0x1C, // CSRC 3   
                            };                        
 
     typedef unsigned char * iterator;
@@ -48,15 +52,24 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_parser)
 
     BOOST_CHECK_EQUAL( p.version(),            0x00u       );
     BOOST_CHECK_EQUAL( p.padding(),            0           );
-    BOOST_CHECK_EQUAL( p.extension(),          0           );
-    BOOST_CHECK_EQUAL( p.csrcCount(),          0x01u       );    
+    BOOST_CHECK_EQUAL( p.extension(),          1           );
+    BOOST_CHECK_EQUAL( p.csrcCount(),          0x03u       );    
     BOOST_CHECK_EQUAL( p.marker(),             0           );
     BOOST_CHECK_EQUAL( p.payloadType(),        0x02u       );
     // the static_cast is to silence gcc-3.3
     BOOST_CHECK_EQUAL( static_cast<unsigned>(p.seqNumber()), 0x0304u );
     BOOST_CHECK_EQUAL( p.timestamp(),          0x05060708u );
     BOOST_CHECK_EQUAL( p.ssrc(),               0x090A0B0Cu );
+ 
+
+    BOOST_CHECK_EQUAL( p.csrcList()[0],        0x11121314u ); 
+    BOOST_CHECK_EQUAL( p.csrcList()[1],        0x15161718u );
+    BOOST_CHECK_EQUAL( p.csrcList()[2],        0x191A1B1Cu );
     
+    
+    
+
+
 }
 
 		      

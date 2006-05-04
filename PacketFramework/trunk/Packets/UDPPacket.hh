@@ -56,6 +56,7 @@ namespace pkf {
         Parse_16bit destination()     const { return Parse_16bit      (this->i() + 2 ); }
         Parse_16bit length()          const { return Parse_16bit      (this->i() + 4 ); }
         Parse_16bit crc()             const { return Parse_16bit      (this->i() + 6 ); }
+
     };
 
     class UDPPacket

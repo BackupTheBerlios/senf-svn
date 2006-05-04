@@ -38,7 +38,12 @@ prefix_ void satcom::pkf::RTPPacket::v_nextInterpreter()
 prefix_ void satcom::pkf::RTPPacket::v_finalize()
 {}
 
+prefix_ void satcom::pkf::RTPExtensionPacket::v_nextInterpreter()
+    const
+{}
 
+prefix_ void satcom::pkf::RTPExtensionPacket::v_finalize()
+{}
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
