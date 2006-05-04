@@ -43,6 +43,7 @@ prefix_ satcom::pkf::RTPPacket::RTPPacket(InputIterator b, InputIterator e)
     if (!check(end())) throw TruncatedPacketException();
 }
 
+
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_
 

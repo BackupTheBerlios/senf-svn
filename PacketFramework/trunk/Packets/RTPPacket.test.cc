@@ -56,6 +56,10 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_parser)
     BOOST_CHECK_EQUAL( p.csrcCount(),          0x03u       );    
     BOOST_CHECK_EQUAL( p.marker(),             0           );
     BOOST_CHECK_EQUAL( p.payloadType(),        0x02u       );
+
+    BOOST_CHECK_EQUAL( p.bytes(),        24u       );
+
+
     // the static_cast is to silence gcc-3.3
     BOOST_CHECK_EQUAL( static_cast<unsigned>(p.seqNumber()), 0x0304u );
     BOOST_CHECK_EQUAL( p.timestamp(),          0x05060708u );
@@ -76,7 +80,7 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_parser)
 BOOST_AUTO_UNIT_TEST(rtpPacket_packet)
 {
 
-    unsigned char data[] = { 0x01, 0x02, 0x03, 0x04, 
+    unsigned char data[] = { 0x00, 0x02, 0x03, 0x04, 
 			     0x05, 0x06, 0x07, 0x08, 
 			     0x09, 0x0A, 0x0B, 0x0C
                            };  
@@ -86,7 +90,7 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_packet)
     BOOST_CHECK_EQUAL( p->version(),            0x00u       );
     BOOST_CHECK_EQUAL( p->padding(),            0           );
     BOOST_CHECK_EQUAL( p->extension(),          0           );
-    BOOST_CHECK_EQUAL( p->csrcCount(),          0x01u       );    
+    BOOST_CHECK_EQUAL( p->csrcCount(),          0x00u       );    
     BOOST_CHECK_EQUAL( p->marker(),             0           );
     BOOST_CHECK_EQUAL( p->payloadType(),        0x02u       );
     // the static_cast is to silence gcc-3.3
