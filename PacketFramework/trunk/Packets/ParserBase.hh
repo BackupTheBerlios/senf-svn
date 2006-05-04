@@ -32,7 +32,11 @@
 namespace satcom {
 namespace pkf {
     
-    struct nil {};
+    struct nil { 
+	// This is a fix for gcc-3.3 which checks out the implementation
+	// even when only taking the address of an object ... sigh ...
+	int operator[](int) const;
+    };
 
     /** \brief Baseclass providing iterator access for packet parsers
 

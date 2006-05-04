@@ -52,7 +52,8 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_parser)
     BOOST_CHECK_EQUAL( p.csrcCount(),          0x01u       );    
     BOOST_CHECK_EQUAL( p.marker(),             0           );
     BOOST_CHECK_EQUAL( p.payloadType(),        0x02u       );
-    BOOST_CHECK_EQUAL( p.seqNumber(),          0x0304u     );
+    // the static_cast is to silence gcc-3.3
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(p.seqNumber()), 0x0304u );
     BOOST_CHECK_EQUAL( p.timestamp(),          0x05060708u );
     BOOST_CHECK_EQUAL( p.ssrc(),               0x090A0B0Cu );
     
@@ -75,7 +76,8 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_packet)
     BOOST_CHECK_EQUAL( p->csrcCount(),          0x01u       );    
     BOOST_CHECK_EQUAL( p->marker(),             0           );
     BOOST_CHECK_EQUAL( p->payloadType(),        0x02u       );
-    BOOST_CHECK_EQUAL( p->seqNumber(),          0x0304u     );
+    // the static_cast is to silence gcc-3.3
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(p->seqNumber()), 0x0304u );
     BOOST_CHECK_EQUAL( p->timestamp(),          0x05060708u );
     BOOST_CHECK_EQUAL( p->ssrc(),               0x090A0B0Cu );
 
