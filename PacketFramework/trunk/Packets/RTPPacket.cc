@@ -33,15 +33,22 @@
 
 prefix_ void satcom::pkf::RTPPacket::v_nextInterpreter()
     const
-{}
+{
+        // todo if x -> extension
+	// else payload
+}
 
 prefix_ void satcom::pkf::RTPPacket::v_finalize()
 {}
 
 
-prefix_ void satcom::pkf::RTPUnknownExtensionPacket::v_nextInterpreter()
+
+prefix_ void satcom::pkf::RTPExtensionBasePacket::v_nextInterpreter()
     const
-{}
+{
+        // todo RTP payload
+}
+
 
 prefix_ void satcom::pkf::RTPUnknownExtensionPacket::v_finalize()
 {}

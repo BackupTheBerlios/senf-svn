@@ -116,6 +116,7 @@ namespace pkf {
     };
 
    
+ 
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_RTPExtensionBase : public ParserBase<Iterator,IPacket>
     {
@@ -134,18 +135,17 @@ namespace pkf {
         typedef Parse_UInt8     < Iterator >        Parse_8bit;
         typedef Parse_Vector    < Parse_8bit, Parse_16bit, Iterator > Parse_ext;
 
-        virtual Parse_16bit proDef() = 0;
-        virtual Parse_16bit length() = 0;
-        virtual Parse_ext      ext() = 0;  
+        virtual Parse_16bit proDef()   = 0;
+        Parse_16bit         length()   const { return Parse_16bit(this->i()+8); };
+        virtual Parse_ext   ext()      = 0;  
 
         unsigned int bytes() const { return 12 + ( 4 * length()); }
         bool check(Iterator const & e) const { return e-this->i() >= int(bytes()); } 
 
-    };
+    }; 
 
     class RTPExtensionBasePacket 
-        : public Packet,
-          public Parse_RTPExtensionBase<Packet::iterator, RTPExtensionBasePacket>
+        : public Packet
     {
 
     public:
@@ -159,7 +159,7 @@ namespace pkf {
         template <class InputIterator>
         RTPExtensionBasePacket(InputIterator begin, InputIterator end);
 
-        virtual void v_nextInterpreter() const = 0;
+        virtual void v_nextInterpreter() const;
         virtual void v_finalize() = 0;
 
         friend class Packet;
@@ -168,7 +168,7 @@ namespace pkf {
 
 
     template <class Iterator=nil, class IPacket=nil>
-    struct Parse_RTPUnknownExtension : public ParserBase<Iterator,IPacket>
+    struct Parse_RTPUnknownExtension : public Parse_RTPExtensionBase<Iterator,IPacket>
     {
         template <class I, class P=nil>
         struct rebind { typedef Parse_RTPUnknownExtension<I,P> parser; };
@@ -177,9 +177,7 @@ namespace pkf {
         Parse_RTPUnknownExtension() {}
         Parse_RTPUnknownExtension(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
 
-        unsigned int bytes() const { return 4; }
-        bool check(Iterator const & e) const { return e-this->i() >= int(bytes()); }
-        
+       
         ///////////////////////////////////////////////////////////////////////////
         
         
@@ -187,9 +185,8 @@ namespace pkf {
         typedef Parse_UInt8     < Iterator >        Parse_8bit;
         typedef Parse_Vector    < Parse_8bit, Parse_16bit, Iterator > Parse_ext;
 
-        Parse_16bit proDef()      const { return Parse_16bit(this->i()); }
-        Parse_16bit length()      const { return Parse_16bit(this->i() +2); }
-        Parse_ext      ext()      const { return Parse_ext (length(), this->i() + 8 ); }    
+        Parse_16bit proDef()      const { return Parse_16bit(this->i()); }        
+        Parse_ext      ext()      const { return Parse_ext (Parse_RTPExtensionBase<Iterator,IPacket>::length(), this->i() + 8 ); }    
 
     };
 
@@ -221,7 +218,7 @@ namespace pkf {
         template <class InputIterator>
         RTPUnknownExtensionPacket(InputIterator begin, InputIterator end);
 
-        virtual void v_nextInterpreter() const;
+        //virtual void v_nextInterpreter() const;
         virtual void v_finalize();
 
         friend class RTPExtensionBasePacket;
