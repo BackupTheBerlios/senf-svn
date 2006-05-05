@@ -132,12 +132,9 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
                 
         typedef Parse_UInt16    < Iterator >        Parse_16bit;
-        typedef Parse_UInt8     < Iterator >        Parse_8bit;
-        typedef Parse_Vector    < Parse_8bit, Parse_16bit, Iterator > Parse_ext;
 
-        virtual Parse_16bit proDef()   = 0;
-        Parse_16bit         length()   const { return Parse_16bit(this->i()+8); };
-        virtual Parse_ext   ext()      = 0;  
+        Parse_16bit         proDef()   const { return Parse_16bit(this->i()); };
+        Parse_16bit         length()   const { return Parse_16bit(this->i()+2); };
 
         unsigned int bytes() const { return 12 + ( 4 * length()); }
         bool check(Iterator const & e) const { return e-this->i() >= int(bytes()); } 
@@ -184,8 +181,7 @@ namespace pkf {
         typedef Parse_UInt16    < Iterator >        Parse_16bit;
         typedef Parse_UInt8     < Iterator >        Parse_8bit;
         typedef Parse_Vector    < Parse_8bit, Parse_16bit, Iterator > Parse_ext;
-
-        Parse_16bit proDef()      const { return Parse_16bit(this->i()); }        
+       
         Parse_ext      ext()      const { return Parse_ext (Parse_RTPExtensionBase<Iterator,IPacket>::length(), this->i() + 8 ); }    
 
     };
