@@ -37,7 +37,7 @@ prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packe
                                                         inplace_wrapper(this->end_)), 
                                         false);
     // THIS INVALIDATES this !!!!!!!
-    this->replaceInterpreter(p.get());
+    this->i_replaceInterpreter(p.get());
     return p;
 }
 
@@ -54,7 +54,7 @@ satcom::pkf::Packet::registerInterpreter(raw_container::iterator begin,
         new OtherPacket( inplace_wrapper(begin-impl_->data_.begin()),
                          inplace_wrapper(end-impl_->data_.begin()) ),
         false);
-    this->registerInterpreter(p.get());
+    this->i_registerInterpreter(p.get());
     return p;
 }
 
@@ -77,8 +77,9 @@ prefix_ satcom::pkf::Packet::Packet(InputIterator begin, InputIterator end)
 
 template <class OtherPacket>
 prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packet::find_next()
+    const
 {
-    ptr p (this);
+    ptr p (next());
     while (p && !p->is<OtherPacket>())
         p = p->next();
     return p->as<OtherPacket>();
@@ -86,11 +87,30 @@ prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packe
 
 template <class OtherPacket>
 prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packet::find_prev()
+    const
 {
-    ptr p (this);
+    ptr p (prev());
     while (p && !p->is<OtherPacket>())
         p = p->prev();
     return p->as<OtherPacket>();
+}
+
+template <class OtherPacket>
+prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packet::get_next()
+    const
+{
+    typename ptr_t<OtherPacket>::ptr p (find_next<OtherPacket>());
+    BOOST_ASSERT(p);
+    return p;
+}
+
+template <class OtherPacket>
+prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packet::get_prev()
+    const
+{
+    typename ptr_t<OtherPacket>::ptr p (find_prev<OtherPacket>());
+    BOOST_ASSERT(p);
+    return p;
 }
 
 template <class InputIterator>

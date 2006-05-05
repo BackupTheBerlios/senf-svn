@@ -319,11 +319,20 @@ namespace pkf {
         /** \brief first packet of given type after the current packet
             \return smart pointer to first following packet of type \a
                 OtherPacket or 0, if no such packet exists */
-        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr find_next();
+        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr find_next() const;
         /** \brief first packet of given type before the current packet
             \return smart pointer to first preceding packet of type \a
                 OtherPacket or 0, if no such packet exists */
-        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr find_prev();
+        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr find_prev() const;
+
+        /** \brief first packet of given type after the current packet
+            \return smart pointer to first following packet of type \a
+            OtherPacket. \e Assert's, that a packet of this type exists */
+        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr get_next() const;
+        /** \brief first packet of given type before the current packet
+            \return smart pointer to first preceding packet of type \a
+            OtherPacket. \e Assert's, that a packet of this type exists */
+        template <class OtherPacket> typename ptr_t<OtherPacket>::ptr get_prev() const;
 
         /** \brief check, wether the packet is of the given type
             \return true, if packt is of type \a OtherPacket, false
@@ -514,8 +523,8 @@ namespace pkf {
         void add_ref() const;
         bool release();
         bool unlink();
-        void registerInterpreter(Packet * p) const;
-        void replaceInterpreter(Packet * p);
+        void i_registerInterpreter(Packet * p) const;
+        void i_replaceInterpreter(Packet * p);
 
     private:
         friend class impl::PacketImpl;

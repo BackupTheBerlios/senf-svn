@@ -199,7 +199,7 @@ prefix_ satcom::pkf::Packet::ptr satcom::pkf::Packet::last()
     return ptr(p,true);
 }
 
-prefix_ void satcom::pkf::Packet::registerInterpreter(Packet * p)
+prefix_ void satcom::pkf::Packet::i_registerInterpreter(Packet * p)
     const
 {
     BOOST_ASSERT( !p->impl_ );
@@ -208,7 +208,7 @@ prefix_ void satcom::pkf::Packet::registerInterpreter(Packet * p)
     this->parsed_ = true;
 }
 
-prefix_ void satcom::pkf::Packet::replaceInterpreter(Packet * p)
+prefix_ void satcom::pkf::Packet::i_replaceInterpreter(Packet * p)
 {
     BOOST_ASSERT( !p->impl_ );
     // We need to increment the refcount of impl_ beforehand,

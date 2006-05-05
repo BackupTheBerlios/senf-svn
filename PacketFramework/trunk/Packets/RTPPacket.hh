@@ -85,6 +85,7 @@ namespace pkf {
           public Parse_RTP<Packet::iterator, RTPPacket>, 
           public PacketRegistryMixin<RTPTypes,RTPPacket>
     {
+        using Packet::registerInterpreter;
         using PacketRegistryMixin<RTPTypes,RTPPacket>::registerInterpreter;
     public:
         ///////////////////////////////////////////////////////////////////////////
@@ -136,25 +137,26 @@ namespace pkf {
         Parse_16bit         length()   const { return Parse_16bit(this->i()+2); };
 
         unsigned int bytes() const { return 4 + length(); }        
-        bool check(Iterator e) const { return e-this->i()>=4 and e-this->i() >= bytes(); }
+        bool check(Iterator e) const 
+        { return e-this->i()>=4 && e-this->i() >= static_cast<int>(bytes()); }
 
     }; 
 
     class RTPExtensionBasePacket 
-        : public Packet
+        : public Packet,
+          public PacketRegistryMixin<RTPTypes, RTPExtensionBasePacket>
     {
-
+        using PacketRegistryMixin<RTPTypes,RTPExtensionBasePacket>::registerInterpreter;
+        using Packet::registerInterpreter;
     public:
          ///////////////////////////////////////////////////////////////////////////       
          typedef ptr_t<RTPExtensionBasePacket>::ptr ptr;
 
-         template <class InputIterator>
-         static ptr create(InputIterator begin, InputIterator end); 
-
-    private:
+    protected:
         template <class InputIterator>
         RTPExtensionBasePacket(InputIterator begin, InputIterator end);
 
+    private:
         virtual void v_nextInterpreter() const;
         virtual void v_finalize() = 0;
 
@@ -186,9 +188,7 @@ namespace pkf {
     class RTPUnknownExtensionPacket
         : public RTPExtensionBasePacket,
           public Parse_RTPUnknownExtension<Packet::iterator, RTPUnknownExtensionPacket>
-          //public PacketRegistryMixin<RTPTypes, RTPUnknownExtensionPacket>
     {
-        //using PacketRegistryMixin<RTPTypes, RTPExtensionPacket>::registerInterpreter;
     public:
         ///////////////////////////////////////////////////////////////////////////
         // Types

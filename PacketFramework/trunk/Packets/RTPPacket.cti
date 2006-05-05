@@ -43,6 +43,26 @@ prefix_ satcom::pkf::RTPPacket::RTPPacket(InputIterator b, InputIterator e)
     if (!check(end())) throw TruncatedPacketException();
 }
 
+template <class InputIterator>
+prefix_ satcom::pkf::RTPExtensionBasePacket::RTPExtensionBasePacket(InputIterator b,
+                                                                    InputIterator e)
+    : Packet(b,e)
+{
+    if (!Parse_RTPExtensionBase<iterator>(begin()).check(end())) throw TruncatedPacketException();
+}
+
+template <class InputIterator>
+prefix_ satcom::pkf::RTPUnknownExtensionPacket::ptr
+satcom::pkf::RTPUnknownExtensionPacket::create(InputIterator begin, InputIterator end)
+{
+    return ptr(new RTPUnknownExtensionPacket(begin,end),false);
+}
+
+template <class InputIterator>
+prefix_ satcom::pkf::RTPUnknownExtensionPacket::RTPUnknownExtensionPacket(InputIterator b,
+                                                                          InputIterator e)
+    : RTPExtensionBasePacket(b, e)
+{}
 
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_
