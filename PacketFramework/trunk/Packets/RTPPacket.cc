@@ -34,8 +34,14 @@
 prefix_ void satcom::pkf::RTPPacket::v_nextInterpreter()
     const
 {
-        // todo if x -> extension
-	// else payload
+
+    if(extension()){
+        // TODO end()-padding
+        Packet::registerInterpreter<RTPUnknownExtensionPacket>(begin()+bytes(),end());
+    }else{
+        // TODO end()-padding
+        registerInterpreter(payloadType(),begin()+bytes(),end());
+    }
 }
 
 prefix_ void satcom::pkf::RTPPacket::v_finalize()
@@ -46,7 +52,11 @@ prefix_ void satcom::pkf::RTPPacket::v_finalize()
 prefix_ void satcom::pkf::RTPExtensionBasePacket::v_nextInterpreter()
     const
 {
-        // todo RTP payload
+    // TODO - padding
+    // registerInterpreter(payloadType(),begin()+bytes(),end());
+
+    registerInterpreter(find_prev<RTPPacket>()->payload(),begin()+bytes(),end());
+
 }
 
 

@@ -72,9 +72,8 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
 
         unsigned int bytes() const { return 12 + ( 4 * csrcCount()); }
-        bool check(Iterator const & e) const { return e-this->i() >= int(bytes()); }
- 
-
+        bool check(Iterator const & e) const { return e-this->i()>= 12 and e-this->i() >= int(bytes()); }
+        
     };
 
     struct RTPTypes {
@@ -136,8 +135,8 @@ namespace pkf {
         Parse_16bit         proDef()   const { return Parse_16bit(this->i()); };
         Parse_16bit         length()   const { return Parse_16bit(this->i()+2); };
 
-        unsigned int bytes() const { return 12 + ( 4 * length()); }
-        bool check(Iterator const & e) const { return e-this->i() >= int(bytes()); } 
+        unsigned int bytes() const { return 4 + length(); }        
+        bool check(Iterator e) const { return e-this->i()>=4 and e-this->i() >= bytes(); }
 
     }; 
 
@@ -173,11 +172,9 @@ namespace pkf {
 
         Parse_RTPUnknownExtension() {}
         Parse_RTPUnknownExtension(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
-
-       
+     
         ///////////////////////////////////////////////////////////////////////////
-        
-        
+           
         typedef Parse_UInt16    < Iterator >        Parse_16bit;
         typedef Parse_UInt8     < Iterator >        Parse_8bit;
         typedef Parse_Vector    < Parse_8bit, Parse_16bit, Iterator > Parse_ext;

@@ -44,8 +44,11 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_parser)
 
                              0x11, 0x12, 0x13, 0x14, // CSRC 1
                              0x15, 0x16, 0x17, 0x18, // CSRC 2
-                             0x19, 0x1A, 0x1B, 0x1C, // CSRC 3   
-                           };                        
+                             0x19, 0x1A, 0x1B, 0x1C,  // CSRC 3 
+
+                             0x20, 0x02, 0x22, 0x23
+  
+                           };                       
 
     typedef unsigned char * iterator;
     Parse_RTP<iterator> p(data);
@@ -56,20 +59,23 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_parser)
     BOOST_CHECK_EQUAL( p.csrcCount(),          0x03u       );    
     BOOST_CHECK_EQUAL( p.marker(),             0           );
     BOOST_CHECK_EQUAL( p.payloadType(),        0x02u       );
-
-    BOOST_CHECK_EQUAL( p.bytes(),        24u       );
-
-
     // the static_cast is to silence gcc-3.3
     BOOST_CHECK_EQUAL( static_cast<unsigned>(p.seqNumber()), 0x0304u );
     BOOST_CHECK_EQUAL( p.timestamp(),          0x05060708u );
     BOOST_CHECK_EQUAL( p.ssrc(),               0x090A0B0Cu );
  
-
     BOOST_CHECK_EQUAL( p.csrcList()[0],        0x11121314u ); 
     BOOST_CHECK_EQUAL( p.csrcList()[1],        0x15161718u );
     BOOST_CHECK_EQUAL( p.csrcList()[2],        0x191A1B1Cu );
-    
+
+
+    //p->last()->reinterpret<RTPUnknownExtensionPacket>();
+    //BOOST_CHECK( p->next()->is<RTPUnknownExtensionPacket>() );
+    //RTPUnknownExtensionPacket::ptr v (p->next()->reinterpret<RTPUnknownExtensionPacket>());
+   /* BOOST_CHECK_EQUAL( v->proDef(), 0x20 );
+    BOOST_CHECK_EQUAL( v->length(), 0x02 );
+    BOOST_CHECK_EQUAL( v->ext(), 0x2223 );
+    */
     
     
 
