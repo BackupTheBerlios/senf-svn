@@ -65,6 +65,7 @@ env = conf.Finish()
 
 testSources = glob.glob("*.test.cc")
 sources = [ x for x in glob.glob("*.cc") if x not in testSources ]
+images = glob.glob("*.dia")
 
 ###########################################################################
 
@@ -78,7 +79,8 @@ Default(env.BoostUnitTests(
 
 env.Doxygen(
     target = 'doc',
-    source = sources
+    source = sources,
+    image = images
 )
 
 all = env.Alias('all')

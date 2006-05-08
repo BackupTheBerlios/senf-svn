@@ -81,6 +81,8 @@
        dynamically sized arrays of fixed-size elements (that is
        sub-parsers).
 
+    See satcom::pkf::ParserBase for further information.
+
     \section stuff Other Utilities
 
     The pkf also comprises some additional utilities to support the
@@ -136,11 +138,13 @@ namespace pkf {
         counted smart pointer, so resource management is quasi
         automatic.
 
-        Internally, every Packet references a PacketImpl instance
-        which manages the raw packet data and the interpreter
-        list. This raw data is interpreted by the concrete Packet
-        derived class according to the definition of that derived
-        class's packet type (i.e. EthernetPacket or UDPPacket).
+        \image html "../../structure.png" Overview
+        
+        Internally, every Packet references a PacketImpl instance which
+        manages the raw packet data and the interpreter list. This raw
+        data is interpreted by the concrete Packet derived class
+        according to the definition of that derived class's packet
+        type (i.e. EthernetPacket or UDPPacket).
 
         Packet provides several interfaces:
 
@@ -177,6 +181,7 @@ namespace pkf {
             {
             public:
                 typedef ptr_t<ExamplePacket>::ptr ptr;
+
                 template <class InputIterator>
                 static ptr create(InputIterator begin, InputIterator end)
                 {
@@ -188,11 +193,13 @@ namespace pkf {
                 ExamplePacket(InputIterator begin, InputIterator end)
                     : satcom::pkf::Packet(begin,end)
                 {
-                    // initialize packet
+                    // check data consistency !!
                 }
 
                 virtual void v_nextInterpreter() const
                 {
+                    // NextPacketType and header_length of course
+                    // depend on the packet type
                     registerInterpreter<NextPacketType>(begin()+header_length, end());
                 }
 
@@ -205,12 +212,75 @@ namespace pkf {
             };
         \endcode
 
+        Please do not implement the methods inline to not clutter up
+        the header file. This is done here in the example to simplify
+        it.
+
         If your class's constructor takes additional arguments, add
         them after the begin/end parameters to both \a create and the
         constructor. If a class is to be registered in some
         satcom:pkf::PacketRegistry, it must not take any additional
         constructor parameters.
 
+        After having implemented the bare framework, the most comman
+        way to implement access to the packets specific data is to use
+        the parser framework by additionally inheriting a
+        corresponding parser. In the following example we only show the
+        differences from the previous example:
+
+        \code
+            class ExamplePacket
+                : public satcom::pkf::Packet,
+                  public Parse_Example<satcom::pkf::Packet::iterator,
+                                       ExamplePacket>
+            {
+            private:
+                template <class InputIterator>
+                ExamplePacket(InputIterator begin, InputIterator end)
+                    : satcom::pkf::Packet(begin,end)
+                {
+                    // check data consistency. check() is provided by
+                    // Parse_Example
+                    if (!check(end())) throw TruncatedPacketException();
+                }
+            };
+        \endcode
+
+        See the satcom::pkf::ParserBase Documentation for how to
+        implement Parse_Example.
+
+        The implementation of v_nextInterpreter most of the time
+        relies on some packet registry. This is simplified using the
+        satcom::pkf::PacketRegistryMixin class as follows. Again, we
+        only show the differences from the preceding Example:
+
+        \code
+            struct ExampleRegistry {
+                type boost::uint16_t key_t;
+            };
+
+            class ExamplePacket
+                : public satcom::pkf::Packet,
+                  public Parse_Example<satcom::pkf::Packet::iterator,
+                                       ExamplePacket>,
+                  public satcom::pkf::PacketRegistryMixin<ExampleRegistry,
+                                                          ExamplePacket>
+            {
+                using satcom::pkf::Packet::registerInterpreter;
+                using satcom::pkf::PacketRegsitryMixin<ExampleRegistry,ExamplePacket>::registerInterpreter;
+            private:
+                virtual void v_nextInterpreter() const
+                {
+                    // nextType() is defined in Parse_Example and
+                    // returns the key in the ExampleRegistry of the
+                    // next Packet.
+                    registerInterpreter(nextType(),begin()+header_length, end());
+                }
+            };
+        \endcode
+
+        For further details on the packet registry framework, see
+        satcom::pkf::PacketRegistry.
 
         \section packet_impl Implementation details
 
