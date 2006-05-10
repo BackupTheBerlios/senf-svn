@@ -58,16 +58,18 @@ namespace pkf {
         typedef Parse_UInt32     < Iterator >          Parse_32bit;
         typedef Parse_Vector     < Parse_32bit, Parse_CC, Iterator > Parse_CCVec;
       
-        Parse_Version  version()     const { return Parse_Version  (this->i()      ); }
-        Parse_P        padding()     const { return Parse_P        (this->i()      ); }
-        Parse_X        extension()   const { return Parse_X        (this->i()      ); }
-        Parse_CC       csrcCount()   const { return Parse_CC       (this->i()      ); }
-        Parse_M        marker()      const { return Parse_M        (this->i() + 1  ); }
-        Parse_PT       payloadType() const { return Parse_PT       (this->i() + 1  ); }
-        Parse_Seq      seqNumber()   const { return Parse_Seq      (this->i() + 2  ); }
-        Parse_32bit    timestamp()   const { return Parse_32bit    (this->i() + 4  ); }
-        Parse_32bit    ssrc()        const { return Parse_32bit    (this->i() + 8  ); }
-        Parse_CCVec    csrcList()    const { return Parse_CCVec (csrcCount(), this->i() + 12 ); }  
+        Parse_Version  version()      const { return Parse_Version  (this->i()      ); }
+        Parse_P        padding()      const { return Parse_P        (this->i()      ); }
+        Parse_X        extension()    const { return Parse_X        (this->i()      ); }
+        Parse_CC       csrcCount()    const { return Parse_CC       (this->i()      ); }
+        Parse_M        marker()       const { return Parse_M        (this->i() + 1  ); }
+        Parse_PT       payloadType()  const { return Parse_PT       (this->i() + 1  ); }
+        Parse_Seq      seqNumber()    const { return Parse_Seq      (this->i() + 2  ); }
+        Parse_32bit    timestamp()    const { return Parse_32bit    (this->i() + 4  ); }
+        Parse_32bit    ssrc()         const { return Parse_32bit    (this->i() + 8  ); }
+        Parse_CCVec    csrcList()     const { return Parse_CCVec (csrcCount(), this->i() + 12 ); }  
+
+        
  
         ///////////////////////////////////////////////////////////////////////////
 
@@ -105,12 +107,20 @@ namespace pkf {
 
         ///@}
 
+        typedef Parse_UInt8     < Packet::iterator >  Parse_paddingOctet;
+        
+        Parse_paddingOctet paddingOctet() const { 
+            return Parse_paddingOctet( end() -1 ); 
+        } 
+
     private:
         template <class InputIterator>
         RTPPacket(InputIterator begin, InputIterator end);
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();
+
+        
 
         friend class Packet;
     };
@@ -139,6 +149,7 @@ namespace pkf {
         unsigned int bytes() const { return 4 + length(); }        
         bool check(Iterator e) const 
         { return e-this->i()>=4 && e-this->i() >= static_cast<int>(bytes()); }
+
 
     }; 
 

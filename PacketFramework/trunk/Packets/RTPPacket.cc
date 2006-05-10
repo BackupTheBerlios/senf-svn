@@ -36,11 +36,15 @@ prefix_ void satcom::pkf::RTPPacket::v_nextInterpreter()
 {
 
     if(extension()){
-        // TODO end()-padding
+
         Packet::registerInterpreter<RTPUnknownExtensionPacket>(begin()+bytes(),end());
     }else{
-        // TODO end()-padding
-        registerInterpreter(payloadType(),begin()+bytes(),end());
+	
+	int paddingOctets = 0;
+        if(padding()){
+	    paddingOctets = paddingOctet();
+	}
+        registerInterpreter(payloadType(),begin()+bytes(),end()-paddingOctets);
     }
 }
 
@@ -60,7 +64,12 @@ prefix_ void satcom::pkf::RTPExtensionBasePacket::v_nextInterpreter()
     Parse_RTPExtensionBase<iterator> p (begin());
     if (!p.check(end()))
         throw TruncatedPacketException();
-    registerInterpreter(get_prev<RTPPacket>()->payloadType(),begin()+p.bytes(),end());
+
+    int paddingOctets = 0;
+    if(get_prev<RTPPacket>()->padding()){
+	paddingOctets = get_prev<RTPPacket>()->paddingOctet();
+    }
+    registerInterpreter(get_prev<RTPPacket>()->payloadType(),begin()+p.bytes(),end()-paddingOctets);
 }
 
 
