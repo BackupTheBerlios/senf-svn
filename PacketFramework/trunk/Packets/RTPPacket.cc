@@ -36,7 +36,6 @@ prefix_ void satcom::pkf::RTPPacket::v_nextInterpreter()
 {
 
     if(extension()){
-
         Packet::registerInterpreter<RTPUnknownExtensionPacket>(begin()+bytes(),end());
     }else{
 	
@@ -56,11 +55,11 @@ prefix_ void satcom::pkf::RTPPacket::v_finalize()
 prefix_ void satcom::pkf::RTPExtensionBasePacket::v_nextInterpreter()
     const
 {
-    // TODO - padding
 
     // We don't want to inherit Parse_RTPExtensionBase to avoid
     // virtual inheritance problems. Since we need the size of the
     // extension, we just allocate ourselves a ExtensionBase parser
+
     Parse_RTPExtensionBase<iterator> p (begin());
     if (!p.check(end()))
         throw TruncatedPacketException();

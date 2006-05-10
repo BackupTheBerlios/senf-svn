@@ -192,7 +192,7 @@ namespace pkf {
         typedef Parse_UInt8     < Iterator >        Parse_8bit;
         typedef Parse_Vector    < Parse_8bit, Parse_16bit, Iterator > Parse_ext;
        
-        Parse_ext      ext()      const { return Parse_ext (Parse_RTPExtensionBase<Iterator,IPacket>::length(), this->i() + 8 ); }    
+        Parse_ext      ext()      const { return Parse_ext (Parse_RTPExtensionBase<Iterator,IPacket>::length(), this->i() + 4 ); }    
 
     };
 
