@@ -183,8 +183,10 @@ prefix_ satcom::pkf::Packet::Packet(inplace_wrapper begin, inplace_wrapper end)
     switch (end.second.op) {
     case inplace_wrapper::OP_REPLACE: 
         end.first.p->i_replaceInterpreter(this);
+        break;
     case inplace_wrapper::OP_REGISTER:
         end.first.p->i_registerInterpreter(this);
+        break;
     }
 }
 
