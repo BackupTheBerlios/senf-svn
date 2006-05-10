@@ -33,11 +33,10 @@
 template <class OtherPacket>
 prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packet::reinterpret()
 {
-    typename ptr_t<OtherPacket>::ptr p (new OtherPacket(inplace_wrapper(this->begin_), 
-                                                        inplace_wrapper(this->end_)), 
-                                        false);
     // THIS INVALIDATES this !!!!!!!
-    this->i_replaceInterpreter(p.get());
+    typename ptr_t<OtherPacket>::ptr p (new OtherPacket(inplace_wrapper(this->begin_, this->end_), 
+                                                        inplace_wrapper(inplace_wrapper::OP_REPLACE,this)), 
+                                        false);
     return p;
 }
 
@@ -51,10 +50,10 @@ satcom::pkf::Packet::registerInterpreter(raw_container::iterator begin,
     const
 {
     typename ptr_t<OtherPacket>::ptr p (
-        new OtherPacket( inplace_wrapper(begin-impl_->data_.begin()),
-                         inplace_wrapper(end-impl_->data_.begin()) ),
+        new OtherPacket( inplace_wrapper(begin-impl_->data_.begin(),
+                                         end-impl_->data_.begin()),
+                         inplace_wrapper(inplace_wrapper::OP_REGISTER,const_cast<Packet*>(this))),
         false);
-    this->i_registerInterpreter(p.get());
     return p;
 }
 

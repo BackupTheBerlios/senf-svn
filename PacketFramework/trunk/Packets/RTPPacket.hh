@@ -137,8 +137,6 @@ namespace pkf {
         Parse_RTPExtensionBase() {}
         Parse_RTPExtensionBase(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
 
-        
-        
         ///////////////////////////////////////////////////////////////////////////
                 
         typedef Parse_UInt16    < Iterator >        Parse_16bit;
@@ -214,7 +212,7 @@ namespace pkf {
         // no conversion constructors
         
         template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end);        
+        static ptr create(InputIterator begin, InputIterator end);
 
         ///@}
 

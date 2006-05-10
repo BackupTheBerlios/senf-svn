@@ -72,7 +72,6 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_parser)
 		      
 BOOST_AUTO_UNIT_TEST(rtpPacket_packet)
 {
-
     unsigned char data[] = { 0x13, 0x02, 0x03, 0x04, 
                              0x05, 0x06, 0x07, 0x08, 
                              0x09, 0x0A, 0x0B, 0x0C,
@@ -81,7 +80,7 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_packet)
                              0x15, 0x16, 0x17, 0x18, // CSRC 2
                              0x19, 0x1A, 0x1B, 0x1C, // CSRC 3 
                              
-                             0x20, 0x21, 0x08, 0x23, // ex
+                             0x20, 0x21, 0x00, 0x08, // ex
                              0x24, 0x25, 0x26, 0x27, // ex
                              
                              0x20, 0x21, 0x08, 0x23, // paylaod
@@ -106,11 +105,12 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_packet)
     BOOST_CHECK_EQUAL( p->csrcList()[1],        0x15161718u );
     BOOST_CHECK_EQUAL( p->csrcList()[2],        0x191A1B1Cu );
     
+    BOOST_REQUIRE( p->next() );
     BOOST_CHECK( p->next()->is<RTPUnknownExtensionPacket>() );
-//p->next();
-   // RTPUnknownExtensionPacket::ptr v (p->next()->as<RTPUnknownExtensionPacket>());
-    // BOOST_CHECK_EQUAL( v->proDef(),             0x2021u      );
-    // BOOST_CHECK_EQUAL( v->length(),             0x08u        );
+
+    RTPUnknownExtensionPacket::ptr v (p->next()->as<RTPUnknownExtensionPacket>());
+    BOOST_CHECK_EQUAL( v->proDef(),             0x2021u      );
+    BOOST_CHECK_EQUAL( v->length(),             0x08u        );
     // BOOST_CHECK_EQUAL( v->ext(),                0x24252627u  );
     
 }

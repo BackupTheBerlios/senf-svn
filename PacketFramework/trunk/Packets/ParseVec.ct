@@ -31,8 +31,9 @@
 
 template <class Parser, class SizeParser, class Container>
 template <class Value>
-prefix_ void satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::insert(iterator pos,
-                                                                                Value const & t)
+prefix_ void
+satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::insert(iterator pos,
+                                                                       Value const & t)
 {
     size_type ix(pos.raw()-container_.begin());
     shift(pos);
@@ -41,9 +42,10 @@ prefix_ void satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::ins
 
 template <class Parser, class SizeParser, class Container>
 template <class Value>
-prefix_ void satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::insert(iterator pos,
-                                                                                size_type n,
-                                                                                Value const & t)
+prefix_ void
+satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::insert(iterator pos,
+                                                                       size_type n,
+                                                                       Value const & t)
 {
     size_type ix(pos.raw()-container_.begin());
     shift(pos,n);
@@ -54,9 +56,10 @@ prefix_ void satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::ins
 
 template <class Parser, class SizeParser, class Container>
 template <class InputIterator>
-prefix_ void satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::insert(iterator pos,
-                                                                                InputIterator f,
-                                                                                InputIterator l)
+prefix_ void
+satcom::pkf::Parse_Vector_wrapper<Parser,SizeParser,Container>::insert(iterator pos,
+                                                                       InputIterator f,
+                                                                       InputIterator l)
 {
     // FIXME: This is HORRIBLY inefficient ... we need to specialize 
     // for random_aPacketRegistry.ess and forward iterators, where we can count the distance
