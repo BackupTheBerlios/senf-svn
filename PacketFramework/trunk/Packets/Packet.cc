@@ -200,7 +200,6 @@ prefix_ satcom::pkf::Packet::ptr satcom::pkf::Packet::last()
 }
 
 prefix_ void satcom::pkf::Packet::i_registerInterpreter(Packet * p)
-    const
 {
     BOOST_ASSERT( !p->impl_ );
     this->impl_->truncateInterpretersAfter(this);

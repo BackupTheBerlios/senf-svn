@@ -171,25 +171,6 @@ prefix_ bool satcom::pkf::Packet::unlink()
     return !this->refcount_;
 }
 
-// This constructor appends a new interreter to the interpreter chain
-// of an existing Packet
-prefix_ satcom::pkf::Packet::Packet(inplace_wrapper begin, inplace_wrapper end)
-    : impl_(0), begin_(begin.first.v), end_(begin.second.v), self_(),
-      parsed_(false), refcount_(1)
-{
-    SATCOM_PKF_REFC_MSG("] Packet::Packet (" << this << "): refcount_ = 1\n");
-    // This is awkward ...
-    // FIXME: This is NOT exception save ...
-    switch (end.second.op) {
-    case inplace_wrapper::OP_REPLACE: 
-        end.first.p->i_replaceInterpreter(this);
-        break;
-    case inplace_wrapper::OP_REGISTER:
-        end.first.p->i_registerInterpreter(this);
-        break;
-    }
-}
-
 ///////////////////////////////cci.e///////////////////////////////////////
 #undef prefix_
 

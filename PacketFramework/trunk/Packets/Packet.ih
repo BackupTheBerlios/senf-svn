@@ -94,22 +94,14 @@ namespace pkf {
 
 }}
 
+template <void (satcom::pkf::Packet::*operation)(satcom::pkf::Packet*)>
 struct satcom::pkf::Packet::inplace_wrapper
 {
-    enum operation { OP_REPLACE, OP_REGISTER };
-
-    inplace_wrapper() { first.v=0; second.v=0; }
-    inplace_wrapper(size_type b, size_type e) { first.v=b; second.v=e; }
-    inplace_wrapper(operation op, Packet* p) { first.p=p; second.op=op; }
+    inplace_wrapper() : v(), p() {}
+    inplace_wrapper(size_type v_, Packet* p_=0) : v(v_), p(p_) {}
     
-    union {
-        size_type v;
-        Packet* p;
-    } first;
-    union {
-        size_type v;
-        operation op;
-    } second;
+    size_type v;
+    Packet* p;
 };
 
 ///////////////////////////////ih.e////////////////////////////////////////

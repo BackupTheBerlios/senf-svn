@@ -42,6 +42,20 @@ prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packe
     return typename ptr_t<OtherPacket>::ptr(dynamic_cast<OtherPacket*>(this),true);
 }
 
+// This constructor appends a new interreter to the interpreter chain
+// of an existing Packet
+template <void (satcom::pkf::Packet::*operation)(satcom::pkf::Packet*)>
+prefix_ satcom::pkf::Packet::Packet(inplace_wrapper<operation> begin,
+                                    inplace_wrapper<operation> end)
+    : impl_(0), begin_(begin.v), end_(end.v), self_(),
+      parsed_(false), refcount_(1)
+{
+    SATCOM_PKF_REFC_MSG("] Packet::Packet (" << this << "): refcount_ = 1\n");
+    // FIXME: This is not exception safe when exceptions are thrown in
+    //        a derived class constructor
+    (begin.p->*operation)(this);
+}
+
 template <class InputIterator>
 prefix_ satcom::pkf::impl::PacketImpl::PacketImpl(InputIterator begin, InputIterator end)
     : data_(begin, end), interpreters_(), refcount_(1)

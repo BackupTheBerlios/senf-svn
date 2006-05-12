@@ -338,7 +338,7 @@ namespace pkf {
         typedef std::list<satcom::pkf::Packet::interpreter_list_ptr > interpreter_list;
         typedef unsigned refcount_t;
     public:
-        struct inplace_wrapper;
+        template <void (Packet::*operation)(Packet*)> struct inplace_wrapper;
 
     public:
 
@@ -562,7 +562,8 @@ namespace pkf {
             reinterpret() via the derived classes template
             constructor.
          */
-        Packet(inplace_wrapper begin, inplace_wrapper end);
+        template <void (Packet::*operation)(Packet*)>
+        Packet(inplace_wrapper<operation> begin, inplace_wrapper<operation> end);
         virtual ~Packet();
         
         /** \brief add interpreter to interpreter chain
@@ -593,7 +594,7 @@ namespace pkf {
         void add_ref() const;
         bool release();
         bool unlink();
-        void i_registerInterpreter(Packet * p) const;
+        void i_registerInterpreter(Packet * p);
         void i_replaceInterpreter(Packet * p);
 
     private:
