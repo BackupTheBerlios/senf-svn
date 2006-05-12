@@ -55,7 +55,7 @@ namespace pkf {
         Parse_ListS(Iterator const & i);
         
         unsigned bytes() const;
-        void check(Iterator const & e) const;
+        bool check(Iterator const & e) const;
         void init() const;
 
         ///////////////////////////////////////////////////////////////////////////

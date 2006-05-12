@@ -66,6 +66,8 @@ BOOST_AUTO_UNIT_TEST(parse_ListS_simple)
     BOOST_CHECK( !l.empty() );
 }
 
+#include <iostream>
+
 namespace {
     // LVec is a vector with the length living directly before the vector
     template <class Parser, class SizeParser, class Iterator=nil, class IPacket=nil>
@@ -81,9 +83,10 @@ namespace {
         {}
         
         unsigned bytes() const
-        { return Parse_Vector<Parser,SizeParser,Iterator,IPacket>::bytes() + sizeParser::bytes(); }
+        { return this->Parse_Vector<Parser,SizeParser,Iterator,IPacket>::bytes() + sizeParser::bytes(); }
         bool check(Iterator const & e) const
-        { return e-this->i() >= sizeParser::bytes() && e-this->i() >= bytes(); }
+        // BEWARE .. this->i() points to the Vector not the SizeParser ... hrmpf ...
+        { return e>=this->i() && static_cast<unsigned>(e-this->i())+sizeParser::bytes() >= bytes(); }
     };
 
     template <class Array>
@@ -104,6 +107,8 @@ BOOST_AUTO_UNIT_TEST(parse_ListS_complex)
     typedef Parse_ListS<Parse_UInt8LVec,Sentinel_EmptyArray<Parse_UInt8LVec>,iterator> Parse_UInt8LVecListS;
 
     Parse_UInt8LVecListS l (data);
+    BOOST_CHECK( l.check(data+13) );
+
     Parse_UInt8LVecListS::iterator i (l.begin());
     Parse_UInt8LVecListS::iterator e (l.end());
     for (unsigned n (0); n<3; ++n) {

@@ -45,11 +45,19 @@ prefix_ unsigned satcom::pkf::Parse_ListS<Parser,Sentinel,Iterator,IPacket>::byt
 }
 
 template <class Parser, class Sentinel, class Iterator, class IPacket>
-prefix_ void
+prefix_ bool
 satcom::pkf::Parse_ListS<Parser,Sentinel,Iterator,IPacket>::check(Iterator const & e)
     const
 {
-    // FIXME: Implement
+    byte_iterator i (this->i());
+    for (;;) {
+        value_type v (i);
+        if (!v.check(e)) return false;
+        if (sentinel::check(v)) return true;
+        size_type s (v.bytes());
+        if (s==0) return false;
+        i += s;
+    }
 }
 
 template <class Parser, class Sentinel, class Iterator, class IPacket>
