@@ -20,6 +20,8 @@ conf = env.Configure()
 
 conf.env.Tool('Doxygen', [satscons])
 conf.env.Tool('BoostUnitTests', [satscons])
+if os.environ.has_key('SSH_AUTH_SOCK'):
+   conf.env.Append( ENV = { 'SSH_AUTH_SOCK': os.environ['SSH_AUTH_SOCK'] } )
 
 conf.env['STLPORT_DEBUGLIB'] = ''
 if conf.env['STLPORT_LIB']:
@@ -86,3 +88,5 @@ env.Doxygen(
 all = env.Alias('all')
 env.Clean(all, [ '.sconsign', '.sconf_temp', 'config.log' ] + glob.glob("*~"))
 env.Depends(all, '.')
+
+env.AlwaysBuild(env.Command('ChangeLog', '', [ "cvs2cl -rS --no-wrap --summary" ]))
