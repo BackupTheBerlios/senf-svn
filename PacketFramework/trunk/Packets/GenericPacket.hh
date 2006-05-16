@@ -47,18 +47,6 @@ namespace pkf {
         typedef ptr_t<GenericPacket>::ptr ptr;
 
         ///////////////////////////////////////////////////////////////////////////
-        ///\name Structors and default members
-        ///@{
-
-        // no public constructors
-        // no conversion constructors
-
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end,
-                          size_type header_len, size_type trailer_len=0);
-
-        ///@}
-        ///////////////////////////////////////////////////////////////////////////
 
         iterator begin_header();
         iterator end_header();
@@ -68,12 +56,13 @@ namespace pkf {
         iterator end_trailer();
         size_type trailer_len();
 
+        static bool check(iterator const & b, iterator const & e);
+        
     protected:
 
     private:  
-        template <class InputIterator>
-        GenericPacket(InputIterator begin, InputIterator end,
-                      size_type header_len, size_type trailer_len=0);
+        template <class Arg>
+        GenericPacket(Arg const & arg, size_type header_len, size_type trailer_len=0);
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();

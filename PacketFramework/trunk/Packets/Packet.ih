@@ -36,8 +36,7 @@
 
 namespace satcom {
 namespace pkf {
-
-    namespace impl {
+namespace impl {
 
         struct ListPacketDeleter {
             void operator()(Packet * p);
@@ -53,56 +52,84 @@ namespace pkf {
         // is now orphaned and every use should throw an exception ...
         //
         // To make this work we must make sure, that the packet
-        // refcount is incremented when we add the packet to the list.
-        struct PacketImpl
-        {
-            Packet::raw_container data_;
-            Packet::interpreter_list interpreters_;
-            Packet::refcount_t refcount_;
+    // refcount is incremented when we add the packet to the list.
+    struct PacketImpl
+    {
+        Packet::raw_container data_;
+        Packet::interpreter_list interpreters_;
+        Packet::refcount_t refcount_;
 
-            PacketImpl();
-            ~PacketImpl();
-            template <class InputIterator>
-            PacketImpl(InputIterator begin, InputIterator end);
+        PacketImpl();
+        ~PacketImpl();
+        template <class InputIterator>
+        PacketImpl(InputIterator begin, InputIterator end);
 
-            void add_ref();
-            bool release();
+        void add_ref();
+        bool release();
 
-            Packet::interpreter_list::iterator appendInterpreter(Packet * p);
-            Packet::interpreter_list::iterator prependInterpreter(Packet * p);
-            bool releaseInterpreter(Packet * p);
-            void truncateInterpreters(Packet const * p);
-            void truncateInterpretersAfter(Packet const * p);
+        Packet::interpreter_list::iterator appendInterpreter(Packet * p);
+        Packet::interpreter_list::iterator prependInterpreter(Packet * p);
+        bool releaseInterpreter(Packet * p);
+        void truncateInterpreters(Packet const * p);
+        void truncateInterpretersAfter(Packet const * p);
 
-            void updateIterators(Packet::size_type index, Packet::difference_type n);
+        void updateIterators(Packet::size_type index, Packet::difference_type n);
 
-            ///////////////////////////////////////////////////////////////////////////
-            // These are here to simplify the friend declaration in Packet
+        ///////////////////////////////////////////////////////////////////////////
+        // These are here to simplify the friend declaration in Packet
 
-            static void packet_add_ref(Packet const * p);
-            static void packet_release(Packet * p);
-            static PacketImpl* impl(Packet const * p);
-            static Packet::interpreter_list::iterator self(Packet const * p);
-        };
+        static void packet_add_ref(Packet const * p);
+        static void packet_release(Packet * p);
+        static PacketImpl* impl(Packet const * p);
+        static Packet::interpreter_list::iterator self(Packet const * p);
+    };
 
-        // These methods are used internally to keep PacketImpl_ alive during
-        // method invocations
-        void intrusive_ptr_add_ref(PacketImpl * p);
-        void intrusive_ptr_release(PacketImpl * p);
+    // These methods are used internally to keep PacketImpl_ alive during
+    // method invocations
+    void intrusive_ptr_add_ref(PacketImpl * p);
+    void intrusive_ptr_release(PacketImpl * p);
+}}}
 
-    }
 
-}}
-
-template <void (satcom::pkf::Packet::*operation)(satcom::pkf::Packet*)>
-struct satcom::pkf::Packet::inplace_wrapper
+struct satcom::pkf::Packet::PacketOp_register
 {
-    inplace_wrapper() : v(), p() {}
-    inplace_wrapper(size_type v_, Packet* p_=0) : v(v_), p(p_) {}
-    
-    size_type v;
-    Packet* p;
+    size_type b;
+    size_type e;
+    const Packet * p;
+
+    PacketOp_register(size_type b_, size_type e_, const Packet * p_) 
+	: b(b_), e(e_), p(p_) {}
+
+    size_type begin() const { return b; }
+    size_type end() const { return e; }
+    void operator ()(Packet * self) const
+    { p->i_registerInterpreter(self); }
 };
+
+struct satcom::pkf::Packet::PacketOp_replace 
+{
+    Packet * p;
+
+    PacketOp_replace(Packet * p_) : p(p_) {}
+
+    size_type begin() const { return p->begin_; }
+    size_type end() const { return p->end_; }
+    void operator()(Packet * self) const
+    { p->i_replaceInterpreter(self); }
+};
+
+struct satcom::pkf::Packet::PacketOp_set
+{
+    impl::PacketImpl * i;
+
+    PacketOp_set(impl::PacketImpl * i_) : i(i_) {}
+
+    size_type begin() const { return 0; }
+    size_type end() const { return i->data_.size(); }
+    void operator()(Packet * self) const
+    { self->i_setInterpreter(i); }
+};
+
 
 ///////////////////////////////ih.e////////////////////////////////////////
 #endif

@@ -61,7 +61,7 @@ prefix_ void satcom::pkf::RTPExtensionBasePacket::v_nextInterpreter()
     // extension, we just allocate ourselves a ExtensionBase parser
 
     Parse_RTPExtensionBase<iterator> p (begin());
-    if (!p.check(end()))
+    if (!p.check(begin(),end()))
         throw TruncatedPacketException();
 
     int paddingOctets = 0;

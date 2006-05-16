@@ -200,6 +200,7 @@ prefix_ satcom::pkf::Packet::ptr satcom::pkf::Packet::last()
 }
 
 prefix_ void satcom::pkf::Packet::i_registerInterpreter(Packet * p)
+    const
 {
     BOOST_ASSERT( !p->impl_ );
     this->impl_->truncateInterpretersAfter(this);
@@ -215,6 +216,11 @@ prefix_ void satcom::pkf::Packet::i_replaceInterpreter(Packet * p)
     boost::intrusive_ptr<impl::PacketImpl> impl (this->impl_,true);
     impl->truncateInterpreters(this);
     impl->appendInterpreter(p);
+}
+
+prefix_ void satcom::pkf::Packet::i_setInterpreter(impl::PacketImpl * i)
+{
+    i->appendInterpreter(this);
 }
 
 prefix_ void satcom::pkf::Packet::insert(iterator pos, byte v)

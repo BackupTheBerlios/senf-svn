@@ -47,21 +47,12 @@ namespace pkf {
         typedef ptr_t<DataPacket>::ptr ptr;
 
         ///////////////////////////////////////////////////////////////////////////
-        ///\name Structors and default members
-        ///@{
 
-        // no public constructors
-        // no conversion constructors
-
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end);
-
-        ///@}
-        ///////////////////////////////////////////////////////////////////////////
+        static bool check(Packet::iterator const & b, Packet::iterator const & e);
 
     private:
-        template <class InputIterator>
-        DataPacket(InputIterator begin, InputIterator end);
+        template <class Arg>
+        DataPacket(Arg const & arg);
         
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();
@@ -73,7 +64,7 @@ namespace pkf {
 }}
 
 ///////////////////////////////hh.e////////////////////////////////////////
-//#include "DataPacket.cci"
+#include "DataPacket.cci"
 //#include "DataPacket.ct"
 #include "DataPacket.cti"
 #endif

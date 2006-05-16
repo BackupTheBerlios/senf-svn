@@ -59,6 +59,11 @@ prefix_ satcom::pkf::GenericPacket::size_type satcom::pkf::GenericPacket::traile
     return trailer_len_;
 }
 
+prefix_ bool satcom::pkf::GenericPacket::check(iterator const & b, iterator const & e)
+{
+    return true;
+}
+
 ///////////////////////////////cci.e///////////////////////////////////////
 #undef prefix_
 

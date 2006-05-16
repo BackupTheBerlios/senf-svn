@@ -77,7 +77,7 @@ BOOST_AUTO_UNIT_TEST(ipV4Packet_packet)
 			     0x15, 0x16, 0x17, 0x18
                            };  
 
-    IpV4Packet::ptr p (IpV4Packet::create(data, data+sizeof(data)));
+    IpV4Packet::ptr p (Packet::create<IpV4Packet>(data, data+sizeof(data)));
 
     BOOST_CHECK_EQUAL( p->version(),     0x00u       );
     BOOST_CHECK_EQUAL( p->ihl(),         0x01u       );

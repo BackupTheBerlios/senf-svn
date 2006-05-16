@@ -52,10 +52,11 @@ template <class OtherPacket, BOOST_PP_ENUM_PARAMS(BOOST_PP_ITERATION(), class A)
 prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr
 satcom::pkf::Packet::reinterpret( BOOST_PP_ENUM( BOOST_PP_ITERATION(), pkARG, ) )
 {
+    if (!OtherPacket::check(begin(),end()))
+        throw TruncatedPacketException();
     typename ptr_t<OtherPacket>::ptr p (
-        new OtherPacket( inplace_wrapper<&Packet::i_replaceInterpreter>(this->begin_, this),
-                         inplace_wrapper<&Packet::i_replaceInterpreter>(this->end_),
-                         BOOST_PP_ENUM_PARAMS( BOOST_PP_ITERATION(), a ) ),
+        new OtherPacket(PacketOp_replace(this),
+			BOOST_PP_ENUM_PARAMS( BOOST_PP_ITERATION(), a ) ),
         false);
     return p;
 }
@@ -81,11 +82,43 @@ satcom::pkf::Packet::registerInterpreter(raw_container::iterator begin,
                                          BOOST_PP_ENUM( BOOST_PP_ITERATION(), pkARG, ) )
     const
 {
+    if (!OtherPacket::check(begin,end))
+        throw TruncatedPacketException();
     typename ptr_t<OtherPacket>::ptr p (
-        new OtherPacket( inplace_wrapper<&Packet::i_registerInterpreter>(begin-impl_->data_.begin(),
-                                                                         const_cast<Packet*>(this)),
-                         inplace_wrapper<&Packet::i_registerInterpreter>(end-impl_->data_.begin()),
-                         BOOST_PP_ENUM_PARAMS( BOOST_PP_ITERATION(), a) ),
+	new OtherPacket(PacketOp_register(begin-impl_->data_.begin(),
+					  end-impl_->data_.begin(),
+					  this),
+			BOOST_PP_ENUM_PARAMS( BOOST_PP_ITERATION(), a) ),
+        false);
+    return p;
+}
+
+#elif BOOST_PP_ITERATION_DEPTH()==1 && BOOST_PP_ITERATION_FLAGS()==5
+///////////////////////////////////////////////////////////////////////////
+// Packet::create declaration
+
+template < class OtherPacket, class InputIterator, 
+           BOOST_PP_ENUM_PARAMS(BOOST_PP_ITERATION(), class A) >
+static typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr create(
+    InputIterator b, InputIterator e,
+    BOOST_PP_ENUM( BOOST_PP_ITERATION(), pkARG, ) );
+
+#elif BOOST_PP_ITERATION_DEPTH()==1 && BOOST_PP_ITERATION_FLAGS()==6
+///////////////////////////////////////////////////////////////////////////
+// Packet::create implementation
+
+template < class OtherPacket, class InputIterator, 
+           BOOST_PP_ENUM_PARAMS(BOOST_PP_ITERATION(), class A) >
+typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packet::create(
+    InputIterator b, InputIterator e,
+    BOOST_PP_ENUM( BOOST_PP_ITERATION(), pkARG, ) )
+{
+    boost::intrusive_ptr<impl::PacketImpl> impl (new impl::PacketImpl(b,e),false);
+    if (!OtherPacket::check(impl->data_.begin(), impl->data_.end()))
+        throw TruncatedPacketException();
+    typename ptr_t<OtherPacket>::ptr p (
+	new OtherPacket(PacketOp_set(impl.get()),
+			BOOST_PP_ENUM_PARAMS( BOOST_PP_ITERATION(), a) ),
         false);
     return p;
 }

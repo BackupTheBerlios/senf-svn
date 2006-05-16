@@ -44,23 +44,23 @@ prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr satcom::pkf::Packe
 
 // This constructor appends a new interreter to the interpreter chain
 // of an existing Packet
-template <void (satcom::pkf::Packet::*operation)(satcom::pkf::Packet*)>
-prefix_ satcom::pkf::Packet::Packet(inplace_wrapper<operation> begin,
-                                    inplace_wrapper<operation> end)
-    : impl_(0), begin_(begin.v), end_(end.v), self_(),
+template <class Operation>
+prefix_ satcom::pkf::Packet::Packet(Operation const & arg)
+    : impl_(0), begin_(arg.begin()), end_(arg.end()), self_(),
       parsed_(false), refcount_(1)
 {
     SATCOM_PKF_REFC_MSG("] Packet::Packet (" << this << "): refcount_ = 1\n");
-    // FIXME: This is not exception safe when exceptions are thrown in
-    //        a derived class constructor
-    (begin.p->*operation)(this);
+    // FIXME: This is not exception safe, if an exception is thrown in
+    // the derived class constuctor, the effects of this call must be
+    // undone which is not possible in a simple way.
+    arg(this);
 }
 
 template <class InputIterator>
 prefix_ satcom::pkf::impl::PacketImpl::PacketImpl(InputIterator begin, InputIterator end)
     : data_(begin, end), interpreters_(), refcount_(1)
 {
-    SATCOM_PKF_REFC_MSG("] PacketImpl::PacketImpl (" << this << "): refcount_ = 1\n");
+    SATCOM_PKF_REFC_MSG("] PacketImpl::PacketImpl (" << this << "): refcount_ = 1\n")
 }
 
 ///////////////////////////////cti.e///////////////////////////////////////

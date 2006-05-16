@@ -29,19 +29,10 @@
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
 
-template <class InputIterator>
-prefix_ satcom::pkf::UDPPacket::ptr
-satcom::pkf::UDPPacket::create(InputIterator begin, InputIterator end)
-{
-    return ptr(new UDPPacket(begin,end), false);
-}
-
-template <class InputIterator>
-prefix_ satcom::pkf::UDPPacket::UDPPacket(InputIterator b, InputIterator e)
-    : Packet(b, e)
-{
-    if (!check(end())) throw TruncatedPacketException();
-}
+template <class Arg>
+prefix_ satcom::pkf::UDPPacket::UDPPacket(Arg const & arg)
+    : Packet(arg)
+{}
 
 
 

@@ -29,19 +29,10 @@
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
 
-template <class InputIterator>
-prefix_ satcom::pkf::IpV4Packet::ptr
-satcom::pkf::IpV4Packet::create(InputIterator begin, InputIterator end)
-{
-    return ptr(new IpV4Packet(begin,end), false);
-}
-
-template <class InputIterator>
-prefix_ satcom::pkf::IpV4Packet::IpV4Packet(InputIterator b, InputIterator e)
-    : Packet(b, e)
-{
-    if (!check(end())) throw TruncatedPacketException();
-}
+template <class Arg>
+prefix_ satcom::pkf::IpV4Packet::IpV4Packet(Arg const & arg)
+    : Packet(arg)
+{}
 
 
 

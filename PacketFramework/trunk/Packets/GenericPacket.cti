@@ -29,21 +29,12 @@
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
 
-template <class InputIterator>
-prefix_ satcom::pkf::GenericPacket::ptr
-satcom::pkf::GenericPacket::create(InputIterator begin, InputIterator end,
-                                   size_type header_len, size_type trailer_len)
-{
-    return ptr(new GenericPacket(begin, end, header_len, trailer_len), false);
-}
-
-template <class InputIterator>
-prefix_ satcom::pkf::GenericPacket::GenericPacket(InputIterator b, InputIterator e,
-                                                  size_type header_len, size_type trailer_len)
-    : Packet(b, e), header_len_ (header_len), trailer_len_ (trailer_len)
-{
-    if (header_len+trailer_len > size()) throw TruncatedPacketException();
-}
+template <class Arg>
+prefix_ satcom::pkf::GenericPacket::GenericPacket(Arg const & arg,
+                                                  size_type header_len,
+                                                  size_type trailer_len)
+    : Packet(arg), header_len_ (header_len), trailer_len_ (trailer_len)
+{}
 
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_

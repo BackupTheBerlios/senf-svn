@@ -92,7 +92,7 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_packet)
                              
                            };  
 
-    RTPPacket::ptr p (RTPPacket::create(data, data+sizeof(data)));
+    RTPPacket::ptr p (Packet::create<RTPPacket>(data, data+sizeof(data)));
 
     BOOST_CHECK_EQUAL( p->version(),            0x00u       );
     BOOST_CHECK_EQUAL( p->padding(),            1           );
@@ -167,7 +167,7 @@ BOOST_AUTO_UNIT_TEST(eth_rtpPacket_packet)
                            };  
 
     // Ethernet
-    EthernetPacket::ptr p (EthernetPacket::create(data, data+sizeof(data)));
+    EthernetPacket::ptr p (Packet::create<EthernetPacket>(data, data+sizeof(data)));
 
     BOOST_CHECK_EQUAL( p->destination()[3], 0x04 );
     BOOST_CHECK_EQUAL( p->source()[0], 0x07 );

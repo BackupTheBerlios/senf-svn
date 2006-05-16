@@ -59,7 +59,7 @@ namespace {
         
 BOOST_AUTO_UNIT_TEST(Packet_DataPacket)
 {
-    Packet::ptr p (DataPacket::create(data, data+sizeof(data)));
+    Packet::ptr p (Packet::create<DataPacket>(data, data+sizeof(data)));
 
     BOOST_REQUIRE( p );
     BOOST_CHECK_EQUAL( p->size(), sizeof(data) );
@@ -80,7 +80,7 @@ BOOST_AUTO_UNIT_TEST(Packet_DataPacket)
 
 BOOST_AUTO_UNIT_TEST(Packet_GenericPacket)
 {
-    GenericPacket::ptr p (GenericPacket::create(data, data+sizeof(data), 4, 6));
+    GenericPacket::ptr p (Packet::create<GenericPacket>(data, data+sizeof(data), 4, 6));
 
     // check, that the packet was constructed corretly
     BOOST_REQUIRE( p );
@@ -124,7 +124,7 @@ BOOST_AUTO_UNIT_TEST(Packet_GenericPacket)
 
 BOOST_AUTO_UNIT_TEST(Packet_Reinterpret)
 {
-    Packet::ptr p (GenericPacket::create(data, data+sizeof(data), 4, 4));
+    Packet::ptr p (Packet::create<GenericPacket>(data, data+sizeof(data), 4, 4));
     
     BOOST_CHECK( p->next()->is<DataPacket>() );
     p->next()->reinterpret<GenericPacket>(6);
@@ -147,7 +147,7 @@ BOOST_AUTO_UNIT_TEST(Packet_Reinterpret)
 
 BOOST_AUTO_UNIT_TEST(Packet_InsertErase)
 {
-    Packet::ptr p (GenericPacket::create(data, data+sizeof(data), 7, 3));
+    Packet::ptr p (Packet::create<GenericPacket>(data, data+sizeof(data), 7, 3));
     p->next()->reinterpret<GenericPacket>(4);
     
     BOOST_CHECK_EQUAL( p->size(), 20u );

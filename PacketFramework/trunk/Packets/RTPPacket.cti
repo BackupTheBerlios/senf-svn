@@ -29,39 +29,21 @@
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
 
-template <class InputIterator>
-prefix_ satcom::pkf::RTPPacket::ptr
-satcom::pkf::RTPPacket::create(InputIterator begin, InputIterator end)
-{
-    return ptr(new RTPPacket(begin,end), false);
-}
+template <class Arg>
+prefix_ satcom::pkf::RTPPacket::RTPPacket(Arg const & arg)
+    : Packet(arg)
+{}
 
-template <class InputIterator>
-prefix_ satcom::pkf::RTPPacket::RTPPacket(InputIterator b, InputIterator e)
-    : Packet(b, e)
-{
-    if (!check(end())) throw TruncatedPacketException();
-}
+template <class Arg>
+prefix_ satcom::pkf::RTPExtensionBasePacket::
+RTPExtensionBasePacket(Arg const & arg)
+    : Packet(arg)
+{}
 
-template <class InputIterator>
-prefix_ satcom::pkf::RTPExtensionBasePacket::RTPExtensionBasePacket(InputIterator b,
-                                                                    InputIterator e)
-    : Packet(b,e)
-{
-    if (!Parse_RTPExtensionBase<iterator>(begin()).check(end())) throw TruncatedPacketException();
-}
-
-template <class InputIterator>
-prefix_ satcom::pkf::RTPUnknownExtensionPacket::ptr
-satcom::pkf::RTPUnknownExtensionPacket::create(InputIterator begin, InputIterator end)
-{
-    return ptr(new RTPUnknownExtensionPacket(begin,end),false);
-}
-
-template <class InputIterator>
-prefix_ satcom::pkf::RTPUnknownExtensionPacket::RTPUnknownExtensionPacket(InputIterator b,
-                                                                          InputIterator e)
-    : RTPExtensionBasePacket(b, e)
+template <class Arg>
+prefix_ satcom::pkf::RTPUnknownExtensionPacket::
+RTPUnknownExtensionPacket(Arg const & arg)
+    : RTPExtensionBasePacket(arg)
 {}
 
 ///////////////////////////////cti.e///////////////////////////////////////

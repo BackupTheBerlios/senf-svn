@@ -56,24 +56,18 @@ namespace {
     public:
         typedef ptr_t<BasePacket>::ptr ptr;
         
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end)
-            { return ptr(new BasePacket(begin,end), false); }
-
         typedef Parse_UInt16<iterator> Parse_Type;
         
         Parse_Type type() const { return Parse_Type(begin()); }
+        static bool check(iterator const & b, iterator const & e) { return true; }
        
     private:
-        template <class InputIterator>
-        BasePacket(InputIterator begin, InputIterator end)
-            : Packet(begin,end)
-            {}
+        template <class Arg>
+        BasePacket(Arg const & arg) : Packet(arg) {}
 
         virtual void v_nextInterpreter() const
             { registerInterpreter(type(), begin()+2, end()); }
-        virtual void v_finalize()
-            {}
+        virtual void v_finalize() {}
 
         friend class Packet;
     };
@@ -83,20 +77,14 @@ namespace {
     public:
         typedef ptr_t<FooPacket>::ptr ptr;
         
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end)
-            { return ptr(new FooPacket(begin,end), false); }
+        static bool check(iterator const & b, iterator const & e) { return true; }
 
     private:
-        template <class InputIterator>
-        FooPacket(InputIterator begin, InputIterator end)
-            : Packet(begin,end)
-            {}
+        template <class Arg>
+        FooPacket(Arg const & arg) : Packet(arg) {}
 
-        virtual void v_nextInterpreter() const
-            {}
-        virtual void v_finalize()
-            {}
+        virtual void v_nextInterpreter() const {}
+        virtual void v_finalize() {}
 
         friend class Packet;
     };
@@ -106,20 +94,14 @@ namespace {
     public:
         typedef ptr_t<BarPacket>::ptr ptr;
         
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end)
-            { return ptr(new BarPacket(begin,end), false); }
+        static bool check(iterator const & b, iterator const & e) { return true; }
 
     private:
-        template <class InputIterator>
-        BarPacket(InputIterator begin, InputIterator end)
-            : Packet(begin,end)
-            {}
+        template <class Arg>
+        BarPacket(Arg const & arg) : Packet(arg) {}
 
-        virtual void v_nextInterpreter() const
-            {}
-        virtual void v_finalize()
-            {}
+        virtual void v_nextInterpreter() const {}
+        virtual void v_finalize() {}
 
         friend class Packet;
     };
@@ -137,7 +119,7 @@ BOOST_AUTO_UNIT_TEST(packetRegistry_test)
                              0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
     
     {
-        BasePacket::ptr p (BasePacket::create(data, data+sizeof(data)));
+        BasePacket::ptr p (Packet::create<BasePacket>(data, data+sizeof(data)));
         BOOST_CHECK( p->next()->is<DataPacket>() );
     }
 
@@ -149,21 +131,21 @@ BOOST_AUTO_UNIT_TEST(packetRegistry_test)
     BOOST_CHECK_THROW( PacketRegistry<BaseTag>::key<DataPacket>(), PacketTypeNotRegistered );
 
     {
-        BasePacket::ptr p (BasePacket::create(data, data+sizeof(data)));
+        BasePacket::ptr p (Packet::create<BasePacket>(data, data+sizeof(data)));
         BOOST_CHECK( p->next()->is<FooPacket>() );
     }
 
     data[1] = 0x02;
 
     {
-        BasePacket::ptr p (BasePacket::create(data, data+sizeof(data)));
+        BasePacket::ptr p (Packet::create<BasePacket>(data, data+sizeof(data)));
         BOOST_CHECK( p->next()->is<BarPacket>() );
     }
     
     data[0] = 0x01;
 
     {
-        BasePacket::ptr p (BasePacket::create(data, data+sizeof(data)));
+        BasePacket::ptr p (Packet::create<BasePacket>(data, data+sizeof(data)));
         BOOST_CHECK( p->next()->is<DataPacket>() );
     }
 

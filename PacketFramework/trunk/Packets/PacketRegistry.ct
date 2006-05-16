@@ -83,7 +83,7 @@ prefix_ satcom::pkf::Packet::ptr
 satcom::pkf::PacketRegistry<Tag>::create(typename Tag::key_t key, InputIterator b,
                                          InputIterator e)
 {
-    Packet::ptr p (DataPacket::create(b,e));
+    Packet::ptr p (Packet::create<DataPacket>(b,e));
     return registry().lookup(key)->reinterpret(p.get());
 }
 

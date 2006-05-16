@@ -66,8 +66,6 @@ BOOST_AUTO_UNIT_TEST(parse_ListS_simple)
     BOOST_CHECK( !l.empty() );
 }
 
-#include <iostream>
-
 namespace {
     // LVec is a vector with the length living directly before the vector
     template <class Parser, class SizeParser, class Iterator=nil, class IPacket=nil>

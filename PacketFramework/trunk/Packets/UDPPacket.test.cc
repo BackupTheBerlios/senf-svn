@@ -60,7 +60,7 @@ BOOST_AUTO_UNIT_TEST(udpPacket_packet)
                              0x05, 0x06, 0x07, 0x08
                            };   
 
-    UDPPacket::ptr p (UDPPacket::create(data, data+sizeof(data)));
+    UDPPacket::ptr p (Packet::create<UDPPacket>(data, data+sizeof(data)));
 
     BOOST_CHECK_EQUAL( p->source(),            0x0102       );
     BOOST_CHECK_EQUAL( p->destination(),       0x0304       );

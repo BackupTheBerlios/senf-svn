@@ -29,16 +29,9 @@
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
 
-template <class InputIterator>
-prefix_ satcom::pkf::DataPacket::ptr satcom::pkf::DataPacket::create(InputIterator begin,
-                                                                     InputIterator end)
-{
-    return ptr(new DataPacket(begin,end), false);
-}
-
-template <class InputIterator>
-prefix_ satcom::pkf::DataPacket::DataPacket(InputIterator begin, InputIterator end)
-    : Packet(begin, end) 
+template <class Arg>
+prefix_ satcom::pkf::DataPacket::DataPacket(Arg const & arg)
+    : Packet(arg) 
 {}
 
 ///////////////////////////////cti.e///////////////////////////////////////

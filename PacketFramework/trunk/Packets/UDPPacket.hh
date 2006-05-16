@@ -46,7 +46,8 @@ namespace pkf {
         Parse_UDP(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
 
         static unsigned bytes() { return 8; }
-        bool check(Iterator const & e) const { return e-this->i() >= static_cast<int>(bytes()); }
+        static bool check(Iterator const & b, Iterator const & e) 
+        { return static_cast<unsigned>(e-b) >= bytes(); }
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -70,20 +71,10 @@ namespace pkf {
         typedef ptr_t<UDPPacket>::ptr ptr;
 
         ///////////////////////////////////////////////////////////////////////////
-        ///\name Structors and default members
-        ///@{
-
-        // no public constructors
-        // no conversion constructors
-        
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end);        
-
-        ///@}
 
     private:
-        template <class InputIterator>
-        UDPPacket(InputIterator begin, InputIterator end);
+        template <class Arg>
+        UDPPacket(Arg const & arg);
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();

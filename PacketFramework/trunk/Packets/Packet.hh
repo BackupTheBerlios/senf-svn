@@ -337,8 +337,6 @@ namespace pkf {
         typedef boost::shared_ptr<Packet> interpreter_list_ptr;
         typedef std::list<satcom::pkf::Packet::interpreter_list_ptr > interpreter_list;
         typedef unsigned refcount_t;
-    public:
-        template <void (Packet::*operation)(Packet*)> struct inplace_wrapper;
 
     public:
 
@@ -368,6 +366,12 @@ namespace pkf {
         // no copy
         // no conversion constructors
         // private destructor
+
+        template <class OtherPacket, class InputIterator>
+        static typename ptr_t<OtherPacket>::ptr create(InputIterator b, InputIterator e);
+
+#       define BOOST_PP_ITERATION_PARAMS_1 (4, (1, 9, "Packet.mpp", 5))
+#       include BOOST_PP_ITERATE()        
 
         // ////////////////////////////////////////////////////////////////////////
 
@@ -545,15 +549,6 @@ namespace pkf {
         virtual void v_finalize() = 0;
 
     protected:
-        /** \brief create new Packet from external raw data 
-            
-            This constructor is called by the derived packet
-            interpreter facades to create a new packet instance from
-            external data. The raw data is copied into a newly created
-            raw data container.
-         */
-        template <class InputIterator>
-        Packet(InputIterator begin, InputIterator end);
         /** \brief create new interpreter facade for an existing packet
             
             This constructor is called, when a new interpreter is to
@@ -562,8 +557,8 @@ namespace pkf {
             reinterpret() via the derived classes template
             constructor.
          */
-        template <void (Packet::*operation)(Packet*)>
-        Packet(inplace_wrapper<operation> begin, inplace_wrapper<operation> end);
+        template <class Operation>
+        Packet(Operation const & arg);
         virtual ~Packet();
         
         /** \brief add interpreter to interpreter chain
@@ -594,8 +589,18 @@ namespace pkf {
         void add_ref() const;
         bool release();
         bool unlink();
-        void i_registerInterpreter(Packet * p);
+
+	struct PacketOp_register;
+	friend class PacketOp_register;
+        void i_registerInterpreter(Packet * p) const;
+
+	struct PacketOp_replace;
+	friend class PacketOp_replace;
         void i_replaceInterpreter(Packet * p);
+
+	struct PacketOp_set;
+	friend class PacketOp_set;
+        void i_setInterpreter(impl::PacketImpl * i);
 
     private:
         friend class impl::PacketImpl;
@@ -618,6 +623,7 @@ namespace pkf {
 
     struct TruncatedPacketException : public std::exception
     { virtual char const * what() const throw() { return "truncated packet"; } };
+
 }}
 
 // ////////////////////////////hh.e////////////////////////////////////////

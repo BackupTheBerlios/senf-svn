@@ -46,7 +46,8 @@ namespace pkf {
         Parse_IpV4(Iterator const & i) : ParserBase<Iterator,IpV4Packet>(i) {}
 
         static unsigned bytes() { return 20; }
-        bool check(Iterator const & e) { return e-this->i() >= static_cast<int>(bytes()); }
+        static bool check(Iterator const & b, Iterator const & e) 
+        { return static_cast<unsigned>(e-b) >= bytes(); }
         
         ///////////////////////////////////////////////////////////////////////////
 
@@ -93,20 +94,10 @@ namespace pkf {
         typedef ptr_t<IpV4Packet>::ptr ptr;
 
         ///////////////////////////////////////////////////////////////////////////
-        ///\name Structors and default members
-        ///@{
-
-        // no public constructors
-        // no conversion constructors
-        
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end);        
-
-        ///@}
 
     private:
-        template <class InputIterator>
-        IpV4Packet(InputIterator begin, InputIterator end);
+        template <class Arg>
+        IpV4Packet(Arg const & arg);
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();

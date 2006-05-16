@@ -74,7 +74,8 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
 
         unsigned int bytes() const { return 12 + ( 4 * csrcCount()); }
-        bool check(Iterator const & e) const { return e-this->i()>= 12 and e-this->i() >= int(bytes()); }
+        static bool check(Iterator const & b, Iterator const & e)
+        { return e-b>= 12 and static_cast<unsigned>(e-b) >= Parse_RTP<Iterator>(b).bytes(); }
         
     };
 
@@ -96,26 +97,16 @@ namespace pkf {
         typedef ptr_t<RTPPacket>::ptr ptr;
 
         ///////////////////////////////////////////////////////////////////////////
-        ///\name Structors and default members
-        ///@{
 
-        // no public constructors
-        // no conversion constructors
-        
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end);        
-
-        ///@}
-
-        typedef Parse_UInt8     < Packet::iterator >  Parse_paddingOctet;
+        typedef Parse_UInt8 < Packet::iterator >  Parse_paddingOctet;
         
         Parse_paddingOctet paddingOctet() const { 
             return Parse_paddingOctet( end() -1 ); 
         } 
 
     private:
-        template <class InputIterator>
-        RTPPacket(InputIterator begin, InputIterator end);
+        template <class Arg>
+        RTPPacket(Arg const & arg);
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();
@@ -141,12 +132,12 @@ namespace pkf {
                 
         typedef Parse_UInt16    < Iterator >        Parse_16bit;
 
-        Parse_16bit         proDef()   const { return Parse_16bit(this->i()); };
-        Parse_16bit         length()   const { return Parse_16bit(this->i()+2); };
+        Parse_16bit proDef() const { return Parse_16bit(this->i()); };
+        Parse_16bit length() const { return Parse_16bit(this->i()+2); };
 
         unsigned int bytes() const { return 4 + length(); }        
-        bool check(Iterator e) const 
-        { return e-this->i()>=4 && e-this->i() >= static_cast<int>(bytes()); }
+        static bool check(Iterator const & b, Iterator const & e)
+        { return e-b>=4 && static_cast<unsigned>(e-b) >= Parse_RTPExtensionBase<Iterator>(b).bytes(); }
 
 
     }; 
@@ -162,8 +153,8 @@ namespace pkf {
          typedef ptr_t<RTPExtensionBasePacket>::ptr ptr;
 
     protected:
-        template <class InputIterator>
-        RTPExtensionBasePacket(InputIterator begin, InputIterator end);
+        template <class Arg>
+        RTPExtensionBasePacket(Arg const & arg);
 
     private:
         virtual void v_nextInterpreter() const;
@@ -186,11 +177,11 @@ namespace pkf {
      
         ///////////////////////////////////////////////////////////////////////////
            
-        typedef Parse_UInt16    < Iterator >        Parse_16bit;
-        typedef Parse_UInt8     < Iterator >        Parse_8bit;
-        typedef Parse_Vector    < Parse_8bit, Parse_16bit, Iterator > Parse_ext;
+        typedef Parse_UInt16 < Iterator >                          Parse_16bit;
+        typedef Parse_UInt8  < Iterator >                          Parse_8bit;
+        typedef Parse_Vector < Parse_8bit, Parse_16bit, Iterator > Parse_ext;
        
-        Parse_ext      ext()      const { return Parse_ext (Parse_RTPExtensionBase<Iterator,IPacket>::length(), this->i() + 4 ); }    
+        Parse_ext ext() const { return Parse_ext (this->length(), this->i() + 4 ); }
 
     };
 
@@ -205,20 +196,10 @@ namespace pkf {
         typedef ptr_t<RTPUnknownExtensionPacket>::ptr ptr;
 
         ///////////////////////////////////////////////////////////////////////////
-        ///\name Structors and default members
-        ///@{
-
-        // no public constructors
-        // no conversion constructors
-        
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end);
-
-        ///@}
 
     private:
-        template <class InputIterator>
-        RTPUnknownExtensionPacket(InputIterator begin, InputIterator end);
+        template <class Arg>
+        RTPUnknownExtensionPacket(Arg const & arg);
 
         //virtual void v_nextInterpreter() const;
         virtual void v_finalize();

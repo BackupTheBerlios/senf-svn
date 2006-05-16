@@ -187,19 +187,13 @@ namespace {
     public:
         typedef typename P::template rebind<Packet::iterator,TestPacket>::parser parser;
         typedef typename ptr_t<TestPacket>::ptr ptr;
-
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end) {
-            return ptr(new TestPacket(begin,end), false);
-        }
+        
+        static bool check(iterator b, iterator e) { return true; }
 
     private:
-        template <class InputIterator>
-        TestPacket(InputIterator begin, InputIterator end) 
-            : Packet(begin, end) {}
-        TestPacket(raw_container::iterator begin, raw_container::iterator end,
-                   Packet const * parent)
-            : Packet(begin, end, parent) {}
+        template <class Arg>
+        TestPacket(Arg const & arg) 
+            : Packet(arg) {}
 
         virtual void v_nextInterpreter() const {}
 	virtual void v_finalize() {}
@@ -211,7 +205,7 @@ namespace {
     typename P::value_type packetCheck()
     {
         unsigned char data[] = { 0x8e, 0x2f, 0x57, 0x12, 0xd1 };
-        typename TestPacket<P>::ptr p (TestPacket<P>::create(data, data+sizeof(data)));
+        typename TestPacket<P>::ptr p (Packet::create< TestPacket<P> >(data, data+sizeof(data)));
         return p->value();
     }
 
