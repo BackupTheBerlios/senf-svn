@@ -118,7 +118,7 @@ BOOST_AUTO_UNIT_TEST(parse_ListS_complex)
         Parse_UInt8LVec::iterator je (i->end());
         for (unsigned m (0); m<n+2; ++m, ++j) {
             BOOST_CHECK( j!=je );
-            BOOST_CHECK_EQUAL( *j, 16*n+m+1 );
+            BOOST_CHECK_EQUAL( static_cast<unsigned>(*j), 16*n+m+1 );
         }
         BOOST_CHECK( j==je );
         ++i;

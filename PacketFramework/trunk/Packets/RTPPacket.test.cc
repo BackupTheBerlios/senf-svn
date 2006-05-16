@@ -115,10 +115,10 @@ BOOST_AUTO_UNIT_TEST(rtpPacket_packet)
     BOOST_CHECK( p->next()->is<RTPUnknownExtensionPacket>() );
 
     RTPUnknownExtensionPacket::ptr v (p->next()->as<RTPUnknownExtensionPacket>());
-    BOOST_CHECK_EQUAL( v->proDef(),             0x2021u      );
-    BOOST_CHECK_EQUAL( v->length(),             0x04u        );
-    BOOST_CHECK_EQUAL( v->ext()[0],                0x24u  );
-    BOOST_CHECK_EQUAL( v->ext()[2],                0x26u  );
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(v->proDef()), 0x2021u );
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(v->length()), 0x04u   );
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(v->ext()[0]), 0x24u   );
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(v->ext()[2]), 0x26u   );
     
     BOOST_REQUIRE( v->next() );
     DataPacket::ptr d (v->next()->as<DataPacket>());
@@ -220,10 +220,10 @@ BOOST_AUTO_UNIT_TEST(eth_rtpPacket_packet)
     BOOST_CHECK( rtp->next()->is<RTPUnknownExtensionPacket>() );
 
     RTPUnknownExtensionPacket::ptr ex (rtp->next()->as<RTPUnknownExtensionPacket>());
-    BOOST_CHECK_EQUAL( ex->proDef(),              0x2021u     );
-    BOOST_CHECK_EQUAL( ex->length(),              0x04u       );
-    BOOST_CHECK_EQUAL( ex->ext()[0],              0x24u       );
-    BOOST_CHECK_EQUAL( ex->ext()[2],              0x26u       );
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(ex->proDef()), 0x2021u );
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(ex->length()), 0x04u   );
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(ex->ext()[0]), 0x24u   );
+    BOOST_CHECK_EQUAL( static_cast<unsigned>(ex->ext()[2]), 0x26u   );
     
     BOOST_REQUIRE( ex->next() );
     DataPacket::ptr pay (ex->next()->as<DataPacket>());
