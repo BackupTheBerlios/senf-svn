@@ -108,6 +108,13 @@ namespace pkf {
         Parse_32bit   ehsnr()       const { return Parse_32bit(this->i()+8 ); }
         Parse_32bit   LSR()         const { return Parse_32bit(this->i()+12); }
         Parse_32bit   DLSR()        const { return Parse_32bit(this->i()+16); }
+ 
+        ///////////////////////////////////////////////////////////////////////////
+
+	unsigned int bytes() const { return 20; }
+        static bool check(Iterator const & b, Iterator const & e)
+        { return static_cast<unsigned>(e-b) >= bytes(); }
+
     };
 
     template <class Iterator, class IPacket>
@@ -134,41 +141,31 @@ namespace pkf {
         Parse_32bit   socount()     const { return Parse_32bit(this->i()+ 24 ); }
 
         Parse_rbVec   rbList()      const { return Parse_rbVec(this->count(), this->i() + 28 ); } 
+
     };
 
-
-/*
-    // TODO SDES - chunk
-
-    template <class Iterator=nil, class IPacket=nil>
-    struct Parse_RTCP_Chunk : public ParserBase<Iterator,IPacket>
+    template <class Iterator, class IPacket>
+    struct Parse_RTCP_SR : public Parse_RTCP<Iterator, IPacket>
     {
         template <class I, class P=nil>
-        struct rebind { typedef Parse_RTCP_Chunk<I,P> parser; };
+        struct rebind { typedef Parse_RTCP_SR<I,P> parser; };
         typedef Iterator byte_iterator;
 
-        Parse_RTCP_chunk() {}
-        Parse_RTCP_chunk(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
-
-        static unsigned bytes() { return 4; }
-        bool check(Iterator const & e) { return e-this->i() >= bytes(); }
-        
+        Parse_RTCP_SR() {}
+        Parse_RTCP_SR(Iterator const & i) : Parse_RTCP<Iterator,IPacket>(i) {}
+       
         ///////////////////////////////////////////////////////////////////////////
         
-        typedef Parse_UInt32        < Iterator >                    Parse_32bit; 
+        typedef Parse_UInt32        < Iterator > Parse_32bit;
+        typedef Parse_Vector        < Parse_RTCP_RB<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Count, Iterator > Parse_rbVec;
 
-        Parse_32bit   ssrc()        const { return Parse_32bit(this->i()   ); }
-
-
+        Parse_32bit   ssrc()        const { return Parse_32bit(this->i()+ 4  ); }
+        Parse_rbVec   rbList()      const { return Parse_rbVec(this->count(), this->i() + 8 ); }
+ 
     };
 
-  */  
-/*
-
-    // TODO SDES - item -> 00
-
     template <class Iterator=nil, class IPacket=nil>
-    struct Parse_RTCP_item : public ParserBase<Iterator,IPacket>
+    struct Parse_RTCP_item : public Parse_RTCP<Iterator,IPacket>
     {
         template <class I, class P=nil>
         struct rebind { typedef Parse_RTCP_item<I,P> parser; };
@@ -186,23 +183,33 @@ namespace pkf {
         Parse_8bit   typeField()    const { return Parse_8bit(this->i()   ); }
         Parse_8bit   length()       const { return Parse_8bit(this->i()+1 ); }
 
-        typedef Parse_Array         < length(), Parse_UInt8<>, Iterator >  Parse_desc;
+        typedef Parse_Vector        < Parse_UInt8<>, Parse_UInt8<>, Iterator >  Parse_desc;
 
-        // Item-Description UTF-8
-        Parse_desc   desc()       const { return Parse_desc(this->i()+2 ); }
-
-        unsigned int bytes() const { return 2 + length(); }
-        bool check(Iterator const & e) const { return e-this->i()>= 2 and e-this->i() >= int(bytes()); }
+        Parse_desc   desc()       const { return Parse_desc(this->length(), this->i()+2 ); }
 
     };
 
-  */ 
-/*
- 
-    // TODO BYE
+    template <class Iterator, class IPacket>
+    struct Parse_RTCP_SDES : public Parse_RTCP<Iterator, IPacket>
+    {
+        template <class I, class P=nil>
+        struct rebind { typedef Parse_RTCP_SDES<I,P> parser; };
+        typedef Iterator byte_iterator;
 
-    template <class Iterator=nil, class IPacket=nil>
-    struct Parse_RTCP_BYE : public ParserBase<Iterator,IPacket>
+        Parse_RTCP_SDES() {}
+        Parse_RTCP_SDES(Iterator const & i) : Parse_RTCP<Iterator,IPacket>(i) {}
+       
+        ///////////////////////////////////////////////////////////////////////////
+        
+        typedef Parse_ListS      < Parse_RTCP_item<>, 0x00, Iterator, IPacket>   Parse_ChunkList;
+        typedef Parse_Vector     < Parse_ChunkList, typename Parse_RTCP<Iterator,IPacket>::Parse_Count, Iterator > Parse_chunkVec;
+
+        Parse_chunkVec   chunkList()      const { return Parse_chunkVec(this->count(), this->i() + 4 ); }
+ 
+    };
+
+    template <class Iterator, class IPacket>
+    struct Parse_RTCP_BYE : public Parse_RTCP<Iterator,IPacket>
     {
         template <class I, class P=nil>
         struct rebind { typedef Parse_RTCP_BYE<I,P> parser; };
@@ -215,27 +222,16 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
         
         typedef Parse_UInt32        < Iterator >                    Parse_32bit;
-        // negative offset to default RTCPHeader SC-Field
-        typedef Parse_UIntField  < 3, 8, Iterator >    Parse_Count;
-        typedef Parse_Vector     < Parse_32bit, Parse_Count, Iterator > Parse_ssrcList;
-        
-        // TODO reason for leaving
-        
-        Parse_Count      count()          const { return Parse_Count(i()-2); }
-        Parse_ssrcList   ssrcList()       const { return Parse_ssrcList(count(), this->i()); }
+        typedef Parse_Vector        < Parse_UInt32<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Count, Iterator >  Parse_ssrcVec;
 
-        // Item-Description UTF-8
-        unsigned int bytes() const { return 4 * length(); }
-        bool check(Iterator const & e) const { return e-this->i() >= int(bytes()); }
+        Parse_8bit       ssrc()       const { return Parse_32bit(this->i()+1 ); }
+        Parse_ssrcVec ssrcList()      const { return Parse_ssrcVec(this->count(), this->i()+2 ); }
 
     };
 
-  */  
-/*
-    // TODO APP
 
-    template <class Iterator=nil, class IPacket=nil>
-    struct Parse_RTCP_APP : public ParserBase<Iterator,IPacket>
+    template <class Iterator, class IPacket>
+    struct Parse_RTCP_APP : public Parse_RTCP<Iterator,IPacket>
     {
         template <class I, class P=nil>
         struct rebind { typedef Parse_RTCP_APP<I,P> parser; };
@@ -248,25 +244,21 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
         
         typedef Parse_UInt32       < Iterator >       Parse_32bit;
-        // TODO application dependent data
-        
+        typedef Parse_Vector       < Parse_UInt32<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Length, Iterator >  Parse_dataVec;        
+
         Parse_32bit   ssrc()       const { return Parse_32bit(this->i()); }
         Parse_32bit   name()       const { return Parse_32bit(this->i()+4); }
-
-        // Item-Description UTF-8
-        unsigned int bytes() const { return 4 * length(); }
-        bool check(Iterator const & e) const { return e-this->i() >= int(bytes()); }
+        Parse_dataVec appData()    const { return Parse_dataVec(this->length()-3, this->i()+8 ); }
 
     };
-*/
+
 
     class RTCPPacket
         : public Packet, 
-          public Parse_RTCP<Packet::iterator, RTCPPacket>, 
-          public PacketRegistryMixin<RTCPTypes,RTCPPacket>
+          public Parse_RTCP<Packet::iterator, RTCPPacket>
     {
         using Packet::registerInterpreter;
-        using PacketRegistryMixin<RTCPTypes,RTCPPacket>::registerInterpreter;
+       
     public:
         ///////////////////////////////////////////////////////////////////////////
         // Types
