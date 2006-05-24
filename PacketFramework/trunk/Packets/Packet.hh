@@ -122,9 +122,6 @@ namespace pkf {
 
     /** \brief Basic interface to all packet facades
 
-        \par Responsibility
-            Manage raw package data and interpreter chain
-        
         \section packet_overview Overview
         
         This class is the base class of all Packets. It implements the
@@ -147,9 +144,12 @@ namespace pkf {
         type (i.e. EthernetPacket or UDPPacket).
 
         Packet provides several interfaces:
+        
+        - Creation of Packet instances: create()
 
         - Access to the chain of interpreters: next(), prev(), head(),
-          last(), find_next(), find_prev(), is(), as() and reinterpret()
+          last(), find_next(), find_prev(), get_next(), get_prev(),
+          is(), as() and reinterpret()
 
         - Access to the raw packet data: begin(), end(), size(),
           insert() and erase()
@@ -167,13 +167,12 @@ namespace pkf {
 
         - You have to implement v_nextInterpreter() and v_finalize()
 
-        - You must implement a static \a create member. This member
-          returns a smart pointer to a newly created Packet instance
-
-        - The constructor should take the same arguments as the \a
-          create method and should be private
+        - The constructor should be private
 
         - You must make Packet a \c friend of the new Packet facade
+
+        - You must implement a static check() method which validates
+          a byte region as your new Packet
 
         \code        
             class ExamplePacket 
@@ -182,19 +181,18 @@ namespace pkf {
             public:
                 typedef ptr_t<ExamplePacket>::ptr ptr;
 
-                template <class InputIterator>
-                static ptr create(InputIterator begin, InputIterator end)
+                static bool check(Packet::iterator begin, Packet::iterator end)
                 {
-                    return ptr(new ExamplePacket(begin,end),false);
+                    // Validate, that the region [begin,end) can be
+                    // interpreted as an ExamplePacket without risking
+                    // memory access violations.
                 }
 
             private:
-                template <class InputIterator>
-                ExamplePacket(InputIterator begin, InputIterator end)
-                    : satcom::pkf::Packet(begin,end)
-                {
-                    // check data consistency !!
-                }
+                template <class Arg>
+                ExamplePacket(Arg arg [, other args ... ])
+                    : satcom::pkf::Packet(arg)
+                {}
 
                 virtual void v_nextInterpreter() const
                 {
@@ -214,19 +212,18 @@ namespace pkf {
 
         Please do not implement the methods inline to not clutter up
         the header file. This is done here in the example to simplify
-        it.
-
-        If your class's constructor takes additional arguments, add
-        them after the begin/end parameters to both \a create and the
-        constructor. If a class is to be registered in some
+        it. If a class is to be registered in some
         satcom:pkf::PacketRegistry, it must not take any additional
         constructor parameters.
 
         After having implemented the bare framework, the most comman
         way to implement access to the packets specific data is to use
         the parser framework by additionally inheriting a
-        corresponding parser. In the following example we only show the
-        differences from the previous example:
+        corresponding parser. This also automatically implements the
+        check() method, which is provided by the Parser.
+
+        In the following example we only show the differences from the
+        previous example:
 
         \code
             class ExamplePacket
@@ -279,7 +276,7 @@ namespace pkf {
             };
         \endcode
 
-        For further details on the packet registry framework, see
+        For further details on the packet registry, see
         satcom::pkf::PacketRegistry.
 
         \section packet_impl Implementation details
@@ -321,27 +318,37 @@ namespace pkf {
         for all Packet facades is taken to reduce the overhead (an
         intrusive_ptr is only the size of an ordinary pointer, a
         smart_ptr has the size of two pointers).
+
+        \nosubgrouping
       */
     class Packet : boost::noncopyable
     {
     public:
-        typedef boost::uint8_t byte;
+        ///\name Types
+        ///@{
+        typedef boost::uint8_t byte; //!< single byte datatype
+        ///@}
 
+    private:
+        ///\name Implementation
+        ///@{
         // These types are implementation details. They are however
         // needed to provide the correct typedefs for the user
         // interface. Hiding these classes would incur a huge
         // additional indirection overhead.
 
-    private:
         typedef std::vector<byte> raw_container;
         typedef boost::shared_ptr<Packet> interpreter_list_ptr;
         typedef std::list<satcom::pkf::Packet::interpreter_list_ptr > interpreter_list;
         typedef unsigned refcount_t;
 
+        ///@}
+
     public:
 
         ///////////////////////////////////////////////////////////////////////////
-        // Types
+        ///\name Types
+        ///@{
         
         /** \brief smart pointer template for all Packet classes
             
@@ -349,6 +356,7 @@ namespace pkf {
             smart pointer used for all Packet classes.
          */
         template <class T> struct ptr_t { typedef boost::intrusive_ptr<T> ptr; };
+
         /** \brief smart pointer to the Packet facades
 
             Every derived class \e must redeclare this member for it's
@@ -362,10 +370,12 @@ namespace pkf {
         typedef raw_container::size_type size_type;
         typedef raw_container::difference_type difference_type;
 
-        // no public constructors
-        // no copy
-        // no conversion constructors
-        // private destructor
+        ///@}
+
+        // ////////////////////////////////////////////////////////////////////////
+
+        ///\name Creating packets
+        ///@{
 
         template <class OtherPacket, class InputIterator>
         static typename ptr_t<OtherPacket>::ptr create(InputIterator b, InputIterator e);
@@ -373,9 +383,10 @@ namespace pkf {
 #       define BOOST_PP_ITERATION_PARAMS_1 (4, (1, 9, "Packet.mpp", 5))
 #       include BOOST_PP_ITERATE()        
 
-        // ////////////////////////////////////////////////////////////////////////
+        ///@}
 
-        // Interpreter chain navigation
+        ///\name Interpreter chain
+        ///@{
         
         /** \brief get next packet from the interpreter chain
             \return smart pointer to next packet or 0 if last packet */
@@ -417,8 +428,6 @@ namespace pkf {
                 \a OtherPacket. Otherwise return 0 */
         template <class OtherPacket> typename ptr_t<OtherPacket>::ptr as(); 
 
-        // Changing the interpreter chain
-
         /** \brief replace current packet interpreter
 
             This method will \e replace the current packet facade in
@@ -448,7 +457,10 @@ namespace pkf {
 #       define BOOST_PP_ITERATION_PARAMS_1 (4, (2, 9, "Packet.mpp", 1))
 #       include BOOST_PP_ITERATE()
 
-        // Raw data access
+        ///@}
+
+        ///\name Raw packet data
+        ///@{
 
         /** \brief begin interator of raw packet data
             
@@ -514,8 +526,25 @@ namespace pkf {
             classes. */
         void erase(iterator first, iterator last);
 
-    private:
+        ///@}
 
+    protected:
+        ///\name Derived class interface
+        ///@{
+
+        /** \brief create new interpreter facade for an existing packet
+            
+            This constructor is called, when a new interpreter is to
+            be added to the interpreter chain. The constructor is
+            called indirectly from registerInterpreter() or
+            reinterpret() via the derived classes template
+            constructor.
+         */
+        template <class Operation>
+        Packet(Operation const & arg);
+        virtual ~Packet();
+        
+    private:
         /** \brief create next packet interpreter
 
             This method is called by next(), last() or find_next() to
@@ -549,18 +578,6 @@ namespace pkf {
         virtual void v_finalize() = 0;
 
     protected:
-        /** \brief create new interpreter facade for an existing packet
-            
-            This constructor is called, when a new interpreter is to
-            be added to the interpreter chain. The constructor is
-            called indirectly from registerInterpreter() or
-            reinterpret() via the derived classes template
-            constructor.
-         */
-        template <class Operation>
-        Packet(Operation const & arg);
-        virtual ~Packet();
-        
         /** \brief add interpreter to interpreter chain
 
             This method is used by v_nextInterpreter() in the derived
@@ -584,7 +601,12 @@ namespace pkf {
 #       define BOOST_PP_ITERATION_PARAMS_1 (4, (2, 9, "Packet.mpp", 3))
 #       include BOOST_PP_ITERATE()
 
+        ///@}
+
     private:
+
+        ///\name Implementation
+        ///@{
 
         void add_ref() const;
         bool release();
@@ -612,6 +634,8 @@ namespace pkf {
         interpreter_list::iterator self_;
         mutable bool parsed_;
         mutable refcount_t refcount_;
+
+        ///@}
     };
 
     /** \brief smart pointer handling

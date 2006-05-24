@@ -107,8 +107,8 @@ namespace {
     };
 
     namespace reg {
-        PacketRegistry<StringTag>::RegistrationProxy<FooPacket> registerFoo("foo");
-        PacketRegistry<StringTag>::RegistrationProxy<BarPacket> registerBar("bar");
+        PacketRegistry<StringTag>::RegistrationProxy<FooPacket> registerFoo ("foo");
+        PacketRegistry<StringTag>::RegistrationProxy<BarPacket> registerBar ("bar");
     }
                                                                             
 }

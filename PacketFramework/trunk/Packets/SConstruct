@@ -86,7 +86,7 @@ env.Doxygen(
 )
 
 all = env.Alias('all')
-env.Clean(all, [ '.sconsign', '.sconf_temp', 'config.log' ] + glob.glob("*~"))
+env.Clean(all, [ '.sconsign', '.sconf_temp', 'config.log', 'ChangeLog.bak', '.clean' ] + glob.glob("*~"))
 env.Depends(all, '.')
 
 env.AlwaysBuild(env.Command('ChangeLog', '', [ "cvs2cl -rS --no-wrap --summary" ]))

@@ -36,8 +36,11 @@
 namespace satcom {
 namespace pkf {
 
-
-    // defaultParser
+    template <class I=nil,class P=nil> struct Parse_RTCP_RR;
+    template <class I=nil,class P=nil> struct Parse_RTCP_SR;
+    template <class I=nil,class P=nil> struct Parse_RTCP_SDES;
+    template <class I=nil,class P=nil> struct Parse_RTCP_BYE;
+    template <class I=nil,class P=nil> struct Parse_RTCP_APP;
     
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_RTCP : public ParserBase<Iterator,IPacket>
@@ -57,105 +60,31 @@ namespace pkf {
         typedef Parse_UInt8      < Iterator >          Parse_PT;     
         typedef Parse_UInt16     < Iterator >          Parse_Length;
 
-        typedef Parse_UInt32     < Iterator >          Parse_ssrc;
+        typedef Parse_RTCP_RR    < Iterator >          Parse_RTCP_RR;
+        typedef Parse_RTCP_SR    < Iterator >          Parse_RTCP_SR;
+        typedef Parse_RTCP_SDES  < Iterator >          Parse_RTCP_SDES;
+        typedef Parse_RTCP_BYE   < Iterator >          Parse_RTCP_BYE;
+        typedef Parse_RTCP_APP   < Iterator >          Parse_RTCP_APP;
 
-
-        // default RR SR SDES BYE APP      
         Parse_Version  version()      const { return Parse_Version  (this->i()      ); }
         Parse_P        padding()      const { return Parse_P        (this->i()      ); }
         Parse_Count    count()        const { return Parse_Count    (this->i()      ); }
         Parse_PT       payloadType()  const { return Parse_PT       (this->i() + 2  ); }
         Parse_Length   length()       const { return Parse_Length   (this->i() + 3  ); }
 
-        
         Parse_RTCP_RR   rr()   { return Parse_RTCP_RR   (this->i()  ); }
-        //Parse_RTCP_SR   sr()   { return Parse_RTCP_SR   (this->i()  ); }
-        //Parse_RTCP_SDES sdes() { return Parse_RTCP_SDES (this->i()  ); }
-        //Parse_RTCP_BYE  bye()  { return Parse_RTCP_BYE  (this->i()  ); }      
-        //Parse_RTCP_APP  app()  { return Parse_RTCP_APP  (this->i()  ); }
-        
+        Parse_RTCP_SR   sr()   { return Parse_RTCP_SR   (this->i()  ); }
+        Parse_RTCP_SDES sdes() { return Parse_RTCP_SDES (this->i()  ); }
+        Parse_RTCP_BYE  bye()  { return Parse_RTCP_BYE  (this->i()  ); }      
+        Parse_RTCP_APP  app()  { return Parse_RTCP_APP  (this->i()  ); }
  
         ///////////////////////////////////////////////////////////////////////////
 
-        unsigned int bytes() const { 
-             // komplett RTCP-Packet
-             return 32 + (4 * length()); 
-        }
-        bool check(Iterator const & e) const { return e-this->i()>= 4 and e-this->i() >= int(bytes()); }
-        
+        unsigned int bytes() const { return 32 + (4 * length()); }
+
+        static bool check(Iterator const & b, Iterator const & e)
+        { return e-b >= 4 and static_cast<unsigned>(e-b) >= bytes(); }
     };
-
-    struct RTCPTypes {
-        typedef boost::uint16_t key_t;
-    };
-
-    class RTCPPacket
-        : public Packet, 
-          public Parse_RTCP<Packet::iterator, RTCPPacket>, 
-          public PacketRegistryMixin<RTCPTypes,RTCPPacket>
-    {
-        using Packet::registerInterpreter;
-        using PacketRegistryMixin<RTCPTypes,RTCPPacket>::registerInterpreter;
-    public:
-        ///////////////////////////////////////////////////////////////////////////
-        // Types
-
-        typedef ptr_t<RTCPPacket>::ptr ptr;
-
-        ///////////////////////////////////////////////////////////////////////////
-        ///\name Structors and default members
-        ///@{
-
-        // no public constructors
-        // no conversion constructors
-        
-        template <class InputIterator>
-        static ptr create(InputIterator begin, InputIterator end);        
-
-        ///@}
-
-    private:
-        template <class InputIterator>
-        RTCPPacket(InputIterator begin, InputIterator end);
-
-        virtual void v_nextInterpreter() const;
-        virtual void v_finalize();
-
-        friend class Packet;
-    };
- 
-    // RR - sender info
-
-    template <class Iterator=nil, class IPacket=nil>
-    struct Parse_RTCP_RR : public Parse_RTCP
-    {
-        template <class I, class P=nil>
-        struct rebind { typedef Parse_RTCP_RR<I,P> parser; };
-        typedef Iterator byte_iterator;
-
-        Parse_RTCP_RR() {}
-        Parse_RTCP_RR(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
-       
-        ///////////////////////////////////////////////////////////////////////////
-        
-        typedef Parse_UInt32        < Iterator > Parse_32bit;
-        typedef Parse_Vector        < Parse_RTCP_RB, Parse_Count, Iterator > Parse_rbVec;
-
-        Parse_32bit   ssrc()        const { return Parse_32bit(this->i()+ 4  ); }
-      
-        Parse_32bit   ntp_msb()     const { return Parse_32bit(this->i()+ 8  ); }
-        Parse_32bit   ntp_lsb()     const { return Parse_32bit(this->i()+ 12 ); }
-        Parse_32bit   timestamp()   const { return Parse_32bit(this->i()+ 16 ); }
-        Parse_32bit   spcount()     const { return Parse_32bit(this->i()+ 20 ); }
-        Parse_32bit   socount()     const { return Parse_32bit(this->i()+ 24 ); }
-
-        // report blocks
-        Parse_rbVec   rbList()      const { return Parse_rbVec(count(), this->i() + 28 ); } 
-   
-    };
-
-
-    // RR & SR - report block
 
     template <class Iterator=nil, class IPacket=nil>
     struct Parse_RTCP_RB : public ParserBase<Iterator,IPacket>
@@ -179,7 +108,32 @@ namespace pkf {
         Parse_32bit   ehsnr()       const { return Parse_32bit(this->i()+8 ); }
         Parse_32bit   LSR()         const { return Parse_32bit(this->i()+12); }
         Parse_32bit   DLSR()        const { return Parse_32bit(this->i()+16); }
+    };
 
+    template <class Iterator, class IPacket>
+    struct Parse_RTCP_RR : public Parse_RTCP<Iterator, IPacket>
+    {
+        template <class I, class P=nil>
+        struct rebind { typedef Parse_RTCP_RR<I,P> parser; };
+        typedef Iterator byte_iterator;
+
+        Parse_RTCP_RR() {}
+        Parse_RTCP_RR(Iterator const & i) : Parse_RTCP<Iterator,IPacket>(i) {}
+       
+        ///////////////////////////////////////////////////////////////////////////
+        
+        typedef Parse_UInt32        < Iterator > Parse_32bit;
+        typedef Parse_Vector        < Parse_RTCP_RB<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Count, Iterator > Parse_rbVec;
+
+        Parse_32bit   ssrc()        const { return Parse_32bit(this->i()+ 4  ); }
+      
+        Parse_32bit   ntp_msb()     const { return Parse_32bit(this->i()+ 8  ); }
+        Parse_32bit   ntp_lsb()     const { return Parse_32bit(this->i()+ 12 ); }
+        Parse_32bit   timestamp()   const { return Parse_32bit(this->i()+ 16 ); }
+        Parse_32bit   spcount()     const { return Parse_32bit(this->i()+ 20 ); }
+        Parse_32bit   socount()     const { return Parse_32bit(this->i()+ 24 ); }
+
+        Parse_rbVec   rbList()      const { return Parse_rbVec(this->count(), this->i() + 28 ); } 
     };
 
 
@@ -306,6 +260,29 @@ namespace pkf {
     };
 */
 
+    class RTCPPacket
+        : public Packet, 
+          public Parse_RTCP<Packet::iterator, RTCPPacket>, 
+          public PacketRegistryMixin<RTCPTypes,RTCPPacket>
+    {
+        using Packet::registerInterpreter;
+        using PacketRegistryMixin<RTCPTypes,RTCPPacket>::registerInterpreter;
+    public:
+        ///////////////////////////////////////////////////////////////////////////
+        // Types
+
+        typedef ptr_t<RTCPPacket>::ptr ptr;
+
+    private:
+        template <class Arg>
+        RTCPPacket(Arg const & arg);
+
+        virtual void v_nextInterpreter() const;
+        virtual void v_finalize();
+
+        friend class Packet;
+    };
+ 
 }}
 
 

@@ -46,15 +46,16 @@ namespace pkf {
 
         This class is the baseclass for all parser classes of the
         parser framework. The parser framework is used to interpret
-        byte-oriented data from an arbitrary random access
-        iterator. The framework is hierarchical in the sense, that
-        parsers can be arbitrarily nested.
+        byte-oriented data from arbitrary random access iterators. The
+        framework is hierarchical in the sense, that parsers can be
+        arbitrarily nested.
 
         All parser framework classes are as lightweight as
         possible. Most parser classes only have a single iterator as
         data member and (depending on the container) therefore have
         the same size as a single pointer. Parsers are therefore
-        simple pointers decorated with type information.
+        conceptually and in essence simply pointers decorated with
+        type information.
 
         It is very important for parser classes to be lightweight and
         to have only simple constructors since parsers are passed
@@ -70,6 +71,8 @@ namespace pkf {
             struct Parser_Example
                 : protected satcom::pkf::ParserBase<Iterator,IPacket>
             {
+                // fixed interface of all parser classes
+
                 template <class I=nil, class P=nil>
                 struct rebind { typedef Parse_Example<I,P> parser; }
                 typedef Iterator byte_iterator;
@@ -85,16 +88,16 @@ namespace pkf {
                     // member
                     return 14;
                 }
-                bool check(Iterator const & e)
+                static bool check(Iterator const & begin, Iterator const & end)
                 {
-                    // return true, if the data in the range i() <-> e
+                    // return true, if the data in the range [begin,end)
                     // can be safely interpreted by the parser without
                     // causing invalid memory access. This means,
                     // check, wether the data is truncated
                     return e-this->i() >= static_cast<int>(bytes());
                 }
 
-                // methods to parse fields
+                // example methods to parse fields
 
                 typedef Parse_UInt16 < Iterator >                    Parse_Field1;
                 typedef Parse_Array  < 3, Parse_UInt32<>, Iterator > Parser_Field2
@@ -116,13 +119,11 @@ namespace pkf {
 
         - byte_iterator: A typedef for the Iterator class used
         
-        - default constructor: Every parser must have a default
-          constructor. However, a standalone default-constructed
-          parser is \e not dereferenceable. This error is \e not
-          checked by the parser framework
+        - Non Iterator constructor: This constructor is only used when
+          the parser is inherited into a Packet class.
         
         - Iterator constructor: This constructor must call the
-          corresponding ParserBase constructor
+          corresponding ParserBase constructor.
 
         - unsigned bytes() member: This member must return the number
           of bytes the parser interprets. This will be the size of the
@@ -130,12 +131,12 @@ namespace pkf {
           member must be static, if it is dynamic the member must be
           non-static
 
-        - bool check(Iterator e) member: This method must return true
-          \e only if the range this->i() <-> e contains a \e complete
-          packet, that is, e-this->i() >= bytes(). However, the call
-          to bytes() might involve accessing data bytes which might
-          not exist. The bytes() call cannot check this (it has no
-          access to the \e end of the valid range). To keep the
+        - static bool check(Iterator b, Iterator e) member: This
+          method must return true \e only if the range [b,e) contains
+          a \e complete packet, that is, e-b >= bytes(). However, the
+          call to bytes() might involve accessing data bytes which
+          might not exist. The bytes() call cannot check this (it has
+          no access to the \e end of the valid range). To keep the
           performance up, the validity check is performed once. The
           parser has to ensure, that validity is maintained even when
           changing the values. Validity in this context does not
@@ -206,6 +207,13 @@ namespace pkf {
         Iterator i_;
     };
 
+    /** \brief Addtiional Parser information
+        
+        Parser_traits provids abstract information about an unknown
+        parser. Besides the information already available within the
+        Parser it provides an additional 'fixed_sized' member which is
+        true if and only if the Parser has a static bytes() member.
+     */
     template <class Parser>
     struct Parser_traits {
         typedef Parser parser;
