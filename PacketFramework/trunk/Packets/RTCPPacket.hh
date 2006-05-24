@@ -191,9 +191,9 @@ namespace pkf {
 
     };
 
-    template <class Array>
-    struct Sentinel_EmptyArray {
-        static bool check(Array a) { return a.empty(); }
+    template <class List>
+    struct Sentinel_EmptyList {
+        static bool check(List a) { return a.empty(); }
     };
 
     template  <class Iterator=nil, class IPacket=nil>
@@ -213,7 +213,7 @@ namespace pkf {
 
 
 
-        typedef Parse_ListS      < Parse_RTCP_item<>, Sentinel_EmptyArray<Parse_RTCP_item<>>, Iterator, IPacket>   Parse_ChunkList;
+        typedef Parse_ListS      < Parse_RTCP_item<>, Sentinel_EmptyList<Parse_RTCP_item<> >, Iterator, IPacket>   Parse_ChunkList;
         
         Parse_32bit    ssrc()       const { return Parse_32bit(this->i() ); }
         Parse_ChunkList chunkList()  const { return Parse_ChunkList(this->i() + 4 ); }
