@@ -27,6 +27,7 @@
 #include "Packet.hh"
 #include "ParseInt.hh"
 #include "ParseArray.hh"
+#include "ParseListS.hh"
 #include "ParseVec.hh"
 #include "PacketRegistry.hh"
 
@@ -190,6 +191,11 @@ namespace pkf {
 
     };
 
+    template <class Array>
+    struct Sentinel_EmptyArray {
+        static bool check(Array a) { return a.empty(); }
+    };
+
     template  <class Iterator=nil, class IPacket=nil>
     struct Parse_RTCP_chunk : public Parse_RTCP<Iterator, IPacket>
     {
@@ -205,12 +211,15 @@ namespace pkf {
         typedef Parse_UInt32     < Iterator > Parse_32bit;
         typedef Parse_UInt8      < Iterator > Parse_8bit;
 
-        typedef Parse_ListS      < Parse_RTCP_item<>, Parse_UInt8<>, Iterator, IPacket>   Parse_ChunkList;
+
+
+        typedef Parse_ListS      < Parse_RTCP_item<>, Sentinel_EmptyArray<Parse_RTCP_item<>>, Iterator, IPacket>   Parse_ChunkList;
         
         Parse_32bit    ssrc()       const { return Parse_32bit(this->i() ); }
-        Parse_chunkVec chunkList()  const { return Parse_chunkVec(0x00, this->i() + 4 ); }
+        Parse_ChunkList chunkList()  const { return Parse_ChunkList(this->i() + 4 ); }
  
     };
+
 
     template <class Iterator, class IPacket>
     struct Parse_RTCP_SDES : public Parse_RTCP<Iterator, IPacket>
