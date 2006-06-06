@@ -71,8 +71,8 @@ namespace pkf {
         Parse_Version  version()      const { return Parse_Version  (this->i()      ); }
         Parse_P        padding()      const { return Parse_P        (this->i()      ); }
         Parse_Count    count()        const { return Parse_Count    (this->i()      ); }
-        Parse_PT       payloadType()  const { return Parse_PT       (this->i() + 2  ); }
-        Parse_Length   length()       const { return Parse_Length   (this->i() + 3  ); }
+        Parse_PT       payloadType()  const { return Parse_PT       (this->i() + 1  ); }
+        Parse_Length   length()       const { return Parse_Length   (this->i() + 2  ); }
 
         Parse_RTCP_RR   rr()   { return Parse_RTCP_RR   (this->i()  ); }
         Parse_RTCP_SR   sr()   { return Parse_RTCP_SR   (this->i()  ); }
@@ -83,9 +83,9 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
 
         unsigned int bytes() const { return 32 + (4 * length()); }
-
         static bool check(Iterator const & b, Iterator const & e)
-        { return e-b >= 4 and static_cast<unsigned>(e-b) >= bytes(); }
+        { return e-b >= 4 and static_cast<unsigned>(e-b) >= Parse_RTCP<Iterator>(b).bytes(); }
+
     };
 
     template <class Iterator=nil, class IPacket=nil>
@@ -181,13 +181,11 @@ namespace pkf {
         
         typedef Parse_UInt8         < Iterator >                    Parse_8bit;
         typedef Parse_UInt32        < Iterator >                    Parse_32bit;
+        typedef Parse_Vector        < Parse_UInt8<>, Parse_UInt8<>, Iterator >  Parse_desc;
         
         Parse_8bit   typeField()    const { return Parse_8bit(this->i()   ); }
-        Parse_8bit   length()       const { return Parse_8bit(this->i()+1 ); }
-
-        typedef Parse_Vector        < Parse_UInt8<>, Parse_UInt8<>, Iterator >  Parse_desc;
-
-        Parse_desc   desc()       const { return Parse_desc(this->length(), this->i()+2 ); }
+        Parse_8bit   length()       const { return Parse_8bit(this->i()+1 ); }       
+        Parse_desc   desc()         const { return Parse_desc(this->length(), this->i()+2 ); }
 
     };
 
@@ -210,13 +208,10 @@ namespace pkf {
         
         typedef Parse_UInt32     < Iterator > Parse_32bit;
         typedef Parse_UInt8      < Iterator > Parse_8bit;
-
-
-
-        typedef Parse_ListS      < Parse_RTCP_item<>, Sentinel_EmptyList<Parse_RTCP_item<> >, Iterator, IPacket>   Parse_ChunkList;
+        typedef Parse_ListS      < Parse_RTCP_item<>, Sentinel_EmptyList<Parse_RTCP_item<> >, Iterator, IPacket>   Parse_itemList;
         
         Parse_32bit    ssrc()       const { return Parse_32bit(this->i() ); }
-        Parse_ChunkList chunkList()  const { return Parse_ChunkList(this->i() + 4 ); }
+        Parse_itemList itemList()  const { return Parse_itemList(this->i() + 4 ); }
  
     };
 
@@ -235,7 +230,7 @@ namespace pkf {
  
         typedef Parse_Vector     < Parse_RTCP_chunk<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Count, Iterator > Parse_chunkVec;
         
-        Parse_chunkVec   chunkList()       const { return Parse_desc(this->length(), this->i()+4 ); }
+        Parse_chunkVec   chunkList()       const { return Parse_chunkVec(this->count(), this->i()+4 ); }
  
     };
 
@@ -247,16 +242,13 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         Parse_RTCP_BYE() {}
-        Parse_RTCP_BYE(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
-
-        
+        Parse_RTCP_BYE(Iterator const & i) : Parse_RTCP<Iterator,IPacket>(i) {}
+   
         ///////////////////////////////////////////////////////////////////////////
         
-        typedef Parse_UInt32        < Iterator >                    Parse_32bit;
         typedef Parse_Vector        < Parse_UInt32<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Count, Iterator >  Parse_ssrcVec;
 
-        Parse_32bit       ssrc()       const { return Parse_32bit(this->i()+1 ); }
-        Parse_ssrcVec ssrcList()      const { return Parse_ssrcVec(this->count(), this->i()+2 ); }
+        Parse_ssrcVec ssrcList()      const { return Parse_ssrcVec(this->count(), this->i()+4 ); }
 
     };
 
@@ -269,7 +261,7 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         Parse_RTCP_APP() {}
-        Parse_RTCP_APP(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
+        Parse_RTCP_APP(Iterator const & i) : Parse_RTCP<Iterator,IPacket>(i) {}
 
         
         ///////////////////////////////////////////////////////////////////////////
@@ -277,9 +269,10 @@ namespace pkf {
         typedef Parse_UInt32       < Iterator >       Parse_32bit;
         typedef Parse_Vector       < Parse_UInt32<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Length, Iterator >  Parse_dataVec;        
 
-        Parse_32bit   ssrc()       const { return Parse_32bit(this->i()); }
-        Parse_32bit   name()       const { return Parse_32bit(this->i()+4); }
-        Parse_dataVec appData()    const { return Parse_dataVec(this->length()-3, this->i()+8 ); }
+        Parse_32bit   ssrc()       const { return Parse_32bit(this->i()+4); }
+        Parse_32bit   name()       const { return Parse_32bit(this->i()+8); }
+// this->length()-3
+        Parse_dataVec appData()    const { return Parse_dataVec(this->length(), this->i()+12 ); }
 
     };
 
