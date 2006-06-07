@@ -142,7 +142,7 @@ namespace pkf {
         Parse_32bit   spcount()     const { return Parse_32bit(this->i()+ 20 ); }
         Parse_32bit   socount()     const { return Parse_32bit(this->i()+ 24 ); }
 
-        Parse_rbVec   rbList()      const { return Parse_rbVec(this->count(), this->i() + 28 ); } 
+        Parse_rbVec   rbVec()      const { return Parse_rbVec(this->count(), this->i() + 28 ); } 
 
     };
 
@@ -162,7 +162,7 @@ namespace pkf {
         typedef Parse_Vector        < Parse_RTCP_RB<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Count, Iterator > Parse_rbVec;
 
         Parse_32bit   ssrc()        const { return Parse_32bit(this->i()+ 4  ); }
-        Parse_rbVec   rbList()      const { return Parse_rbVec(this->count(), this->i() + 8 ); }
+        Parse_rbVec   rbVec()      const { return Parse_rbVec(this->count(), this->i() + 8 ); }
  
     };
 
@@ -186,6 +186,8 @@ namespace pkf {
         Parse_8bit   typeField()    const { return Parse_8bit(this->i()   ); }
         Parse_8bit   length()       const { return Parse_8bit(this->i()+1 ); }       
         Parse_desc   desc()         const { return Parse_desc(this->length(), this->i()+2 ); }
+
+
 
     };
 
@@ -230,7 +232,7 @@ namespace pkf {
  
         typedef Parse_Vector     < Parse_RTCP_chunk<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Count, Iterator > Parse_chunkVec;
         
-        Parse_chunkVec   chunkList()       const { return Parse_chunkVec(this->count(), this->i()+4 ); }
+        Parse_chunkVec   chunkVec()       const { return Parse_chunkVec(this->count(), this->i()+4 ); }
  
     };
 
@@ -248,7 +250,7 @@ namespace pkf {
         
         typedef Parse_Vector        < Parse_UInt32<>, typename Parse_RTCP<Iterator,IPacket>::Parse_Count, Iterator >  Parse_ssrcVec;
 
-        Parse_ssrcVec ssrcList()      const { return Parse_ssrcVec(this->count(), this->i()+4 ); }
+        Parse_ssrcVec ssrcVec()      const { return Parse_ssrcVec(this->count(), this->i()+4 ); }
 
     };
 
