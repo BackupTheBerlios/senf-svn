@@ -113,7 +113,7 @@ namespace pkf {
  
         ///////////////////////////////////////////////////////////////////////////
 
-	unsigned int bytes() const { return 20; }
+	static unsigned int bytes()  { return 20; }
         static bool check(Iterator const & b, Iterator const & e)
         { return static_cast<unsigned>(e-b) >= bytes(); }
 
@@ -210,7 +210,7 @@ namespace pkf {
         typedef Parse_UInt8      < Iterator > Parse_8bit;
         typedef Parse_ListS      < Parse_RTCP_item<>, Sentinel_EmptyList<Parse_RTCP_item<> >, Iterator, IPacket>   Parse_itemList;
         
-        Parse_32bit    ssrc()       const { return Parse_32bit(this->i() ); }
+        Parse_32bit    ssrc()      const { return Parse_32bit(this->i() ); }
         Parse_itemList itemList()  const { return Parse_itemList(this->i() + 4 ); }
  
     };

@@ -85,7 +85,7 @@ BOOST_AUTO_UNIT_TEST(rtcpPacket_parser)
                              0x13, 0x14, 0x15, 0x16,
                              0x20, 0x21, 0x22, 0x23,
 
-                             0x01, 0x02, 0x03, 0x04,
+                             0x99, 0x02, 0x03, 0x04,
                              0x05, 0x06, 0x07, 0x08,
                              0x09, 0x10, 0x11, 0x12,
                              0x13, 0x14, 0x15, 0x16,
@@ -120,19 +120,30 @@ BOOST_AUTO_UNIT_TEST(rtcpPacket_parser)
     BOOST_CHECK_EQUAL( p_2.rr().rbList().begin()->LSR(),      0x13141516u  );
     BOOST_CHECK_EQUAL( p_2.rr().rbList().begin()->DLSR(),     0x20212223u  );
 
+    typedef unsigned char * iterator;
+    typedef Parse_UIntField     < 3, 8, iterator >    Parse_Count;
+    typedef Parse_Vector        < Parse_RTCP_RB<>, Parse_Count, iterator > Parse_rbVec;
 
-/*
+    Parse_rbVec::iterator j_2 (p_2.rr().rbList().begin());
 
-    TODO durch vetor iterieren -> ask Stefan
+    BOOST_CHECK_EQUAL( j_2->ssrc(),     0x01020304u  );
+    BOOST_CHECK_EQUAL( j_2->fragLost(), 0x05u        );
+    BOOST_CHECK_EQUAL( j_2->cnpl()[0],  0x06u        );
+    BOOST_CHECK_EQUAL( j_2->ehsnr(),    0x09101112u  );
+    BOOST_CHECK_EQUAL( j_2->LSR(),      0x13141516u  );
+    BOOST_CHECK_EQUAL( j_2->DLSR(),     0x20212223u  );
 
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].ssrc(),     0x01020304u  );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].fragLost(), 0x05u        );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].cnpl(),     0x060708u    );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].ehsnr(),    0x09101112u  );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].LSR(),      0x13141516u  );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].DLSR(),     0x20212223u  );
+    ++j_2;
 
-*/
+    BOOST_CHECK_EQUAL( j_2->ssrc(),     0x99020304u  );
+    BOOST_CHECK_EQUAL( j_2->fragLost(), 0x05u        );
+    BOOST_CHECK_EQUAL( j_2->cnpl()[0],  0x06u        );
+    BOOST_CHECK_EQUAL( j_2->ehsnr(),    0x09101112u  );
+    BOOST_CHECK_EQUAL( j_2->LSR(),      0x13141516u  );
+    BOOST_CHECK_EQUAL( j_2->DLSR(),     0x20212223u  );
+
+
+
 
 
 
@@ -141,7 +152,7 @@ BOOST_AUTO_UNIT_TEST(rtcpPacket_parser)
                              0x82, 0xc9, 0x00, 0x06, 
                              0xe5, 0x70, 0xaa, 0x18, 
                              
-                             0x01, 0x02, 0x03, 0x04,
+                             0x99, 0x02, 0x03, 0x04,
                              0x05, 0x06, 0x07, 0x08,
                              0x09, 0x10, 0x11, 0x12,
                              0x13, 0x14, 0x15, 0x16,
@@ -168,25 +179,25 @@ BOOST_AUTO_UNIT_TEST(rtcpPacket_parser)
     BOOST_CHECK_EQUAL( p_3.sr().rbList().size(),    0x02u  );
 
  
-    BOOST_CHECK_EQUAL( p_3.sr().rbList().begin()->ssrc(),     0x01020304u  );
-    BOOST_CHECK_EQUAL( p_3.sr().rbList().begin()->fragLost(), 0x05u        );
-    BOOST_CHECK_EQUAL( p_3.sr().rbList().begin()->cnpl()[0],  0x06u        );
-    BOOST_CHECK_EQUAL( p_3.sr().rbList().begin()->ehsnr(),    0x09101112u  );
-    BOOST_CHECK_EQUAL( p_3.sr().rbList().begin()->LSR(),      0x13141516u  );
-    BOOST_CHECK_EQUAL( p_3.sr().rbList().begin()->DLSR(),     0x20212223u  );
+    typedef unsigned char * iterator;
+    typedef Parse_UIntField     < 3, 8, iterator >    Parse_Count;
+    typedef Parse_Vector        < Parse_RTCP_RB<>, Parse_Count, iterator > Parse_rbVec;
 
-/*
+    Parse_rbVec::iterator j (p_3.rr().rbList().begin());
+    BOOST_CHECK_EQUAL( j->ssrc(),     0x01020304u  );
+    BOOST_CHECK_EQUAL( j->fragLost(), 0x05u        );
+    BOOST_CHECK_EQUAL( j->ehsnr(),    0x09101112u  );
+    BOOST_CHECK_EQUAL( j->LSR(),      0x13141516u  );
+    BOOST_CHECK_EQUAL( j->DLSR(),     0x20212223u  );
 
-    TODO durch vetor iterieren -> ask Stefan
+    ++j;
 
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].ssrc(),     0x01020304u  );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].fragLost(), 0x05u        );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].cnpl(),     0x060708u    );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].ehsnr(),    0x09101112u  );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].LSR(),      0x13141516u  );
-    BOOST_CHECK_EQUAL( p_2.rr().rbList()[1].DLSR(),     0x20212223u  );
-
-*/
+    BOOST_CHECK_EQUAL( j->ssrc(),     0x99020304u  );
+    BOOST_CHECK_EQUAL( j->fragLost(), 0x05u        );
+    BOOST_CHECK_EQUAL( j->cnpl()[0],  0x06u    );
+    BOOST_CHECK_EQUAL( j->ehsnr(),    0x09101112u  );
+    BOOST_CHECK_EQUAL( j->LSR(),      0x13141516u  );
+    BOOST_CHECK_EQUAL( j->DLSR(),     0x20212223u  );
 
     // TODO RTCP SDES
 
@@ -210,6 +221,10 @@ BOOST_AUTO_UNIT_TEST(rtcpPacket_parser)
 
     BOOST_CHECK_EQUAL( p_4.sdes().chunkList().size(),    0x01u      );
 
+    typedef unsigned char * iterator_s;
+    typedef Parse_ListS      < Parse_RTCP_item<>, Sentinel_EmptyList<Parse_RTCP_item<> >, iterator_s>   Parse_itemList;
+    Parse_itemList::iterator j_4 (p_4.sdes().chunkList().begin());
+
 // TODO  -> ask Stefan
 
  // BOOST_CHECK_EQUAL( p_4.sdes().chunkList()[0].ssrc(), 0xe570aa18u);
@@ -224,7 +239,7 @@ BOOST_AUTO_UNIT_TEST(rtcpPacket_parser)
 
 
 
-    // TODO RTCP BYE 
+   // RTCP BYE 
    unsigned char data_5[] = { 
                              0x82, 0xcb, 0x00, 0x06, 
                                     
@@ -248,7 +263,7 @@ BOOST_AUTO_UNIT_TEST(rtcpPacket_parser)
     BOOST_CHECK_EQUAL( p_5.bye().ssrcList()[1],     0x05060708u  );
 
 
-    // TODO RTCP APP 
+   // RTCP APP 
    unsigned char data_6[] = { 
                              0x82, 0x7b, 0x00, 0x05, 
                                     
