@@ -32,6 +32,7 @@
 
 #include <boost/test/auto_unit_test.hpp>
 #include <boost/test/test_tools.hpp>
+#include <boost/assign.hpp>
 
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
@@ -126,6 +127,41 @@ BOOST_AUTO_UNIT_TEST(parse_ListS_complex)
     BOOST_CHECK_EQUAL( l.size(), 3u );
     BOOST_CHECK_EQUAL( l.bytes(), 13u );
     BOOST_CHECK( !l.empty() );
+}
+
+BOOST_AUTO_UNIT_TEST(parse_ListS_wrapper)
+{
+    typedef std::vector<unsigned char> Container;
+    typedef Container::iterator iterator;
+    typedef Parse_LVec<Parse_UInt8<>,Parse_UInt8<>,iterator> Parse_UInt8LVec;
+    typedef Parse_ListS<Parse_UInt8LVec, Sentinel_EmptyArray<Parse_UInt8LVec>,iterator> Parse_UInt8LVecListS;
+    typedef Parse_UInt8LVecListS::wrapper<Container>::t Parse_UInt8LVecListSWrap;
+
+    using namespace boost::assign;
+
+    Container data;
+    data +=
+        0x02, 0x01, 0x02,
+        0x03, 0x11, 0x12, 0x13,
+        0x04, 0x21, 0x22, 0x23, 0x24,
+        0x00;
+
+    Parse_UInt8LVecListS l (data.begin());
+    Parse_UInt8LVecListSWrap w (l,data);
+
+    BOOST_CHECK_EQUAL( w.size(), 3u );
+    BOOST_CHECK ( !w.empty() );
+    BOOST_CHECK ( w.begin() != w.end() );
+    BOOST_CHECK ( w.range() == std::make_pair(w.begin(), w.end()) );
+
+#if 0
+    unsigned char newdata[] = { 0x01, 0x00 };
+
+    w.insert(w.begin(),Parse_UInt8LVec::rebind<unsigned char*>::parser(newdata));
+    BOOST_CHECK_EQUAL( w.size(), 4u );
+    BOOST_CHECK_EQUAL( w.begin()->size(), 1u );
+    BOOST_CHECK_EQUAL( static_cast<unsigned>((*w.begin())[0]), 0x00u );
+#endif
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////

@@ -73,6 +73,44 @@ prefix_ void satcom::pkf::Parse_ListS<Parser,Sentinel,Iterator,IPacket>::init()
     i->init();
 }
 
+///////////////////////////////////////////////////////////////////////////
+// satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>
+
+template <class Parser, class Sentinel, class Container>
+template <class Value>
+prefix_ void
+satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::insert(iterator pos,
+                                                                    Value const & t)
+{
+    // FIXME: What, if pos == end() / default constructed iterator ?
+    size_type ix (pos.raw()-container_.begin());
+    container_.insert(pos.raw(),t.bytes(),0);
+    Parser(container_.begin()+ix).value(t);
+}
+
+template <class Parser, class Sentinel, class Container>
+template <class Value>
+prefix_ void
+satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::insert(iterator pos, size_type n,
+                                                                    Value const & t)
+{
+    size_type ix (pos.raw()-container_.begin());
+    container_.insert(pos.raw(),n*t.bytes(),0);
+    typename Container::iterator i (container_.begin()+ix);
+    for (; n; ++i, --n)
+        Parser(i).value(t);
+}
+
+template <class Parser, class Sentinel, class Container>
+template <class InputIterator>
+prefix_ void
+satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::insert(iterator pos,
+                                                                    InputIterator f,
+                                                                    InputIterator l)
+{
+    for (;f!=l;++f,++pos) insert(pos,*f);
+}
+
 ///////////////////////////////ct.e////////////////////////////////////////
 #undef prefix_
 

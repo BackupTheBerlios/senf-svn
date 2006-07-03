@@ -125,7 +125,13 @@ prefix_ bool satcom::pkf::impl::Parse_ListS_iterator<Parser,Sentinel,Iterator>::
 equal(Parse_ListS_iterator const & other)
     const
 {
-    return i_==other.i_ || (atEnd_ && other.atEnd_);
+    // !! We cannot compare the to iterators if either
+    // !! Iterator is atEnd_, since one of the iterators
+    // !! might be a default-constructed iterator and
+    // !! iterators can only be compared with each other
+    // !! if both point to the *same* valid container
+    if (atEnd_ || other.atEnd_) return atEnd_ == other.atEnd_;
+    return i_ == other.i_;
 }
 
 template <class Parser, class Sentinel, class Iterator>
@@ -134,6 +140,55 @@ prefix_ void satcom::pkf::impl::Parse_ListS_iterator<Parser,Sentinel,Iterator>::
     BOOST_ASSERT( !atEnd_ );
     i_ += dereference().bytes();
     atEnd_ = Sentinel::check(dereference());
+}
+
+///////////////////////////////////////////////////////////////////////////
+// satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>
+
+template <class Parser, class Sentinel, class Container>
+template <class P, class S, class I, class IP>
+prefix_ satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::
+Parse_ListS_wrapper(Parse_ListS<P,S,I,IP> const & list, Container & container)
+    : i_(list.i()-container.begin()), container_(container)
+{}
+
+template <class Parser, class Sentinel, class Container>
+prefix_ typename satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::size_type
+satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::size()
+    const
+{
+    return std::distance(begin(),end());
+}
+
+template <class Parser, class Sentinel, class Container>
+prefix_ bool satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::empty()
+    const
+{
+    return begin()==end();
+}
+
+template <class Parser, class Sentinel, class Container>
+prefix_ typename satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::iterator
+satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::begin()
+    const
+{
+    return iterator(container_.begin()+i_);
+}
+
+template <class Parser, class Sentinel, class Container>
+prefix_ typename satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::iterator
+satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::end()
+    const
+{
+    return iterator();
+}
+
+template <class Parser, class Sentinel, class Container>
+prefix_ typename satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::range_type
+satcom::pkf::Parse_ListS_wrapper<Parser,Sentinel,Container>::range()
+    const
+{
+    return std::make_pair(begin(),end());
 }
 
 ///////////////////////////////cti.e///////////////////////////////////////

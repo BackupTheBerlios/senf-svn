@@ -231,15 +231,15 @@ namespace pkf {
                   public Parse_Example<satcom::pkf::Packet::iterator,
                                        ExamplePacket>
             {
+
+                // check does not need to be implemented here, it is
+                // inherited from the parser 
+
             private:
                 template <class InputIterator>
                 ExamplePacket(InputIterator begin, InputIterator end)
                     : satcom::pkf::Packet(begin,end)
-                {
-                    // check data consistency. check() is provided by
-                    // Parse_Example
-                    if (!check(end())) throw TruncatedPacketException();
-                }
+                {}
             };
         \endcode
 
@@ -377,6 +377,25 @@ namespace pkf {
         ///\name Creating packets
         ///@{
 
+        /** \brief create new Packet
+            
+            This method is used to create a new Packet. All Packet
+            instances are created via this method, they are \e never
+            created directly from the Packet derived class.
+
+            If the constructor of the derived class takes additional
+            arguments, theese arguments must be added at the end.
+
+            \param OtherPacket Type of Packet to create, a Packet
+                    derived class
+            \param b begin iterator of byte range to create the Packet
+                    from
+            \param e corresponding end iterator
+            \return smart pointer to new packet
+            \throws TruncatedPacketException The data cannot be parsed
+                    securely (the data might be trunctated or just
+                    plain invalid)
+         */
         template <class OtherPacket, class InputIterator>
         static typename ptr_t<OtherPacket>::ptr create(InputIterator b, InputIterator e);
 

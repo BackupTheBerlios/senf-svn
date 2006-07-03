@@ -90,11 +90,12 @@ namespace pkf {
                 }
                 static bool check(Iterator const & begin, Iterator const & end)
                 {
+                    BOOST_ASSERT( end>=begin );
                     // return true, if the data in the range [begin,end)
                     // can be safely interpreted by the parser without
                     // causing invalid memory access. This means,
                     // check, wether the data is truncated
-                    return e-this->i() >= static_cast<int>(bytes());
+                    return static_cast<unsigned>(end-begin) >= bytes();
                 }
 
                 // example methods to parse fields

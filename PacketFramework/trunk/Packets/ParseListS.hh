@@ -28,7 +28,6 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/utility.hpp> // for boost::noncopyable
 #include "ParserBase.hh"
-#include "ParseArray.hh" // for Parse_Array_iterator
 
 //#include "ParseListS.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
@@ -118,7 +117,7 @@ namespace pkf {
 
         ///@}
         ///////////////////////////////////////////////////////////////////////////
-        ///\name APacketRegistry.essors
+        ///\name Accessors
         ///@{
 
         size_type size() const;
@@ -128,20 +127,14 @@ namespace pkf {
         iterator end() const;
         range_type range() const;
 
-        value_type operator[](difference_type i) const;
-
         ///@}
         ///////////////////////////////////////////////////////////////////////////
         ///\name Mutators
         ///@{
 
-        void shift(iterator pos, size_type n=1); 
-        template <class Value>
-        void insert(iterator pos, Value const & t); 
-        template <class Value>
-        void insert(iterator pos, size_type n, Value const & t); 
-        template <class InputIterator>
-        void insert(iterator pos, InputIterator f, InputIterator l); 
+        template <class Value> void insert(iterator pos, Value const & t); 
+        template <class Value> void insert(iterator pos, size_type n, Value const & t); 
+        template <class InputIterator> void insert(iterator pos, InputIterator f, InputIterator l); 
         
         void erase(iterator pos, size_type n=1); 
         void erase(iterator f, iterator l); 
@@ -154,7 +147,6 @@ namespace pkf {
     private:
         
         size_type i_;
-        size_type size_i_;
         Container & container_;
     };
 
