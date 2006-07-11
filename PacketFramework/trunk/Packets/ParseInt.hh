@@ -31,7 +31,7 @@
 
 //#include "ParseInt.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
-#include <ParseInt.ih>
+#include "ParseInt.ih"
 
 namespace satcom {
 namespace pkf {

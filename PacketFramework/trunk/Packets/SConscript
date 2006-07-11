@@ -1,0 +1,6 @@
+Import('env')
+import SatSCons
+
+###########################################################################
+
+SatSCons.StandardLib(env, 'Packets',  SatSCons.GlobSources())

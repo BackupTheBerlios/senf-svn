@@ -1,6 +1,21 @@
-env = Environment()
+import sys, glob
+sys.path.append('satscons')
+import SatSCons
 
-env.Program(
-    source = ['test.cc'],
-    target = "test"
-    )
+###########################################################################
+
+SatSCons.UseBoost();
+SatSCons.UseSTLPort();
+SatSCons.UseDoxygen();
+env = SatSCons.MakeEnvironment();
+
+env.Append(
+   CPPPATH = [ '#' ]
+)
+
+Export('env')
+
+SConscript(glob.glob("*/SConscript"))
+
+SatSCons.StandardTargets(env)
+SatSCons.AllTests(env)

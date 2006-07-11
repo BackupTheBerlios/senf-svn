@@ -399,7 +399,7 @@ namespace pkf {
         template <class OtherPacket, class InputIterator>
         static typename ptr_t<OtherPacket>::ptr create(InputIterator b, InputIterator e);
 
-#       define BOOST_PP_ITERATION_PARAMS_1 (4, (1, 9, "Packet.mpp", 5))
+#       define BOOST_PP_ITERATION_PARAMS_1 (4, (1, 9, "Packets/Packet.mpp", 5))
 #       include BOOST_PP_ITERATE()        
 
         ///@}
@@ -473,7 +473,7 @@ namespace pkf {
         template <class OtherPacket, class A0>
         typename ptr_t<OtherPacket>::ptr reinterpret(A0 const & a0);
 
-#       define BOOST_PP_ITERATION_PARAMS_1 (4, (2, 9, "Packet.mpp", 1))
+#       define BOOST_PP_ITERATION_PARAMS_1 (4, (2, 9, "Packets/Packet.mpp", 1))
 #       include BOOST_PP_ITERATE()
 
         ///@}
@@ -617,7 +617,7 @@ namespace pkf {
             raw_container::iterator begin, raw_container::iterator end,
             A0 const & a0) const;
 
-#       define BOOST_PP_ITERATION_PARAMS_1 (4, (2, 9, "Packet.mpp", 3))
+#       define BOOST_PP_ITERATION_PARAMS_1 (4, (2, 9, "Packets/Packet.mpp", 3))
 #       include BOOST_PP_ITERATE()
 
         ///@}
