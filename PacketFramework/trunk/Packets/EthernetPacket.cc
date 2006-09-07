@@ -26,6 +26,7 @@
 //#include "EthernetPacket.ih"
 
 // Custom includes
+#include <boost/format.hpp>
 
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
@@ -42,6 +43,27 @@ prefix_ void satcom::pkf::EthernetPacket::v_nextInterpreter()
     registerInterpreter(type(),begin()+bytes(),end());
 }
 
+prefix_ void satcom::pkf::EthernetPacket::v_dump(std::ostream & os)
+    const
+{
+    os << "Ethernet 802.1:\n"
+       << "  destination   : " << (boost::format("%02x:%02x:%02x:%02x:%02x:%02x") 
+                                % unsigned(destination()[0])
+                                % unsigned(destination()[1])
+                                % unsigned(destination()[2])
+                                % unsigned(destination()[3])
+                                % unsigned(destination()[4])
+                                % unsigned(destination()[5])) << "\n"
+       << "  source        : " << (boost::format("%02x:%02x:%02x:%02x:%02x:%02x") 
+                                % unsigned(source()[0])
+                                % unsigned(source()[1])
+                                % unsigned(source()[2])
+                                % unsigned(source()[3])
+                                % unsigned(source()[4])
+                                % unsigned(source()[5])) << "\n"
+       << "  ethertype     : " << boost::format("%04x") % type() << "\n";
+}
+
 prefix_ void satcom::pkf::EthernetPacket::v_finalize()
 {}
 
@@ -53,6 +75,16 @@ prefix_ void satcom::pkf::EthVLanPacket::v_nextInterpreter()
 
 prefix_ void satcom::pkf::EthVLanPacket::v_finalize()
 {}
+
+prefix_ void satcom::pkf::EthVLanPacket::v_dump(std::ostream & os)
+    const
+{
+    os << "Ethernet 802.1q (VLAN):\n"
+       << "  priority      : " << priority() << "\n"
+       << "  cfi           : " << cfi() << "\n"
+       << "  vlan-ID       : " << vlanId() << "\n"
+       << "  ethertype     : " << boost::format("%04x") % type() << "\n";
+}
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_

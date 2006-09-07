@@ -83,6 +83,7 @@ namespace pkf {
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();
+        virtual void v_dump(std::ostream & os) const;
 
         friend class Packet;
     };
@@ -134,6 +135,7 @@ namespace pkf {
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();
+        virtual void v_dump(std::ostream & os) const;
 
         friend class Packet;
     };

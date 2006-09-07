@@ -27,6 +27,9 @@
 #include "EthernetPacket.hh"
 
 // Custom includes
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
@@ -46,7 +49,29 @@ prefix_ void satcom::pkf::IpV4Packet::v_nextInterpreter()
 prefix_ void satcom::pkf::IpV4Packet::v_finalize()
 {}
 
-
+prefix_ void satcom::pkf::IpV4Packet::v_dump(std::ostream & os)
+    const
+{
+    struct in_addr in;
+    in.s_addr = htonl(source());
+    std::string src (inet_ntoa(in));
+    in.s_addr = htonl(destination());
+    std::string dst (inet_ntoa(in));
+    os << "Internet protocol Version 4:\n"
+       << "  version       : " << version() << "\n"
+       << "  IHL           : " << ihl() << "\n"
+       << "  TOS           : " << unsigned(tos()) << "\n"
+       << "  length        : " << length() << "\n"
+       << "  identifier    : " << identifier() << "\n"
+       << "  DF            : " << df() << "\n"
+       << "  MF            : " << mf() << "\n"
+       << "  fragment      : " << frag() << "\n"
+       << "  TTL           : " << unsigned(ttl()) << "\n"
+       << "  protocol      : " << unsigned(protocol()) << "\n"
+       << "  CRC           : " << std::hex << crc() << std::dec << "\n"
+       << "  source        : " << src << "\n"
+       << "  destination   : " << dst << "\n";
+}
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_

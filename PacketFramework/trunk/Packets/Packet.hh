@@ -110,6 +110,7 @@
 #include <boost/intrusive_ptr.hpp>
 #include <list>
 #include <vector>
+#include <iostream>
 
 #include "Packet.mpp"
 // ////////////////////////////hh.p////////////////////////////////////////
@@ -547,6 +548,8 @@ namespace pkf {
 
         ///@}
 
+        void dump(std::ostream & os) const;
+
     protected:
         ///\name Derived class interface
         ///@{
@@ -595,6 +598,8 @@ namespace pkf {
             the interpreter chain.
          */
         virtual void v_finalize() = 0;
+
+        virtual void v_dump(std::ostream & os) const = 0;
 
     protected:
         /** \brief add interpreter to interpreter chain
@@ -656,6 +661,10 @@ namespace pkf {
 
         ///@}
     };
+
+    /** \brief dump packet to stream
+        \related Packet */
+    // std::ostream & operator<<(std::ostream & os, Packet const & packet);
 
     /** \brief smart pointer handling
         \relates Packet */

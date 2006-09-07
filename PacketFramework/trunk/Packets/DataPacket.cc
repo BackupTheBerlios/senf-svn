@@ -37,6 +37,13 @@ prefix_ void satcom::pkf::DataPacket::v_nextInterpreter()
 prefix_ void satcom::pkf::DataPacket::v_finalize()
 {}
 
+prefix_ void satcom::pkf::DataPacket::v_dump(std::ostream & os)
+    const
+{
+    os << "Payload:\n"
+       << "  size          : " << size() << "\n";
+}
+
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
 

@@ -46,7 +46,15 @@ prefix_ void satcom::pkf::UDPPacket::v_nextInterpreter()
 prefix_ void satcom::pkf::UDPPacket::v_finalize()
 {}
 
-
+prefix_ void satcom::pkf::UDPPacket::v_dump(std::ostream & os)
+    const
+{
+    os << "UDP:\n"
+       << "  source port   : " << source() << "\n"
+       << "  dest port     : " << destination() << "\n"
+       << "  length        : " << length() << "\n"
+       << "  crc           : " << std::hex << crc() << std::dec << "\n";
+}
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_

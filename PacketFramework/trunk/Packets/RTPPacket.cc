@@ -50,7 +50,21 @@ prefix_ void satcom::pkf::RTPPacket::v_nextInterpreter()
 prefix_ void satcom::pkf::RTPPacket::v_finalize()
 {}
 
-
+prefix_ void satcom::pkf::RTPPacket::v_dump(std::ostream & os)
+    const
+{
+    os << "RTP:\n"
+       << "  version       : " << version() << "\n"
+       << "  padding       : " << padding() << "\n"
+       << "  extension     : " << extension() << "\n"
+       << "  csrc count    : " << csrcCount() << "\n"
+       << "  marker        : " << marker() << "\n"
+       << "  payload type  : " << payloadType() << "\n"
+       << "  sequence nr   : " << seqNumber() << "\n"
+       << "  timestamp     : " << timestamp() << "\n"
+       << "  ssrc          : " << ssrc() << "\n"
+       << "  csrc list     : <not shown>\n";
+}
 
 prefix_ void satcom::pkf::RTPExtensionBasePacket::v_nextInterpreter()
     const
@@ -71,6 +85,12 @@ prefix_ void satcom::pkf::RTPExtensionBasePacket::v_nextInterpreter()
     registerInterpreter(get_prev<RTPPacket>()->payloadType(),begin()+p.bytes(),end()-paddingOctets);
 }
 
+prefix_ void satcom::pkf::RTPExtensionBasePacket::v_dump(std::ostream & os)
+    const
+{
+    os << "RTP extension packet:\n"
+       << "  content not shown\n";
+}
 
 prefix_ void satcom::pkf::RTPUnknownExtensionPacket::v_finalize()
 {}

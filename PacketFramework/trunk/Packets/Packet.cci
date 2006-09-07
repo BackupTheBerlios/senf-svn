@@ -74,6 +74,14 @@ prefix_ satcom::pkf::impl::PacketImpl* satcom::pkf::impl::PacketImpl::impl(Packe
     return p->impl_;
 }
 
+/*
+prefix_ std::ostream & satcom::pkf::operator<<(std::ostream & os, Packet const & packet)
+{
+    packet.dump(os);
+    return os;
+}
+*/
+
 // These methods are called by the user codes Packet::ptr's. They
 // refcount both the Packet and the owning PacketImpl. 
 prefix_ void satcom::pkf::intrusive_ptr_add_ref(Packet const * p)

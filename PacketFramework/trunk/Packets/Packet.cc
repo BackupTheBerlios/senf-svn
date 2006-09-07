@@ -252,6 +252,14 @@ prefix_ void satcom::pkf::Packet::erase(iterator first, iterator last)
     impl_->updateIterators(index,-sz);
 }
 
+prefix_ void satcom::pkf::Packet::dump(std::ostream & os)
+    const
+{
+    v_dump(os);
+    ptr p (next());
+    if (p)
+        p->dump(os);
+}
 
 //////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
