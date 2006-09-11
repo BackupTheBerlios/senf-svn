@@ -55,7 +55,7 @@ namespace {
                     ascii = "";
                 }
                 std::cout << "  " 
-                          << std::hex << std::setw(8) << std::setfill('0') 
+                          << std::hex << std::setw(4) << std::setfill('0') 
                           << offset << ' ';
                 break;
             case BLOCK_SIZE/2:
@@ -64,7 +64,7 @@ namespace {
                 break;
             }
             std::cout << ' ' << std::hex << std::setw(2) << std::setfill('0') 
-                      << int(*reinterpret_cast<unsigned char const *>(&*i));
+                      << unsigned(*i);
             ascii += (*i >= ' ' && *i < 126) ? *i : '.';
         }
         if (!ascii.empty()) {
