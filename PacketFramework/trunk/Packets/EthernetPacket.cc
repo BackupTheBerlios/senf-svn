@@ -26,6 +26,7 @@
 //#include "EthernetPacket.ih"
 
 // Custom includes
+#include <iomanip>
 #include <boost/format.hpp>
 
 #define prefix_
@@ -40,28 +41,43 @@ namespace {
 prefix_ void satcom::pkf::EthernetPacket::v_nextInterpreter()
     const
 {
+    // TODO: Add LLC/SNAP support -> only use the registry
+    // for type() values >=1536, otherwise expect an LLC header
     registerInterpreter(type(),begin()+bytes(),end());
+}
+
+namespace {
+    
+    void dumpmac(std::ostream & os, satcom::pkf::EthernetPacket::Parse_MAC mac)
+    {
+        for (unsigned i = 0; i < 6; ++i) {
+            if (i > 0) 
+                os << ':';
+            os << std::hex << std::setw(2) << std::setfill('0')
+               << unsigned(mac[i]);
+        }
+    }
+
 }
 
 prefix_ void satcom::pkf::EthernetPacket::v_dump(std::ostream & os)
     const
 {
-    os << "Ethernet 802.1:\n"
-       << "  destination   : " << (boost::format("%02x:%02x:%02x:%02x:%02x:%02x") 
-                                % unsigned(destination()[0])
-                                % unsigned(destination()[1])
-                                % unsigned(destination()[2])
-                                % unsigned(destination()[3])
-                                % unsigned(destination()[4])
-                                % unsigned(destination()[5])) << "\n"
-       << "  source        : " << (boost::format("%02x:%02x:%02x:%02x:%02x:%02x") 
-                                % unsigned(source()[0])
-                                % unsigned(source()[1])
-                                % unsigned(source()[2])
-                                % unsigned(source()[3])
-                                % unsigned(source()[4])
-                                % unsigned(source()[5])) << "\n"
-       << "  ethertype     : " << boost::format("%04x") % type() << "\n";
+    if (type() <= 1500)
+        os << "Ethernet 802.3";
+    else if (type() >= 0x600)
+        os << "Ethernet II (DIX)";
+    else 
+        os << "Ethernet 802.3 (bad ethertype >1500 and <1536)";
+    os << ": \n"
+       << "  destination   : ";
+    dumpmac(os,destination());
+    os << "\n"
+       << "  source        : ";
+    dumpmac(os,source());
+    os << "\n"
+       << "  ethertype     : " << std::hex << std::setw(4) << std::setfill('0')
+       << unsigned(type()) << "\n" << std::dec;
 }
 
 prefix_ void satcom::pkf::EthernetPacket::v_finalize()
@@ -70,6 +86,8 @@ prefix_ void satcom::pkf::EthernetPacket::v_finalize()
 prefix_ void satcom::pkf::EthVLanPacket::v_nextInterpreter()
     const
 {
+    // TODO: Add LLC/SNAP support -> only use the registry
+    // for type() values >=1536, otherwise expect an LLC header
     registerInterpreter(type(),begin()+bytes(),end());
 }
 

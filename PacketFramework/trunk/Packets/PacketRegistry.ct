@@ -35,9 +35,6 @@ template <class KeyType>
 template <class OtherPacket>
 prefix_ void satcom::pkf::impl::PacketRegistryImpl<KeyType>::registerPacket(key_t key)
 {
-    std::cout << "! registry @" << this
-              << ": register " << satcom::lib::prettyName(typeid(OtherPacket))
-              << ", key=" << key << "\n";
     // If this assertion fails, a Packet was registered with an already known key
     BOOST_ASSERT( registry_.insert(std::make_pair(
         key, Entry_ptr(new impl::PkReg_EntryImpl<OtherPacket>()))).second );
