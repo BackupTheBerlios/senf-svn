@@ -38,37 +38,40 @@ namespace pkf {
         trailer are not interpreted in any way. The payload can be
         manually chained to any packet interpreter.
       */
+    template <unsigned HEADER, unsigned TRAILER=0>
     class GenericPacket : public Packet
     {
     public:
         ///////////////////////////////////////////////////////////////////////////
         // Types
 
-        typedef ptr_t<GenericPacket>::ptr ptr;
+        typedef typename Packet::ptr_t<GenericPacket>::ptr ptr;
+        typedef iterator byte_iterator;
 
         ///////////////////////////////////////////////////////////////////////////
 
-        iterator begin_header();
-        iterator end_header();
-        size_type header_len();
+        void init();
 
-        iterator begin_trailer();
-        iterator end_trailer();
-        size_type trailer_len();
+        iterator begin_header() const;
+        iterator end_header() const;
+        static size_type header_len();
 
-        static bool check(iterator const & b, iterator const & e);
+        iterator begin_trailer() const;
+        iterator end_trailer() const;
+        static size_type trailer_len();
+
+        static bool check(iterator const & b, iterator const & e) 
+            { return unsigned(e - b) >= HEADER + TRAILER; }
         
     protected:
 
     private:  
         template <class Arg>
-        GenericPacket(Arg const & arg, size_type header_len, size_type trailer_len=0);
+        GenericPacket(Arg const & arg);
 
         virtual void v_nextInterpreter() const;
         virtual void v_finalize();
-
-        size_type header_len_;
-        size_type trailer_len_;
+        virtual void v_dump(std::ostream & os) const;
 
         friend class Packet;
     };
@@ -76,8 +79,8 @@ namespace pkf {
 }}
 
 ///////////////////////////////hh.e////////////////////////////////////////
-#include "GenericPacket.cci"
-//#include "GenericPacket.ct"
+//#include "GenericPacket.cci"
+#include "GenericPacket.ct"
 #include "GenericPacket.cti"
 #endif
 

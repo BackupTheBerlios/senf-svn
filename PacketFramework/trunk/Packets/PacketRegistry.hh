@@ -20,6 +20,8 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+// TODO: Add parameterless create() method
+
 #ifndef HH_PacketRegistryImpl_
 #define HH_PacketRegistryImpl_ 1
 
@@ -76,7 +78,7 @@ namespace pkf {
         dummy. It's only function is to force the call of it's
         constructor during global construction time.
 
-        The PacketRegistry's purpose is moistly to assist in
+        The PacketRegistry's purpose is mostly to assist in
         implementing the \v v_nextInterpreter() member of packet
         facades. This is further supported by the PacketRegistryMixin
         class.
@@ -85,6 +87,8 @@ namespace pkf {
     class PacketRegistry
     {
     public:
+        // TODO: This fails to work within a library since the linker will
+        // remove all unused object files ...
         /** \brief Statically register a packet type in a PacketRegistry
          */
         template <class OtherPacket>

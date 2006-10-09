@@ -46,8 +46,6 @@ namespace pkf {
         Parse_IpV4(Iterator const & i) : ParserBase<Iterator,IpV4Packet>(i) {}
 
         static unsigned bytes() { return 20; }
-        static bool check(Iterator const & b, Iterator const & e) 
-        { return static_cast<unsigned>(e-b) >= bytes(); }
         
         ///////////////////////////////////////////////////////////////////////////
 

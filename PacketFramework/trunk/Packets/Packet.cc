@@ -124,22 +124,38 @@ prefix_ bool satcom::pkf::impl::PacketImpl::releaseInterpreter(Packet * p)
     return rv;
 }
 
-prefix_ void satcom::pkf::impl::PacketImpl::updateIterators(Packet::size_type index,
-                                                            Packet::difference_type n)
+namespace {
+    bool whenceCmp(unsigned a, unsigned b, bool end, satcom::pkf::Packet::Whence whence)
+    {
+        using satcom::pkf::Packet;
+        return ((whence == Packet::OUTSIDE && ! end)
+                || whence == Packet::BEFORE
+                || (whence == Packet::INSIDE && end)) ? a>=b : a>b;
+    }
+}
+
+prefix_ void
+satcom::pkf::impl::PacketImpl::updateIterators(Packet::size_type index,
+                                               Packet::difference_type n,
+                                               Packet::interpreter_list::iterator self,
+                                               Packet::Whence whence)
 {
     Packet::interpreter_list::iterator i (interpreters_.begin());
-    Packet::interpreter_list::iterator e (interpreters_.end());
+    Packet::interpreter_list::iterator const e (interpreters_.end());
+    Packet::Whence w (whence == Packet::AUTO ? Packet::INSIDE : whence);
     for (;i!=e;++i) {
-        if ((*i)->end_ > index) 
+        if (whenceCmp((*i)->end_,index,true,w))
             if (n<0 && (*i)->end_ < index-n)
                 (*i)->end_ = index;
             else
                 (*i)->end_ += n;
-        if ((*i)->begin_ >= index) 
+        if (whenceCmp((*i)->begin_,index,false,w))
             if (n<0 && (*i)->begin_ < index-n)
                 (*i)->begin_ = index;
             else
                 (*i)->begin_ += n;
+        if (i == self && whence == Packet::AUTO) w = Packet::OUTSIDE;
+        BOOST_ASSERT( (*i)->end_ >= (*i)->begin_ );
     }
 }
 
@@ -220,36 +236,44 @@ prefix_ void satcom::pkf::Packet::i_replaceInterpreter(Packet * p)
 
 prefix_ void satcom::pkf::Packet::i_setInterpreter(impl::PacketImpl * i)
 {
-    i->appendInterpreter(this);
+    // Using prependInterpreter makes this usable for both, the
+    // create-from-data and wrap-packet constructors
+    i->prependInterpreter(this);
 }
 
-prefix_ void satcom::pkf::Packet::insert(iterator pos, byte v)
+prefix_ void satcom::pkf::Packet::insert(iterator pos, byte v, Whence whence)
 {
     size_type index(pos-impl_->data_.begin());
+    BOOST_ASSERT( index >= begin_ && index <= end_);
     impl_->data_.insert(pos,v);
-    impl_->updateIterators(index,1);
+    impl_->updateIterators(index,1,self_,whence);
 }
 
-prefix_ void satcom::pkf::Packet::insert(iterator pos, size_type n, byte v)
+prefix_ void satcom::pkf::Packet::insert(iterator pos, size_type n, byte v, Whence whence)
 {
     size_type index(pos-impl_->data_.begin());
+    BOOST_ASSERT( index >= begin_ && index <= end_ );
     impl_->data_.insert(pos,n,v);
-    impl_->updateIterators(index,n);
+    impl_->updateIterators(index,n,self_,whence);
 }
 
 prefix_ void satcom::pkf::Packet::erase(iterator pos)
 {
     size_type index(pos-impl_->data_.begin());
+    BOOST_ASSERT( index >= begin_ && index < end_ );
     impl_->data_.erase(pos);
-    impl_->updateIterators(index,-1);
+    impl_->updateIterators(index,-1,self_,INSIDE);
 }
 
 prefix_ void satcom::pkf::Packet::erase(iterator first, iterator last)
 {
     size_type index(first-impl_->data_.begin());
     size_type sz(last-first);
+    BOOST_ASSERT( index >= begin_ && index < end_ && sz <= end_-index );
+    // FIXME: Here we should assert, that no bytes belonging to the
+    // next iterator are deleted ...
     impl_->data_.erase(first,last);
-    impl_->updateIterators(index,-sz);
+    impl_->updateIterators(index,-sz,self_,INSIDE);
 }
 
 prefix_ void satcom::pkf::Packet::dump(std::ostream & os)

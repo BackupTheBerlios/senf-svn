@@ -20,6 +20,24 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+// TODO: Implement assign() method akin to reinterpret(). However,
+// instead of using the data already present, assign() will replace
+// the date of the current packet with the given Packet.
+
+// TODO: Implement wrapping-constructor. Somehow we want to have a
+// constructor, which allows creating a chain of packet interpreters
+// with as little overhead as possible.
+
+// TODO: Document the additional concrete Packet facade requirements
+// explicitly and not only within the Parser requirements (check(),
+// bytes() and min_bytes() members ...)
+
+// TODO: Implement special container replacing vector which manages
+// some headroom to allow efficient insertion of elements at the
+// beginning. This really is just another type of deque
+// implementation.
+
+
 /** \mainpage The SatCom Packet Framework
 
     \section arch Overall Architecture
@@ -340,7 +358,7 @@ namespace pkf {
 
         typedef std::vector<byte> raw_container;
         typedef boost::shared_ptr<Packet> interpreter_list_ptr;
-        typedef std::list<satcom::pkf::Packet::interpreter_list_ptr > interpreter_list;
+        typedef std::list<satcom::pkf::Packet::interpreter_list_ptr> interpreter_list;
         typedef unsigned refcount_t;
 
         ///@}
@@ -384,9 +402,6 @@ namespace pkf {
             instances are created via this method, they are \e never
             created directly from the Packet derived class.
 
-            If the constructor of the derived class takes additional
-            arguments, theese arguments must be added at the end.
-
             \param OtherPacket Type of Packet to create, a Packet
                     derived class
             \param b begin iterator of byte range to create the Packet
@@ -400,8 +415,11 @@ namespace pkf {
         template <class OtherPacket, class InputIterator>
         static typename ptr_t<OtherPacket>::ptr create(InputIterator b, InputIterator e);
 
-#       define BOOST_PP_ITERATION_PARAMS_1 (4, (1, 9, "Packets/Packet.mpp", 5))
-#       include BOOST_PP_ITERATE()        
+        template <class OtherPacket>
+        static typename ptr_t<OtherPacket>::ptr create();
+
+        template <class OuterPacket>
+        static typename ptr_t<OuterPacket>::ptr create(Packet::ptr payload);
 
         ///@}
 
@@ -458,12 +476,6 @@ namespace pkf {
             this</b>. You must ensure, not to use the Packet instance
             any further after this call
 
-            This overload is used, if the \a OtherPacket constructor
-            takes no further arguments beyond the data range. If the
-            constructor needs further arguments, provide these
-            arguments to the \a reinterpret call. The compiler will
-            select the correct \a reinterpret overload to use.
-
             \return smart pointer to a \e new packet facade
             \throws TruncatedPacketException there is not enough data
                 to savely interpret the packet as the given type. The
@@ -471,11 +483,6 @@ namespace pkf {
          */
         template <class OtherPacket>
         typename ptr_t<OtherPacket>::ptr reinterpret();
-        template <class OtherPacket, class A0>
-        typename ptr_t<OtherPacket>::ptr reinterpret(A0 const & a0);
-
-#       define BOOST_PP_ITERATION_PARAMS_1 (4, (2, 9, "Packets/Packet.mpp", 1))
-#       include BOOST_PP_ITERATE()
 
         ///@}
 
@@ -510,36 +517,42 @@ namespace pkf {
 
         // Modifying the raw packet data
 
-        // FIXME: Make all data mutators protected?
+        // FIXME: Make all data mutators protected
 
-        /** \brief insert single byte \a v
+        typedef enum { AUTO, BEFORE, INSIDE, OUTSIDE, AFTER } Whence;
+
+        /** \brief insert single byte \a v before pos
 
             \attention The change will \e not be validated by the
             derived packet instance. This method is mostly to be used
             by the derived class implementation and their helper
             classes. */
-        void insert(iterator pos, byte v);
-        /** \brief insert \a n copies of byte \a v
+        void insert(iterator pos, byte v, Whence whence = AUTO);
+        /** \brief insert \a n copies of byte \a v before pos
+
             \attention The change will \e not be validated by the
             derived packet instance. This method is mostly to be used
             by the derived class implementation and their helper
             classes. */
-        void insert(iterator pos, size_type n, byte v);
-        /** \brief insert a copy of the given range
+        void insert(iterator pos, size_type n, byte v, Whence whence = AUTO);
+        /** \brief insert a copy of the given range before pos
+
             \attention The change will \e not be validated by the
             derived packet instance. This method is mostly to be used
             by the derived class implementation and their helper
             classes. */
         template <class InputIterator> 
-        void insert(iterator pos, InputIterator f, InputIterator l);
+        void insert(iterator pos, InputIterator f, InputIterator l, Whence whence = AUTO);
 
         /** \brief erase single byte
+
             \attention The change will \e not be validated by the
             derived packet instance. This method is mostly to be used
             by the derived class implementation and their helper
             classes. */
         void erase(iterator pos);
         /** \brief erase range
+
             \attention The change will \e not be validated by the
             derived packet instance. This method is mostly to be used
             by the derived class implementation and their helper

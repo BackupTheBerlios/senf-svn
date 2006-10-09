@@ -46,8 +46,6 @@ namespace pkf {
         Parse_UDP(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
 
         static unsigned bytes() { return 8; }
-        static bool check(Iterator const & b, Iterator const & e) 
-        { return static_cast<unsigned>(e-b) >= bytes(); }
 
         ///////////////////////////////////////////////////////////////////////////
 

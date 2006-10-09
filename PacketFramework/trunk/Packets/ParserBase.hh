@@ -28,6 +28,7 @@
 #define HH_ParserBase_ 1
 
 // Custom includes
+#include <utility>
 #include <boost/type_traits/is_member_function_pointer.hpp>
 
 #include "ParserBase.ih"
@@ -36,11 +37,9 @@
 namespace satcom {
 namespace pkf {
     
-    struct nil { 
-	// This is a fix for gcc-3.3 which checks out the implementation
-	// even when only taking the address of an object ... sigh ...
-	int operator[](int) const;
-    };
+    namespace impl { struct ParserBase; }
+
+    struct nil {};
 
     /** \brief Parser framework
 
@@ -88,6 +87,7 @@ namespace pkf {
                     // member
                     return 14;
                 }
+
                 static bool check(Iterator const & begin, Iterator const & end)
                 {
                     BOOST_ASSERT( end>=begin );
@@ -96,6 +96,27 @@ namespace pkf {
                     // causing invalid memory access. This means,
                     // check, wether the data is truncated
                     return static_cast<unsigned>(end-begin) >= bytes();
+                }
+
+                // optional, only needed if bytes() is non-static
+                static unsigned min_bytes()
+                {
+                    // return the minimum size of the header. This
+                    // is the amount of space needed to allocate
+                    // an otherwise empty packet
+                    return 10;
+                }
+
+                // optional
+                void init()
+                {
+                    // initialize the packet if necessary
+                }
+
+                // optional
+                void init(Iterator b, Iterator e)
+                {
+                    // initialize the packet with given payload
                 }
 
                 // example methods to parse fields
@@ -145,6 +166,29 @@ namespace pkf {
           implies, that the packet can be parsed without risking
           invalid memory access.
 
+        - The min_bytes() member is optional. It is only used, if the
+          Parser implements a non-fixed-size Packet, that is, if the
+          bytes() member is non-static. In this case, min_bytes() has
+          to be implemented and must return the amount of space
+          necessary to construct an empty instance. The construction
+          will proceed by first allocating the necessary space
+          somewhere, initializing this space with all zeros. Then a
+          Parser instance is created at that space and the Parsers
+          init() method is called.
+
+        - The init() member is optional. If all-zero initialization of
+          a new Packet is enough, this member can be
+          skipped. Otherwise, the init() member can assume to have
+          access to a min_buytes() sized area which is all-zero
+          initialized.
+
+        - The init(Packet::ptr payload) member is optional. By default
+          it just calls the init() member. Here, special
+          initialization regarding the payload may be done. As for
+          min_bytes(Packet::ptr), the argument type is allowed to be
+          templatized or may be a specific packet ptr thereby
+          restricting the permissible payload packet types.
+
         - The parser then contains any additional methods to parse the
           header constituents.
 
@@ -160,7 +204,7 @@ namespace pkf {
         inherited into a Packet class or be used as a temporary.
       */
     template <class Iterator, class IPacket=nil>
-    class ParserBase
+    class ParserBase : public impl::ParserBase
     {
     public:
         ///////////////////////////////////////////////////////////////////////////
@@ -177,13 +221,14 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
 
         Iterator i() const;
+        static void init() {};
 
     private:
         
     };
 
     template <class Iterator>
-    class ParserBase<Iterator,nil>
+    class ParserBase<Iterator,nil> : public impl::ParserBase
     {
     public:
         ///////////////////////////////////////////////////////////////////////////
@@ -202,7 +247,10 @@ namespace pkf {
         ///////////////////////////////////////////////////////////////////////////
 
         Iterator i() const;
-
+        static void init() {}
+        template <class SomePacket>
+        static void init(typename SomePacket::ptr) {}
+        
     private:
 
         Iterator i_;
@@ -226,6 +274,12 @@ namespace pkf {
             typedef typename Parser::template rebind<I,P>::parser parser;
         };
     };
+
+    template <class Parser, class Iterator>
+    bool check(Iterator const & b, Iterator const & e);
+
+    template <class Parser>
+    unsigned min_bytes();
     
 }}
 

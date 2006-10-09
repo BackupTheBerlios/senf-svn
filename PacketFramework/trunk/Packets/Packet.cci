@@ -35,6 +35,12 @@ prefix_ satcom::pkf::impl::PacketImpl::PacketImpl()
     SATCOM_PKF_REFC_MSG("] PacketImpl::PacketImpl (" << this << "): refcount_ = 1\n");
 }
 
+prefix_ satcom::pkf::impl::PacketImpl::PacketImpl(unsigned size, Packet::byte initValue)
+    : data_(size,initValue), interpreters_(), refcount_(1)
+{
+    SATCOM_PKF_REFC_MSG("] PacketImpl::PacketImpl (" << this << "): refcount_ = 1\n");
+}
+
 prefix_ satcom::pkf::impl::PacketImpl::~PacketImpl()
 {
     BOOST_ASSERT( !refcount_ );

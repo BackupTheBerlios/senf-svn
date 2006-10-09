@@ -74,7 +74,6 @@ typename ptr_t<OtherPacket>::ptr registerInterpreter(
 ///////////////////////////////////////////////////////////////////////////
 // Packet::registerIterpreter implementation
 
-
 template <class OtherPacket, BOOST_PP_ENUM_PARAMS(BOOST_PP_ITERATION(), class A) >
 prefix_ typename satcom::pkf::Packet::ptr_t<OtherPacket>::ptr
 satcom::pkf::Packet::registerInterpreter(raw_container::iterator begin,

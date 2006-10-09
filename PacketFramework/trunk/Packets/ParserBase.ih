@@ -31,16 +31,18 @@ namespace satcom {
 namespace pkf {
 namespace impl {
 
-    template <class Parser>
-    struct Parser_traits_fixed_size {
-        static const bool fixed_size = sizeof(
-            Parser_traits_fixed_size_check(&Parser::bytes))-sizeof(int);
-    };
+    struct ParserBase {};
 
     template <unsigned N>
     struct Parser_traits_sentinel
-    {
-        int v[N];
+    { int v[N]; };
+
+    template <class Parser>
+    struct Parser_traits_fixed_size {
+        // This differentiates between bytes being a static or
+        // non-static member of Parser ...
+        static const bool fixed_size = sizeof(
+            Parser_traits_fixed_size_check(&Parser::bytes))-sizeof(Parser_traits_sentinel<1>);
     };
 
     template <class T>
@@ -48,6 +50,42 @@ namespace impl {
 
     template <class R,class T>
     Parser_traits_sentinel<1> Parser_traits_fixed_size_check(R (T::*)());
+
+    template <class Parser, class Iterator>
+    bool check(Iterator const & b, Iterator const & e, ParserBase *);
+    
+    template <class Parser, class Iterator>
+    bool check(Iterator const & b, Iterator const & e, void *);
+
+    template <class Parser, bool Fixed>
+    struct ParserCheck {
+        template <class Iterator>
+        static unsigned check(Iterator const & b, Iterator const & e) 
+            { return Parser::check(b,e); }
+    };
+    
+    template <class Parser>
+    struct ParserCheck<Parser,true> {
+        template <class Iterator>
+        static unsigned check(Iterator const & b, Iterator const & e)
+            { return unsigned(e-b) >= Parser::bytes(); }
+    };
+    
+    template <class Parser>
+    unsigned min_bytes(ParserBase *);
+    
+    template <class Parser>
+    unsigned min_bytes(void *);
+
+    template <class Parser, bool Fixed>
+    struct ParserMinBytes {
+        static unsigned bytes() { return Parser::min_bytes(); }
+    };
+
+    template <class Parser>
+    struct ParserMinBytes<Parser,true> {
+        static unsigned bytes() { return Parser::bytes(); }
+    };
 
 }}}
 

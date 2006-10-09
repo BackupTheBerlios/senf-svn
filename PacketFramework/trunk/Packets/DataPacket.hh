@@ -45,10 +45,12 @@ namespace pkf {
         // Types
 
         typedef ptr_t<DataPacket>::ptr ptr;
+        typedef iterator byte_iterator;
 
         ///////////////////////////////////////////////////////////////////////////
 
-        static bool check(Packet::iterator const & b, Packet::iterator const & e);
+        static void init() {}
+        static bool check(iterator const & b, iterator const & e) { return true; }
 
     private:
         template <class Arg>
@@ -65,7 +67,7 @@ namespace pkf {
 }}
 
 ///////////////////////////////hh.e////////////////////////////////////////
-#include "DataPacket.cci"
+//#include "DataPacket.cci"
 //#include "DataPacket.ct"
 #include "DataPacket.cti"
 #endif

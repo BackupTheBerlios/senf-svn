@@ -39,7 +39,7 @@
 using namespace satcom::pkf;
 
 // Since Packet is abstract, we can only test the Packet interface using
-// A simple implementation: DataPacket and GenericPacket.
+// a simple implementation: DataPacket and GenericPacket.
 
 namespace {
 
@@ -80,7 +80,7 @@ BOOST_AUTO_UNIT_TEST(Packet_DataPacket)
 
 BOOST_AUTO_UNIT_TEST(Packet_GenericPacket)
 {
-    GenericPacket::ptr p (Packet::create<GenericPacket>(data, data+sizeof(data), 4, 6));
+    GenericPacket<4,6>::ptr p (Packet::create< GenericPacket<4,6> >(data, data+sizeof(data)));
 
     // check, that the packet was constructed corretly
     BOOST_REQUIRE( p );
@@ -94,15 +94,16 @@ BOOST_AUTO_UNIT_TEST(Packet_GenericPacket)
     // check the first packet in the interpreter chain
     BOOST_CHECK_EQUAL( p->head(), p );
     BOOST_CHECK( !p->prev() );
-    BOOST_CHECK( p->is<GenericPacket>() );
+    BOOST_CHECK(( p->is< GenericPacket<4,6> >() ));
     BOOST_CHECK( !p->is<DataPacket>() );
-    BOOST_CHECK( p->as<GenericPacket>() );
+    BOOST_CHECK(( !p->is< GenericPacket<4,4> >() ));
+    BOOST_CHECK(( p->as< GenericPacket<4,6> >() ));
     BOOST_CHECK( !p->as<DataPacket>() );
 
     // check the next packet in the interpreter chain
     BOOST_REQUIRE( p->next() );
     BOOST_CHECK( p->next()->is<DataPacket>() );
-    BOOST_CHECK( !p->next()->is<GenericPacket>() );
+    BOOST_CHECK(( !p->next()->is< GenericPacket<4,6> >() ));
     
     // check the contents of the second interpreter
     BOOST_CHECK_EQUAL( p->next()->size(), sizeof(data)-10 );
@@ -124,11 +125,11 @@ BOOST_AUTO_UNIT_TEST(Packet_GenericPacket)
 
 BOOST_AUTO_UNIT_TEST(Packet_Reinterpret)
 {
-    Packet::ptr p (Packet::create<GenericPacket>(data, data+sizeof(data), 4, 4));
+    Packet::ptr p (Packet::create< GenericPacket<4,4> >(data, data+sizeof(data)));
     
     BOOST_CHECK( p->next()->is<DataPacket>() );
-    p->next()->reinterpret<GenericPacket>(6);
-    BOOST_CHECK( p->next()->is<GenericPacket>() );
+    p->next()->reinterpret< GenericPacket<6> >();
+    BOOST_CHECK( p->next()->is< GenericPacket<6> >() );
     BOOST_REQUIRE( p->next()->next() );
     BOOST_CHECK( p->next()->next()->is<DataPacket>() );
     BOOST_CHECK( !p->next()->next()->next() );
@@ -137,7 +138,7 @@ BOOST_AUTO_UNIT_TEST(Packet_Reinterpret)
     BOOST_CHECK( compare(p->next()->next()->begin(),
                          p->next()->next()->end(), 10) );
 
-    p = p->reinterpret<GenericPacket>(8,2);
+    p = p->reinterpret< GenericPacket<8,2> >();
     BOOST_REQUIRE( p->next() );
     BOOST_CHECK( p->next()->is<DataPacket>() );
     
@@ -147,8 +148,8 @@ BOOST_AUTO_UNIT_TEST(Packet_Reinterpret)
 
 BOOST_AUTO_UNIT_TEST(Packet_InsertErase)
 {
-    Packet::ptr p (Packet::create<GenericPacket>(data, data+sizeof(data), 7, 3));
-    p->next()->reinterpret<GenericPacket>(4);
+    Packet::ptr p (Packet::create< GenericPacket<7,3> >(data, data+sizeof(data)));
+    p->next()->reinterpret< GenericPacket<4> >();
     
     BOOST_CHECK_EQUAL( p->size(), 20u );
     BOOST_CHECK_EQUAL( p->next()->size(), 10u );
@@ -183,7 +184,7 @@ BOOST_AUTO_UNIT_TEST(Packet_InsertErase)
     BOOST_CHECK( compare(p->next()->begin(), p->next()->end(), 7) );
     BOOST_CHECK( compare(p->next()->next()->begin(), p->next()->next()->end(), 11) );
 
-    p->insert(p->next()->begin()+4, data, data+2);
+    p->next()->insert(p->next()->begin()+4, data, data+2);
 
     BOOST_CHECK_EQUAL( p->size(), 22u );
     BOOST_CHECK_EQUAL( p->next()->size(), 12u );
@@ -191,7 +192,7 @@ BOOST_AUTO_UNIT_TEST(Packet_InsertErase)
 
     BOOST_CHECK( compare(p->next()->next()->begin(), p->next()->next()->end(), 11) );
 
-    p->erase(p->next()->begin()+4, p->next()->begin()+6);
+    p->next()->erase(p->next()->begin()+4, p->next()->begin()+6);
 
     BOOST_CHECK_EQUAL( p->size(), 20u );
     BOOST_CHECK_EQUAL( p->next()->size(), 10u );
@@ -201,7 +202,7 @@ BOOST_AUTO_UNIT_TEST(Packet_InsertErase)
     BOOST_CHECK( compare(p->next()->begin(), p->next()->end(), 7) );
     BOOST_CHECK( compare(p->next()->next()->begin(), p->next()->next()->end(), 11) );
 
-    p->insert(p->next()->begin()+5, data, data+4);
+    p->next()->next()->insert(p->next()->begin()+5, data, data+4);
     
     BOOST_CHECK_EQUAL( p->size(), 24u );
     BOOST_CHECK_EQUAL( p->next()->size(), 14u );
@@ -211,7 +212,7 @@ BOOST_AUTO_UNIT_TEST(Packet_InsertErase)
     BOOST_CHECK( compare(p->next()->next()->begin()+1, p->next()->next()->begin()+5) );
     BOOST_CHECK( compare(p->next()->next()->begin()+5, p->end(), 12) );
 
-    p->erase(p->next()->begin()+3, p->next()->begin()+9);
+    p->next()->erase(p->next()->begin()+3, p->next()->begin()+9);
 
     BOOST_CHECK_EQUAL( p->size(), 18u );
     BOOST_CHECK_EQUAL( p->next()->size(), 8u );
@@ -226,6 +227,14 @@ BOOST_AUTO_UNIT_TEST(Packet_InsertErase)
     BOOST_CHECK_EQUAL( p->size(), 5u );
     BOOST_CHECK_EQUAL( p->next()->size(), 0u );
     BOOST_CHECK_EQUAL( p->next()->next()->size(), 0u );
+}
+
+BOOST_AUTO_UNIT_TEST(Packet_new)
+{
+    Packet::ptr p (Packet::create< GenericPacket<10,4> >());
+    BOOST_CHECK_EQUAL(p->size(), 14u);
+    Packet::ptr p2 (Packet::create< GenericPacket<2,2> >(p));
+    BOOST_CHECK_EQUAL(p2->size(),18u);
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////

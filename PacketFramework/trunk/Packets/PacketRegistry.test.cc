@@ -55,11 +55,12 @@ namespace {
         using PacketRegistryMixin<BaseTag,BasePacket>::registerInterpreter;
     public:
         typedef ptr_t<BasePacket>::ptr ptr;
+        typedef iterator byte_iterator;
         
         typedef Parse_UInt16<iterator> Parse_Type;
         
         Parse_Type type() const { return Parse_Type(begin()); }
-        static bool check(iterator const & b, iterator const & e) { return true; }
+        static bool check(iterator b, iterator e) { return true; }
        
     private:
         template <class Arg>
@@ -68,6 +69,7 @@ namespace {
         virtual void v_nextInterpreter() const
             { registerInterpreter(type(), begin()+2, end()); }
         virtual void v_finalize() {}
+        virtual void v_dump(std::ostream & os) const {}
 
         friend class Packet;
     };
@@ -76,8 +78,9 @@ namespace {
     {
     public:
         typedef ptr_t<FooPacket>::ptr ptr;
+        typedef iterator byte_iterator;
         
-        static bool check(iterator const & b, iterator const & e) { return true; }
+        static bool check(iterator b, iterator e) { return true; }
 
     private:
         template <class Arg>
@@ -85,6 +88,7 @@ namespace {
 
         virtual void v_nextInterpreter() const {}
         virtual void v_finalize() {}
+        virtual void v_dump(std::ostream & os) const {}
 
         friend class Packet;
     };
@@ -93,8 +97,9 @@ namespace {
     {
     public:
         typedef ptr_t<BarPacket>::ptr ptr;
+        typedef iterator byte_iterator;
         
-        static bool check(iterator const & b, iterator const & e) { return true; }
+        static bool check(iterator b, iterator e) { return true; }
 
     private:
         template <class Arg>
@@ -102,6 +107,7 @@ namespace {
 
         virtual void v_nextInterpreter() const {}
         virtual void v_finalize() {}
+        virtual void v_dump(std::ostream & os) const {}
 
         friend class Packet;
     };

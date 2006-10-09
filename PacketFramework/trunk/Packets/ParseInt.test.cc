@@ -164,7 +164,7 @@ BOOST_AUTO_UNIT_TEST(parseInt_operators)
     BOOST_CHECK_EQUAL( p1, 6555902u );
     p2 += p1;
     // Here some idiotic automatic promotion from unsigned short ->
-    // int happens ... hrmpf ...
+    // int happens in the second macro parameter ... hrmpf ...
     BOOST_CHECK_EQUAL( p2, 15010 );
 
     p1 = 0x123456u;
@@ -174,7 +174,7 @@ BOOST_AUTO_UNIT_TEST(parseInt_operators)
     BOOST_CHECK_EQUAL( data[3], 0x3a );
 
     // I stop here ... this is absolutely identical for all other
-    // operators and all other iteger types. If really some error pops
+    // operators and all other integer types. If really some error pops
     // up, I'll add a check here ...
 }
 
@@ -197,6 +197,7 @@ namespace {
 
         virtual void v_nextInterpreter() const {}
 	virtual void v_finalize() {}
+        virtual void v_dump(std::ostream &) const {}
 
         friend class Packet;
     };

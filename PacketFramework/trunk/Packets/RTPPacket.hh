@@ -75,7 +75,7 @@ namespace pkf {
 
         unsigned int bytes() const { return 12 + ( 4 * csrcCount()); }
         static bool check(Iterator const & b, Iterator const & e)
-        { return e-b>= 12 and static_cast<unsigned>(e-b) >= Parse_RTP<Iterator>(b).bytes(); }
+        { return e-b>= 12 and unsigned(e-b) >= Parse_RTP<Iterator>(b).bytes(); }
         
     };
 
@@ -136,7 +136,7 @@ namespace pkf {
 
         unsigned int bytes() const { return 4 + length(); }        
         static bool check(Iterator const & b, Iterator const & e)
-        { return e-b>=4 && static_cast<unsigned>(e-b) >= Parse_RTPExtensionBase<Iterator>(b).bytes(); }
+        { return e-b>=4 && unsigned(e-b) >= Parse_RTPExtensionBase<Iterator>(b).bytes(); }
 
 
     }; 

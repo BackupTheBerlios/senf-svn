@@ -46,7 +46,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return 1; }
-        void init() const {}
 
         Parse_Int8() {}
         explicit Parse_Int8(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -70,7 +69,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return 1; }
-        void init() const {}
         
         Parse_UInt8() {}
         explicit Parse_UInt8(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -94,7 +92,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return 2; }
-        void init() const {}
 
         Parse_Int16() {}
         explicit Parse_Int16(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -118,7 +115,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return 2; }
-        void init() const {}
 
         Parse_UInt16() {}
         explicit Parse_UInt16(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -142,7 +138,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return 3; }
-        void init() const {}
 
         Parse_Int24() {}
         explicit Parse_Int24(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -167,7 +162,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return 3; }
-        void init() const {}
 
         Parse_UInt24() {}
         explicit Parse_UInt24(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -191,7 +185,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return 4; }
-        void init() const {}
 
         Parse_Int32() {}
         explicit Parse_Int32(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -215,7 +208,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return 4; }
-        void init() const {}
 
         Parse_UInt32() {}
         explicit Parse_UInt32(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -239,7 +231,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return (end-1)/8+1; }
-        void init() const {}
 
         Parse_IntField() {}
         explicit Parse_IntField(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -271,7 +262,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return (end-1)/8+1; }
-        void init() const {}
 
         Parse_UIntField() {}
         explicit Parse_UIntField(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
@@ -299,7 +289,6 @@ namespace pkf {
         typedef Iterator byte_iterator;
 
         static unsigned bytes() { return 1; }
-        void init() const {}
 
         Parse_Flag() {}
         explicit Parse_Flag(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
