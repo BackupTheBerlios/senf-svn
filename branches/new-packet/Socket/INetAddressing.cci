@@ -1,0 +1,245 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief INet[46]Address and INet[46]AddressingPolicy inline non-template implementation
+ */
+
+// Custom includes
+#include <arpa/inet.h>
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::INet4Address
+
+prefix_ senf::INet4Address::INet4Address()
+{
+    clear();
+}
+
+prefix_ senf::INet4Address::INet4Address(char const * address)
+{
+    assignString(address);
+}
+
+prefix_ senf::INet4Address::INet4Address(std::string address)
+{
+    assignString(address);
+}
+
+prefix_ bool senf::INet4Address::operator==(INet4Address const & other)
+    const
+{
+    return addr_.sin_port == other.addr_.sin_port &&
+        addr_.sin_addr.s_addr == other.addr_.sin_addr.s_addr;
+}
+
+prefix_ std::string senf::INet4Address::host()
+    const
+{
+    char buffer[128];
+    return std::string(::inet_ntop(AF_INET,&addr_.sin_addr,buffer,128));
+}
+
+prefix_ unsigned senf::INet4Address::port()
+    const
+{
+    return ntohs(addr_.sin_port);
+}
+
+prefix_ struct sockaddr * senf::INet4Address::sockaddr_p()
+{
+    return reinterpret_cast<struct sockaddr *>(&addr_);
+}
+
+prefix_ struct sockaddr const * senf::INet4Address::sockaddr_p()
+    const
+{
+    return reinterpret_cast<struct sockaddr const *>(&addr_);
+}
+
+prefix_ unsigned senf::INet4Address::sockaddr_len()
+    const
+{
+    return sizeof(addr_);
+}
+
+prefix_ std::ostream & senf::operator<<(std::ostream & os, INet4Address const & addr)
+{
+    os << addr.str();
+    return os;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::INet6Address
+
+prefix_ senf::INet6Address::INet6Address()
+{
+    clear();
+}
+
+prefix_ senf::INet6Address::INet6Address(struct in6_addr const & addr)
+{
+    addr_ = addr;
+}
+
+prefix_ struct in6_addr & senf::INet6Address::addr()
+{
+    return addr_;
+}
+
+prefix_ struct in6_addr const & senf::INet6Address::addr()
+    const
+{
+    return addr_;
+}
+
+prefix_ struct in6_addr * senf::INet6Address::addr_p()
+{
+    return & addr_;
+}
+
+prefix_ struct in6_addr const * senf::INet6Address::addr_p()
+    const
+{
+    return & addr_;
+}
+
+prefix_ unsigned senf::INet6Address::addr_len()
+    const
+{
+    return sizeof(addr_);
+}
+
+prefix_ std::ostream & senf::operator<<(std::ostream & os, INet6Address const & addr)
+{
+    os << addr.address();
+    return os;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::INet6SocketAddress
+
+prefix_ senf::INet6SocketAddress::INet6SocketAddress()
+{
+    clear();
+}
+
+prefix_ senf::INet6SocketAddress::INet6SocketAddress(std::string const & addr)
+{
+    clear();
+    assignAddr(addr);
+}
+
+prefix_ senf::INet6SocketAddress::INet6SocketAddress(char const * addr)
+{
+    clear();
+    assignAddr(addr);
+}
+
+prefix_ senf::INet6SocketAddress::INet6SocketAddress(INet6Address const & addr, unsigned port)
+{
+    clear();
+    sockaddr_.sin6_addr = addr.addr();
+    sockaddr_.sin6_port = htons(port);
+}
+
+prefix_ senf::INet6SocketAddress::INet6SocketAddress(INet6Address const & addr, unsigned port,
+                                                     std::string const & iface)
+{
+    clear();
+    sockaddr_.sin6_addr = addr.addr();
+    sockaddr_.sin6_port = htons(port);
+    assignIface(iface);
+}
+
+prefix_ senf::INet6SocketAddress::INet6SocketAddress(std::string const & addr,
+                                                     std::string const & iface)
+{
+    clear();
+    assignAddr(addr);
+    assignIface(iface);
+}
+
+prefix_ senf::INet6Address senf::INet6SocketAddress::host()
+    const
+{
+    return INet6Address(sockaddr_.sin6_addr);
+}
+
+prefix_ void senf::INet6SocketAddress::host(INet6Address const & addr)
+{
+    sockaddr_.sin6_addr = addr.addr();
+}
+
+prefix_ unsigned senf::INet6SocketAddress::port()
+    const
+{
+    return ntohs(sockaddr_.sin6_port);
+}
+
+prefix_ void senf::INet6SocketAddress::port(unsigned port)
+{
+    sockaddr_.sin6_port = htons(port);
+}
+
+prefix_ void senf::INet6SocketAddress::iface(std::string const & iface)
+{
+    assignIface(iface);
+}
+
+prefix_ struct sockaddr * senf::INet6SocketAddress::sockaddr_p()
+{
+    return reinterpret_cast<struct sockaddr *>(&sockaddr_);
+}
+
+prefix_ struct sockaddr const * senf::INet6SocketAddress::sockaddr_p()
+    const
+{
+    return reinterpret_cast<struct sockaddr const *>(&sockaddr_);
+}
+
+prefix_ unsigned senf::INet6SocketAddress::sockaddr_len()
+    const
+{
+    return sizeof(sockaddr_);
+}
+
+prefix_ std::ostream & senf::operator<<(std::ostream & os, INet6SocketAddress const & addr)
+{
+    os << addr.address();
+    return os;
+}
+
+///////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// End:

@@ -1,0 +1,11 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons
+
+###########################################################################
+
+sources = SENFSCons.GlobSources()
+SENFSCons.StandardTargets(env)
+SENFSCons.Lib(env, 'Utils', sources)
+SENFSCons.Doxygen(env)
