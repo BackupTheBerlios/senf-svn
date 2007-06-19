@@ -34,6 +34,8 @@
 
 namespace senf {
 
+    template <class Self> class intrusive_refcount_t;
+
     /** \brief Reference count mixin for intrusive_ptr
 
         This class provides a simple internally managed refcount and supplies the <a
@@ -46,38 +48,57 @@ namespace senf {
         \li It is valid and safe to convert a plain object pointer to an intrusive_ptr at any time
             (not only after new)
      */
-    class intrusive_refcount
+    class intrusive_refcount_base
         : public boost::noncopyable
     {
     public:
         typedef unsigned refcount_t;    ///< reference count type
 
-        virtual ~intrusive_refcount();
+        virtual ~intrusive_refcount_base();
 
         refcount_t refcount();          ///< current refcount
         bool is_shared();               ///< return \c true if refcount() > 1
 
     protected:
-        intrusive_refcount();
+        intrusive_refcount_base();
 
-    private:
         void add_ref();
         bool release();
 
+    private:
         refcount_t refcount_;
-
-        friend void senf::intrusive_ptr_add_ref(intrusive_refcount* p);
-        friend void senf::intrusive_ptr_release(intrusive_refcount* p);
+        
+        template <class Self> 
+        friend void senf::intrusive_ptr_add_ref(intrusive_refcount_t<Self>* p);
+        template <class Self>
+        friend void senf::intrusive_ptr_release(intrusive_refcount_t<Self>* p);
     };
 
-    void intrusive_ptr_add_ref(intrusive_refcount* p);
-    void intrusive_ptr_release(intrusive_refcount* p);
+    template <class Self>
+    class intrusive_refcount_t
+        : public intrusive_refcount_base
+    {
+    protected:
+        intrusive_refcount_t();
+    };
+
+    class intrusive_refcount
+        : public intrusive_refcount_t<intrusive_refcount>
+    {
+    protected:
+        intrusive_refcount();
+    };
+
+    template <class Self>
+    void intrusive_ptr_add_ref(intrusive_refcount_t<Self>* p);
+    template <class Self>
+    void intrusive_ptr_release(intrusive_refcount_t<Self>* p);
 }
 
 ///////////////////////////////hh.e////////////////////////////////////////
 #include "intrusive_refcount.cci"
 //#include "intrusive_refcount.ct"
-//#include "intrusive_refcount.cti"
+#include "intrusive_refcount.cti"
 #endif
 
 
