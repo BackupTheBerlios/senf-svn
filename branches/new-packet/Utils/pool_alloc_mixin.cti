@@ -24,7 +24,6 @@
 //#include "pool_alloc_mixin.ih"
 
 // Custom includes
-#include <boost/pool/singleton_pool.hpp>
 #include <boost/assert.hpp>
 
 #define prefix_ inline

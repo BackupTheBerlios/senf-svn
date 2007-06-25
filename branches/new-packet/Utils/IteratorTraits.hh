@@ -44,34 +44,25 @@ namespace senf {
         by directly modifying the underlying storage instead of relying on the STL interface.
 
         \code
-        template <class Iterator, bool Contiguous>
-        struct Algorithm
+        // Generic algorithm
+        template <class Iterator>
+        void do(Iterator i, boost::false_type)
         {
-            // Generic algorithm
-            static void do(Iterator i) 
-            {
-                // Access the iterator 'i' via the standard STL interface
-            }
-        };
+            // Access the iterator 'i' via the standard STL interface
+        }
 
         template<class Iterator>
-        struct Algorithm<Iterator,true>
+        static void do(Iterator i, boost::true_type) 
         {
-            // Optimized algorithm for contiguous storage
-            static void do(Iterator i) 
-            {
-                typename Iterator::pointer p (senf::storage_iterator(i));
-
-                // Manipulate the container by manipulating the data pointed at via 'p'
-            }
-        };
+            typename Iterator::pointer p (senf::storage_iterator(i));
+            // Manipulate the container by manipulating the data pointed at via 'p'
+        }
 
         template <class Iterator>
         void foo(Iterator i)
         {
             // ...
-            Algorithm< Iterator,
-                       senf::contiguous_storage_iterator<Iterator>::value >::do(i);
+            do( i, senf::contiguous_storage_iterator<Iterator>() );
             // ...
         }
         \endcode
