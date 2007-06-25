@@ -1,9 +1,7 @@
-// $Id$
-//
-// Copyright (C) 2006
+// Copyright (C) 2007 
 // Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
 // Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
-//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//     Stefan Bund <g0dil@berlios.de>
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,45 +18,32 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Unit tests
+/** \file
+    \brief PacketData non-inline non-template implementation */
 
-//#include "ParseArray.test.hh"
-//#include "ParseArray.test.ih"
+#include "PacketData.hh"
+//#include "PacketData.ih"
 
 // Custom includes
-#include "ParseArray.hh"
-#include "ParseInt.hh"
+#include "PacketImpl.hh"
 
-#include <boost/test/auto_unit_test.hpp>
-#include <boost/test/test_tools.hpp>
-
+//#include "PacketData.mpp"
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
-using namespace senf;
+// Modifying the raw packet data
 
-BOOST_AUTO_UNIT_TEST(parseArray_test)
+prefix_ void senf::PacketData::resize(size_type n, byte v)
 {
-    unsigned char data[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 };
-    typedef unsigned char * iterator;
-    typedef Parse_Array<6,Parse_UInt8<>,iterator> Parse_UInt8Array6;
-    Parse_UInt8Array6 v (data);
-    BOOST_CHECK_EQUAL( v[0], 0x00 );
-    BOOST_CHECK_EQUAL( v[5], 0x05 );
-    BOOST_CHECK_EQUAL( *v.begin(), 0x00 );
-    Parse_UInt8Array6::iterator i1 (v.begin());
-    Parse_UInt8Array6::iterator i2 (v.begin());
-    ++i1;
-    BOOST_CHECK_EQUAL( *i1, 0x01 );
-    BOOST_CHECK_EQUAL( i1[-1], 0x00 );
-    BOOST_CHECK_EQUAL( i1-i2, 1 );
-    BOOST_CHECK_EQUAL( i2-i1, -1 );
-    --i1;
-    BOOST_CHECK( i1==i2 );
+    if (n<size())
+        impl().erase(this,boost::next(begin(),n),end());
+    else if (n>size())
+        impl().insert(this,end(),n-size(),v);
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
+//#include "PacketData.mpp"
 
 
 // Local Variables:

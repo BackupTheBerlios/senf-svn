@@ -1,9 +1,7 @@
-// $Id$
-//
-// Copyright (C) 2006
+// Copyright (C) 2007 
 // Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
 // Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
-//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//     Stefan Bund <g0dil@berlios.de>
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,28 +18,42 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Definition of non-inline non-template functions
+/** \file
+    \brief PacketInterpreter.test unit tests */
 
-#include "DataPacket.hh"
-//#include "DataPacket.ih"
+//#include "PacketInterpreter.test.hh"
+//#include "PacketInterpreter.test.ih"
 
 // Custom includes
+#include "PacketImpl.hh"
+#include "PacketInterpreter.hh"
+
+#include <boost/test/auto_unit_test.hpp>
+#include <boost/test/test_tools.hpp>
 
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
-prefix_ void senf::DataPacket::v_nextInterpreter()
-    const
-{}
-
-prefix_ void senf::DataPacket::v_finalize()
-{}
-
-prefix_ void senf::DataPacket::v_dump(std::ostream & os)
-    const
+BOOST_AUTO_UNIT_TEST(packetInterpreterBase)
 {
-    os << "Payload:\n"
-       << "  size          : " << size() << "\n";
+    std::auto_ptr<senf::detail::PacketImpl> p (senf::detail::PacketImpl::create());
+    p->add_ref();
+    senf::PacketInterpreterBase::ptr pi2 (
+        senf::PacketInterpreterBase::create(0,0));
+    p->appendInterpreter(pi2.get());
+    senf::PacketInterpreterBase::ptr pi3 (
+        senf::PacketInterpreterBase::create(0,0));
+    p->appendInterpreter(pi3.get());
+    senf::PacketInterpreterBase::ptr pi1 (
+        senf::PacketInterpreterBase::create(0,0));
+    p->prependInterpreter(pi1.get());
+
+    BOOST_CHECK( pi2 == pi1->next() );
+    BOOST_CHECK( pi3 == pi2->next() );
+    BOOST_CHECK( ! pi3->next() );
+    BOOST_CHECK( pi2 == pi3->prev() );
+    BOOST_CHECK( pi1 == pi2->prev() );
+    BOOST_CHECK( ! pi1->prev() );
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////

@@ -1,9 +1,7 @@
-// $Id$
-//
-// Copyright (C) 2006
+// Copyright (C) 2007 
 // Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
 // Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
-//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//     Stefan Bund <g0dil@berlios.de>
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,45 +18,37 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Definition of inline template functions
+/** \file
+    \brief PacketImpl inline template implementation */
 
-#include "Packet.ih"
+//#include "PacketImpl.ih"
 
 // Custom includes
 
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
 
-template <typename OtherPacket>
-prefix_ bool senf::Packet::is()
-    const
-{
-    return dynamic_cast<OtherPacket const *>(this);
-}
+///////////////////////////////////////////////////////////////////////////
+// senf::detail::PacketImpl
 
-template <typename OtherPacket>
-prefix_ typename senf::Packet::ptr_t<OtherPacket>::ptr senf::Packet::as()
-{
-    return typename ptr_t<OtherPacket>::ptr(dynamic_cast<OtherPacket*>(this),true);
-}
-
-// This constructor appends a new interreter to the interpreter chain
-// of an existing Packet
-template <class Operation>
-prefix_ senf::Packet::Packet(Operation const & arg)
-    : impl_(0), begin_(arg.begin()), end_(arg.end()), self_(),
-      parsed_(false), refcount_(1)
-{
-    SATCOM_PKF_REFC_MSG("] Packet::Packet (" << this << "): refcount_ = 1\n");
-    arg(this);
-}
+// Data container
 
 template <class InputIterator>
-prefix_ senf::impl::PacketImpl::PacketImpl(InputIterator begin, InputIterator end)
-    : data_(begin, end), interpreters_(), refcount_(1)
+prefix_ void senf::detail::PacketImpl::insert(PacketData * self, iterator pos, InputIterator f,
+                                              InputIterator l)
 {
-    SATCOM_PKF_REFC_MSG("] PacketImpl::PacketImpl (" << this << "): refcount_ = 1\n")
+    /// \fixme The std::distance call will invalidate f and l if they are only input iterators (not
+    /// forward iterators)
+    data_.insert(pos,f,l);
+    updateIterators(self,pos,std::distance(f,l));
 }
+
+// private members
+
+template <class InputIterator>
+prefix_ senf::detail::PacketImpl::PacketImpl(InputIterator first, InputIterator last)
+    : refcount_(0), data_(first,last)
+{}
 
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_

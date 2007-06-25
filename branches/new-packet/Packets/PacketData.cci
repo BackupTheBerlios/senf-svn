@@ -1,0 +1,117 @@
+// Copyright (C) 2007 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief PacketData inline non-template implementation */
+
+// Custom includes
+#include <iterator>
+#include "PacketImpl.hh"
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketData
+
+prefix_ senf::PacketData::iterator senf::PacketData::begin()
+    const
+{
+    BOOST_ASSERT(begin_ <= impl().size());
+    return boost::next(impl().begin(),begin_);
+}
+
+prefix_ senf::PacketData::iterator senf::PacketData::end()
+    const
+{
+    BOOST_ASSERT(end_ <= impl().size());
+    return boost::next(impl().begin(),end_);
+}
+
+prefix_ senf::PacketData::size_type senf::PacketData::size()
+    const
+{
+    return end_ - begin_;
+}
+
+prefix_ bool senf::PacketData::empty()
+    const
+{
+    return begin_ == end_;
+}
+
+prefix_ senf::PacketData::byte senf::PacketData::operator[](size_type n)
+    const
+{
+    BOOST_ASSERT( n < size() );
+    return *( boost::next(begin(),n) );
+}
+
+// Modifying the raw packet data
+
+prefix_ void senf::PacketData::insert(iterator pos, byte v)
+{
+    impl().insert(this,pos,v);
+}
+
+prefix_ void senf::PacketData::insert(iterator pos, size_type n, byte v)
+{
+    impl().insert(this,pos,n,v);
+}
+
+prefix_ void senf::PacketData::erase(iterator pos)
+{
+    impl().erase(this,pos);
+}
+
+prefix_ void senf::PacketData::erase(iterator first, iterator last)
+{
+    impl().erase(this,first,last);
+}
+
+prefix_ void senf::PacketData::clear()
+{
+    impl().clear(this);
+}
+
+// protected members
+
+prefix_ senf::PacketData::PacketData(size_type b, size_type e)
+    : impl_(), begin_(b), end_(e)
+{}
+
+prefix_ senf::detail::PacketImpl & senf::PacketData::impl()
+    const
+{
+    BOOST_ASSERT( impl_ );
+    return *impl_;
+}
+
+///////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// End:
