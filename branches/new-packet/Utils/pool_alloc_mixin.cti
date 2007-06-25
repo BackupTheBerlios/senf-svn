@@ -19,42 +19,54 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /** \file
-    \brief intrusive_refcount inline template implementation */
+    \brief pool_alloc_mixin inline template implementation */
 
-//#include "intrusive_refcount.ih"
+//#include "pool_alloc_mixin.ih"
 
 // Custom includes
+#include <boost/pool/singleton_pool.hpp>
+#include <boost/assert.hpp>
 
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
 
 template <class Self>
-prefix_ void senf::intrusive_refcount_t<Self>::intrusive_ptr_add_ref()
+prefix_ void * senf::pool_alloc_mixin<Self>::operator new(size_t size)
 {
-    static_cast<Self*>(this)->add_ref();
+    // When deriving from Self you may not change the class's size without
+    // inheriting from pool_alloc_mixin again. See pool_alloc_mixin documentation.
+    BOOST_ASSERT( size == sizeof(Self) );
+#ifndef NDEBUG
+    allocCounter(1);
+#endif
+    return boost::singleton_pool< pool_alloc_mixin_tag, sizeof(Self) >::malloc();
 }
 
 template <class Self>
-prefix_ void senf::intrusive_refcount_t<Self>::intrusive_ptr_release()
+prefix_ void senf::pool_alloc_mixin<Self>::operator delete(void * p, size_t size)
 {
-    if (static_cast<Self*>(this)->release()) delete this;
+    // When deriving from Self you may not change the class's size without
+    // inheriting from pool_alloc_mixin again. See pool_alloc_mixin documentation.
+    BOOST_ASSERT( size == sizeof(Self) );
+#ifndef NDEBUG
+    allocCounter(-1);
+#endif
+    boost::singleton_pool< pool_alloc_mixin_tag, sizeof(Self) >::free(p);
 }
 
 template <class Self>
-prefix_ void senf::intrusive_ptr_add_ref(intrusive_refcount_t<Self>* p)
+prefix_ unsigned long senf::pool_alloc_mixin<Self>::allocCounter()
 {
-    p->intrusive_ptr_add_ref();
+    return allocCounter(0);
 }
 
 template <class Self>
-prefix_ void senf::intrusive_ptr_release(intrusive_refcount_t<Self>* p)
+prefix_ unsigned long senf::pool_alloc_mixin<Self>::allocCounter(long delta)
 {
-    p->intrusive_ptr_release();
+    static unsigned long counter (0);
+    counter += delta;
+    return counter;
 }
-
-template <class Self>
-prefix_ senf::intrusive_refcount_t<Self>::intrusive_refcount_t()
-{}
 
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_

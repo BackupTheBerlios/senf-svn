@@ -68,10 +68,6 @@ namespace senf {
     private:
         refcount_t refcount_;
         
-        template <class Self> 
-        friend void senf::intrusive_ptr_add_ref(intrusive_refcount_t<Self>* p);
-        template <class Self>
-        friend void senf::intrusive_ptr_release(intrusive_refcount_t<Self>* p);
     };
 
     template <class Self>
@@ -80,6 +76,15 @@ namespace senf {
     {
     protected:
         intrusive_refcount_t();
+
+    private:
+        void intrusive_ptr_add_ref();
+        void intrusive_ptr_release();
+
+        template <class S>
+        friend void senf::intrusive_ptr_add_ref(intrusive_refcount_t<S> * p);
+        template <class S>
+        friend void senf::intrusive_ptr_release(intrusive_refcount_t<S> * p);
     };
 
     class intrusive_refcount
@@ -90,9 +95,10 @@ namespace senf {
     };
 
     template <class Self>
-    void intrusive_ptr_add_ref(intrusive_refcount_t<Self>* p);
+    void intrusive_ptr_add_ref(intrusive_refcount_t<Self> * p);
     template <class Self>
-    void intrusive_ptr_release(intrusive_refcount_t<Self>* p);
+    void intrusive_ptr_release(intrusive_refcount_t<Self> * p);
+
 }
 
 ///////////////////////////////hh.e////////////////////////////////////////

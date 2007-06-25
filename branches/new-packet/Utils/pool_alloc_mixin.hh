@@ -19,45 +19,42 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /** \file
-    \brief intrusive_refcount inline template implementation */
+    \brief pool_alloc_mixin public header */
 
-//#include "intrusive_refcount.ih"
+#ifndef HH_pool_alloc_mixin_
+#define HH_pool_alloc_mixin_ 1
 
 // Custom includes
+#include <memory>
 
-#define prefix_ inline
-///////////////////////////////cti.p///////////////////////////////////////
+//#include "pool_alloc_mixin.mpp"
+///////////////////////////////hh.p////////////////////////////////////////
 
-template <class Self>
-prefix_ void senf::intrusive_refcount_t<Self>::intrusive_ptr_add_ref()
-{
-    static_cast<Self*>(this)->add_ref();
+namespace senf {
+
+    struct pool_alloc_mixin_tag;
+
+    template <class Self>
+    class pool_alloc_mixin
+    {
+    public:
+        static void * operator new (size_t size);
+        static void operator delete (void *p, size_t size);
+
+#ifndef NDEBUG
+        static unsigned long allocCounter();
+    private:
+        static unsigned long allocCounter(long delta);
+#endif
+    };
+
 }
 
-template <class Self>
-prefix_ void senf::intrusive_refcount_t<Self>::intrusive_ptr_release()
-{
-    if (static_cast<Self*>(this)->release()) delete this;
-}
-
-template <class Self>
-prefix_ void senf::intrusive_ptr_add_ref(intrusive_refcount_t<Self>* p)
-{
-    p->intrusive_ptr_add_ref();
-}
-
-template <class Self>
-prefix_ void senf::intrusive_ptr_release(intrusive_refcount_t<Self>* p)
-{
-    p->intrusive_ptr_release();
-}
-
-template <class Self>
-prefix_ senf::intrusive_refcount_t<Self>::intrusive_refcount_t()
-{}
-
-///////////////////////////////cti.e///////////////////////////////////////
-#undef prefix_
+///////////////////////////////hh.e////////////////////////////////////////
+//#include "pool_alloc_mixin.cci"
+//#include "pool_alloc_mixin.ct"
+#include "pool_alloc_mixin.cti"
+#endif
 
 
 // Local Variables:
