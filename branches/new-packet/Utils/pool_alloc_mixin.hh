@@ -25,7 +25,7 @@
 #define HH_pool_alloc_mixin_ 1
 
 // Custom includes
-#include <memory>
+#include <boost/pool/singleton_pool.hpp>
 
 //#include "pool_alloc_mixin.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
@@ -34,12 +34,44 @@ namespace senf {
 
     struct pool_alloc_mixin_tag;
 
+    /** \brief Mixin to assign pool allocator to a class
+
+        This mixin will overload a classes <tt>operator new</tt> and <tt>operator delete</tt> so as
+        to make the class use the <a
+        href="http://www.boost.org/libs/pool/doc/index.html">Boost.Pool</a> memory allocator by
+        default. Using this allocator does however introduce a few restrictions:
+
+        \li The operator is defined for a fixed size. Therefore if you derive from the class <b>you
+            must not change it's size</t>.
+        \li If you change the size of the class in a derived class you have to derive from
+            pool_alloc_mixin again.
+
+        Usage:
+        \code
+          class SomeClass
+              : public senf::pool_alloc_mixin<SomeClass>
+          {
+              // ...
+          };
+        \endcode
+
+        \note pool_alloc_mixin uses the <a
+            href="http://www.boost.org/libs/pool/doc/index.html">Boost.Pool</a> <i>singleton
+            pool</i> interface with the tag <tt>pool_alloc_mixin_tag</tt>. This class is accessible
+            via the <tt>pool</tt> typedef member. Using this typedef, it is simple to call relevant
+            pool functions, e.g. <tt>SomeClass::pool::release_memory()</tt>.
+     */
     template <class Self>
     class pool_alloc_mixin
     {
     public:
+        typedef boost::singleton_pool< pool_alloc_mixin_tag, sizeof(Self) > pool;
+                                        ///< Typedef for Boosts singleton pool used
+
         static void * operator new (size_t size);
+                                        ///< Operator new utilizing pool allocation
         static void operator delete (void *p, size_t size);
+                                        ///< Operator delete utilizing pool allocation
 
 #ifndef NDEBUG
         static unsigned long allocCounter();
