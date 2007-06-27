@@ -27,6 +27,7 @@
 // Custom includes
 #include "PacketImpl.hh"
 #include "PacketInterpreter.hh"
+#include "PacketType.hh"
 
 #include <boost/test/auto_unit_test.hpp>
 #include <boost/test/test_tools.hpp>
@@ -34,19 +35,19 @@
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
+namespace {
+    struct VoidPacket : public senf::PacketTypeBase {
+        typedef senf::PacketInterpreter<VoidPacket> interpreter;
+        static interpreter::optional_range nextPacketRange(interpreter & i)
+            { return interpreter::range(i.data().end(), i.data().end()); }
+    };
+}
+
 BOOST_AUTO_UNIT_TEST(packetInterpreterBase)
 {
-    std::auto_ptr<senf::detail::PacketImpl> p (senf::detail::PacketImpl::create());
-    p->add_ref();
-    senf::PacketInterpreterBase::ptr pi2 (
-        senf::PacketInterpreterBase::create(0,0));
-    p->appendInterpreter(pi2.get());
-    senf::PacketInterpreterBase::ptr pi3 (
-        senf::PacketInterpreterBase::create(0,0));
-    p->appendInterpreter(pi3.get());
-    senf::PacketInterpreterBase::ptr pi1 (
-        senf::PacketInterpreterBase::create(0,0));
-    p->prependInterpreter(pi1.get());
+    senf::PacketInterpreterBase::ptr pi1 (senf::PacketInterpreter<VoidPacket>::create());
+    senf::PacketInterpreterBase::ptr pi2 (senf::PacketInterpreter<VoidPacket>::createAfter(pi1));
+    senf::PacketInterpreterBase::ptr pi3 (senf::PacketInterpreter<VoidPacket>::createAfter(pi2));
 
     BOOST_CHECK( pi2 == pi1->next() );
     BOOST_CHECK( pi3 == pi2->next() );

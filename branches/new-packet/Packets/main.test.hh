@@ -19,62 +19,42 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /** \file
-    \brief PacketTypes public header */
+    \brief main.test public header */
 
-#ifndef HH_PacketTypes_
-#define HH_PacketTypes_ 1
+#ifndef HH_main_test_
+#define HH_main_test_ 1
 
 // Custom includes
-#include <vector>
-#include <boost/intrusive_ptr.hpp>
-#include <boost/cstdint.hpp>
-#include <boost/intrusive/ilist.hpp>
-#include <boost/intrusive/ilist_hook.hpp>
 
-//#include "PacketTypes.mpp"
+//#include "main.test.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
 
 namespace senf {
-
-    class PacketData;
-    class PacketInterpreterBase;
-
 namespace detail {
-
-    class PacketImpl;
-
 namespace packet {
-
-    template <class T>
-    struct smart_pointer {
-        typedef boost::intrusive_ptr<T> ptr_t;
-    };
-    
-    struct interpreter_list_tag;
-    typedef boost::intrusive::ilist_base_hook<interpreter_list_tag> interpreter_list_base;
-    typedef interpreter_list_base::value_traits<PacketInterpreterBase> interpreter_list_type;
-
-    typedef boost::intrusive::ilist<interpreter_list_type,false> interpreter_list;
-
-    typedef boost::uint8_t byte;
-    typedef std::vector<byte> raw_container;
-    typedef raw_container::size_type size_type;
-    typedef raw_container::difference_type difference_type;
-    
-    typedef raw_container::iterator iterator;
-    typedef raw_container::const_iterator const_iterator;
-    typedef long refcount_t; // This is long since boost uses long for refcounts .. hmm ..
-
 namespace test {
 
-    class TestDriver;
+    struct TestDriver {
+        template <class T>
+        static typename PacketInterpreter<T>::ptr create(PacketImpl * impl, iterator b, iterator e,
+                                                         PacketInterpreterBase::Append_t)
+            { return PacketInterpreter<T>::create(impl,b,e,PacketInterpreterBase::Append); }
+
+        template <class T>
+        static typename PacketInterpreter<T>::ptr create(PacketImpl * impl, iterator b, iterator e,
+                                                         PacketInterpreterBase::Prepend_t)
+            { return PacketInterpreter<T>::create(impl,b,e,PacketInterpreterBase::Prepend); }
+
+        static PacketImpl * impl(PacketInterpreterBase::ptr p)
+            { return &p->impl(); }
+    };
 
 }}}}
 
 ///////////////////////////////hh.e////////////////////////////////////////
-//#include "PacketTypes.cci"
-//#include "PacketTypes.ct"
-//#include "PacketTypes.cti"
+//#include "main.test.cci"
+//#include "main.test.ct"
+//#include "main.test.cti"
 #endif
 
 

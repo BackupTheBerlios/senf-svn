@@ -52,11 +52,10 @@ namespace detail {
 
         // structors
 
-        static std::auto_ptr<PacketImpl> create();
-        static std::auto_ptr<PacketImpl> create(size_type size, byte initValue=0);
+        PacketImpl();
+        PacketImpl(size_type size, byte initValue);
         template <class InputIterator>
-        static std::auto_ptr<PacketImpl> create(InputIterator b, InputIterator e);
-
+        PacketImpl(InputIterator b, InputIterator e);
         ~PacketImpl();
 
         // rerference/memory management
@@ -92,12 +91,16 @@ namespace detail {
         void erase(PacketData * self, iterator first, iterator last);
         void clear(PacketData * self);
 
-    private:
-        PacketImpl();
-        PacketImpl(size_type size, byte initValue);
-        template <class InputIterator>
-        PacketImpl(InputIterator b, InputIterator e);
+        // The Guard will keep the PacketImpl instance alive during a members execution time
+        // It the refcount should drop to 0, PacketImpl will be deleted after the member
+        // has completed executing.
+        struct Guard {
+            Guard(PacketImpl * impl);
+            ~Guard();
+            PacketImpl * p;
+        };
 
+    private:
         refcount_t refcount_;
         raw_container data_;
         interpreter_list interpreters_;
@@ -105,14 +108,6 @@ namespace detail {
         void eraseInterpreters(interpreter_list::iterator b, interpreter_list::iterator e);
         void updateIterators(PacketData * self, iterator pos, difference_type n);
 
-        // The Guard will keep the PacketImpl instance alive during a members execution time
-        // It the refcount should drop to 0, PacketImpl will be deleted after the member
-        // has completed executing.
-        struct Guard {
-            Guard(PacketImpl * impl);
-            ~Guard();
-            PacketImpl * impl_;
-        };
     };
 
 }}

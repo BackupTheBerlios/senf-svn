@@ -19,36 +19,35 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /** \file
-    \brief PacketImpl inline template implementation */
-
-//#include "PacketImpl.ih"
+    \brief PacketType inline non-template implementation */
 
 // Custom includes
 
 #define prefix_ inline
-///////////////////////////////cti.p///////////////////////////////////////
+///////////////////////////////cci.p///////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////
-// senf::detail::PacketImpl
-
-// Data container
-
-template <class InputIterator>
-prefix_ void senf::detail::PacketImpl::insert(PacketData * self, iterator pos, InputIterator f,
-                                              InputIterator l)
+prefix_ senf::PacketTypeBase::interpreter::size_type
+senf::PacketTypeBase::initSize()
 {
-    /// \fixme The std::distance call will invalidate f and l if they are only input iterators (not
-    /// forward iterators)
-    data_.insert(pos,f,l);
-    updateIterators(self,pos,std::distance(f,l));
+    return 0;
 }
 
-template <class InputIterator>
-prefix_ senf::detail::PacketImpl::PacketImpl(InputIterator first, InputIterator last)
-    : refcount_(0), data_(first,last)
+prefix_ void senf::PacketTypeBase::init(interpreter &)
 {}
 
-///////////////////////////////cti.e///////////////////////////////////////
+prefix_ senf::PacketTypeBase::interpreter::optional_range
+senf::PacketTypeBase::nextPacketRange(interpreter &)
+{
+    return interpreter::no_range();
+}
+
+prefix_ senf::PacketTypeBase::interpreter::factory_t
+senf::PacketTypeBase::nextPacketType(interpreter &)
+{
+    return interpreter::no_factory();
+}
+
+///////////////////////////////cci.e///////////////////////////////////////
 #undef prefix_
 
 

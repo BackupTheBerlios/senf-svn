@@ -58,15 +58,24 @@ namespace senf {
         \note pool_alloc_mixin uses the <a
             href="http://www.boost.org/libs/pool/doc/index.html">Boost.Pool</a> <i>singleton
             pool</i> interface with the tag <tt>pool_alloc_mixin_tag</tt>. This class is accessible
-            via the <tt>pool</tt> typedef member. Using this typedef, it is simple to call relevant
-            pool functions, e.g. <tt>SomeClass::pool::release_memory()</tt>.
+            via the <tt>pool</tt> member. Using this member, it is simple to call relevant pool
+            functions, e.g. <tt>SomeClass::pool<>::release_memory()</tt>.
      */
     template <class Self>
     class pool_alloc_mixin
     {
     public:
-        typedef boost::singleton_pool< pool_alloc_mixin_tag, sizeof(Self) > pool;
-                                        ///< Typedef for Boosts singleton pool used
+        /** \brief Templated typedef for the pool used
+
+            Since the instantiation of the typedef must be delayed until Self is completely defined,
+            the simple typedef is replaced with a nested struct.
+         */
+        template <class T=void>
+        struct pool 
+            : public boost::singleton_pool< pool_alloc_mixin_tag, sizeof(Self) >
+        {
+            typedef boost::singleton_pool< pool_alloc_mixin_tag, sizeof(Self) > type;
+        };
 
         static void * operator new (size_t size);
                                         ///< Operator new utilizing pool allocation

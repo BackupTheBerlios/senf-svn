@@ -26,6 +26,7 @@
 
 // Custom includes
 #include "PacketData.hh"
+#include "PacketType.hh"
 
 #include <boost/test/auto_unit_test.hpp>
 #include <boost/test/test_tools.hpp>
@@ -33,18 +34,18 @@
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
+namespace {
+    struct VoidPacket : public senf::PacketTypeBase {};
+}
+
 BOOST_AUTO_UNIT_TEST(packetData)
 {
     // We cannot simply allocate a packetData instance .. we must go through PacketInterpreterBase
     // and PacketImpl.
 
-    std::auto_ptr<senf::detail::PacketImpl> p (senf::detail::PacketImpl::create());
-    p->add_ref();
-    senf::PacketInterpreterBase::ptr pi (
-        senf::PacketInterpreterBase::create(0,0));
-    p->appendInterpreter(pi.get());
+    senf::PacketInterpreterBase::ptr pi (senf::PacketInterpreter<VoidPacket>::create());
 
-    senf::PacketData & d (*pi);
+    senf::PacketData & d (pi->data());\
     
     BOOST_CHECK( d.begin() == d.end() );
     BOOST_CHECK_EQUAL( d.size(), 0u );

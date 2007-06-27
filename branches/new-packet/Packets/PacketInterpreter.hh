@@ -26,6 +26,8 @@
 
 // Custom includes
 #include <boost/intrusive/ilist.hpp>
+#include <boost/optional.hpp>
+#include <boost/range.hpp>
 #include "Utils/intrusive_refcount.hh"
 #include "Utils/pool_alloc_mixin.hh"
 #include "PacketData.hh"
@@ -38,10 +40,9 @@ namespace senf {
     /** \brief
       */
     class PacketInterpreterBase
-        : public PacketData, 
+        : protected PacketData, 
           public detail::packet::interpreter_list_base,
-          public intrusive_refcount_t<PacketInterpreterBase>,
-          public pool_alloc_mixin<PacketInterpreterBase>
+          public intrusive_refcount_t<PacketInterpreterBase>
     {
     public:
         ///////////////////////////////////////////////////////////////////////////
@@ -50,15 +51,34 @@ namespace senf {
         typedef senf::detail::packet::smart_pointer<
             PacketInterpreterBase>::ptr_t ptr;
 
+        typedef senf::detail::packet::iterator iterator;
+        typedef senf::detail::packet::const_iterator const_iterator;
+        typedef senf::detail::packet::size_type size_type;
+        typedef senf::detail::packet::difference_type difference_type;
+        typedef senf::detail::packet::byte byte;
+
+        typedef boost::iterator_range<iterator> range;
+        typedef boost::optional< boost::iterator_range<iterator> > optional_range;
+        typedef optional_range no_range;
+
+        enum Append_t { Append };
+        enum Prepend_t { Prepend };
+
+        typedef ptr (*factory_t)(detail::PacketImpl *, iterator, iterator, Append_t);
+
         ///////////////////////////////////////////////////////////////////////////
         ///\name Structors and default members
         ///@{
 
         // protected constructors
+        // no copy
         // no conversion constructors
-        
-        static ptr create(size_type b, size_type e);
 
+        virtual ~PacketInterpreterBase();
+
+        static                             factory_t no_factory();
+        template <class PacketType> static factory_t factory();
+        
         ///@}
         ///////////////////////////////////////////////////////////////////////////
 
@@ -72,28 +92,107 @@ namespace senf {
 
         ///@}
 
+        ///\name Data access
+        ///@{
+
+        PacketData & data();
+        
+        ///@}
+
+        ///\name Interpreter chain information
+        ///@{
+
+        optional_range nextPacketRange();
+
+        ///@}
+
     protected:
-        PacketInterpreterBase(size_type b, size_type e);
+        PacketInterpreterBase(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
+        PacketInterpreterBase(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
 
     private:
-        // reference/memory management
+        // abstract packet type interface
+        virtual optional_range v_nextPacketRange() = 0;
+
+        // reference/memory management. Only to be called by intrusive_refcount_t.
         void add_ref();
         bool release();
 
-        // containment management
+        // containment management. Only to be called by PacketImpl.
         void assignImpl(detail::PacketImpl *);
         void releaseImpl();
 
         friend class detail::PacketImpl;
         friend class intrusive_refcount_t<PacketInterpreterBase>;
+        template <class PacketType> friend class PacketInterpreter;
+        friend class detail::packet::test::TestDriver;
     };
 
+    /** \brief Concrete packet interpreter
+
+        \see PacketTypeBase for the \a PacketType interface
+      */
+    template <class PacketType>
+    class PacketInterpreter
+        : public PacketInterpreterBase,
+          public pool_alloc_mixin< PacketInterpreter<PacketType> >
+    {
+    public:
+        ///////////////////////////////////////////////////////////////////////////
+        // Types
+
+        typedef typename senf::detail::packet::smart_pointer<
+            PacketInterpreter>::ptr_t ptr;
+        typedef PacketType type;
+
+        ///////////////////////////////////////////////////////////////////////////
+        ///\name Structors and default members
+        ///@{
+
+        // private constructors
+        // no copy
+        // no conversion constructors
+
+        // Create completely new packet
+        static ptr create();
+
+        // Create packet from given data
+        template <class ForwardReadableRange>
+        static ptr create(ForwardReadableRange const & range);
+
+        // Create packet as new (empty) packet after a given packet
+        static ptr createAfter(PacketInterpreterBase::ptr packet);
+
+        ///@}
+        ///////////////////////////////////////////////////////////////////////////
+
+    protected:
+
+    private:
+        PacketInterpreter(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
+        PacketInterpreter(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
+
+        static ptr create(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
+        static ptr create(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
+
+        static size_type initSize();
+
+        void init();
+
+        virtual optional_range v_nextPacketRange();
+
+        friend class detail::packet::test::TestDriver;
+    };
+
+    struct InvalidPacketChainException : public std::exception
+    { virtual char const * what() const throw() { return "invalid packet chain"; } };
+    
 }
 
 ///////////////////////////////hh.e////////////////////////////////////////
 #include "PacketInterpreter.cci"
-//#include "PacketInterpreter.ct"
-//#include "PacketInterpreter.cti"
+#include "PacketInterpreter.ct"
+#include "PacketInterpreter.cti"
 #endif
 
 

@@ -1,0 +1,96 @@
+// Copyright (C) 2007 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief PacketInterpreter inline template implementation */
+
+//#include "PacketInterpreter.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketInterpreterBase
+
+template <class PacketType>
+prefix_ senf::PacketInterpreterBase::factory_t senf::PacketInterpreterBase::factory()
+{
+    // Remember: the correct overload (append) is automatically chosen due to the corresponding
+    // return type
+    return & PacketInterpreter<PacketType>::create;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketInterpreter<PacketType>
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::size_type
+senf::PacketInterpreter<PacketType>::initSize()
+{
+    return type::initSize();
+}
+
+template <class PacketType>
+prefix_ void senf::PacketInterpreter<PacketType>::init()
+{
+    return type::init(*this);
+}
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::create(detail::PacketImpl * impl, iterator b, iterator e,
+                                            Append_t)
+{
+    return ptr(new PacketInterpreter(impl,b,e,Append));
+}
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::create(detail::PacketImpl * impl, iterator b, iterator e,
+                                            Prepend_t)
+{
+    return ptr(new PacketInterpreter(impl,b,e,Prepend));
+}
+
+template <class PacketType>
+prefix_ senf::PacketInterpreter<PacketType>::PacketInterpreter(detail::PacketImpl * impl,
+                                                               iterator b, iterator e, Append_t)
+    : PacketInterpreterBase(impl,b,e,Append)
+{}
+
+template <class PacketType>
+prefix_ senf::PacketInterpreter<PacketType>::PacketInterpreter(detail::PacketImpl * impl,
+                                                               iterator b, iterator e, Prepend_t)
+    : PacketInterpreterBase(impl,b,e,Prepend)
+{}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// End:

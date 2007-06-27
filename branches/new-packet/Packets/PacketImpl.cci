@@ -53,19 +53,18 @@
 ///////////////////////////////////////////////////////////////////////////
 // senf::detail::PacketImpl
 
-prefix_ std::auto_ptr<senf::detail::PacketImpl> senf::detail::PacketImpl::create()
-{
-    return std::auto_ptr<PacketImpl>(new PacketImpl());
-}
+prefix_ senf::detail::PacketImpl::PacketImpl()
+    : refcount_(0)
+{}
 
-prefix_ std::auto_ptr<senf::detail::PacketImpl> senf::detail::PacketImpl::create(size_type size,
-                                                                                 byte initValue)
-{
-    return std::auto_ptr<PacketImpl>(new PacketImpl(size,initValue));
-}
+prefix_ senf::detail::PacketImpl::PacketImpl(size_type size, byte initValue)
+    : refcount_(0), data_(size,initValue)
+{}
 
 prefix_ senf::detail::PacketImpl::~PacketImpl()
 {
+    // We increment refcount_ to ensure, release() won't call delete again
+    ++refcount_;
     eraseInterpreters(interpreters_.begin(), interpreters_.end());
 }
 
@@ -79,7 +78,13 @@ prefix_ void senf::detail::PacketImpl::add_ref(refcount_t n)
 prefix_ void senf::detail::PacketImpl::release(refcount_t n)
 {
     BOOST_ASSERT(refcount_ >= n);
-    if ((refcount_ -= n) == 0) delete this;
+    // uah ... we need to be extremely careful here. If refcount_ is n, we want to commit suicide,
+    // however the destructor will remove all PacketInterpreters from the list and will thereby
+    // decrement refcount -> only decrenebt refcount_ when *not* caling delete
+    if (refcount_ == n)
+        delete this;
+    else
+        refcount_ -= n;
 }
 
 prefix_ senf::detail::PacketImpl::refcount_t senf::detail::PacketImpl::refcount()
@@ -92,12 +97,12 @@ prefix_ senf::detail::PacketImpl::refcount_t senf::detail::PacketImpl::refcount(
 
 prefix_ senf::PacketInterpreterBase * senf::detail::PacketImpl::first()
 {
-    return & interpreters_.front();
+    return interpreters_.empty() ? 0 : & interpreters_.front();
 }
 
 prefix_ senf::PacketInterpreterBase * senf::detail::PacketImpl::last()
 {
-    return & interpreters_.back();
+    return interpreters_.empty() ? 0 : & interpreters_.back();
 }
 
 prefix_ senf::PacketInterpreterBase * senf::detail::PacketImpl::next(PacketInterpreterBase * p)
@@ -110,18 +115,6 @@ prefix_ senf::PacketInterpreterBase * senf::detail::PacketImpl::prev(PacketInter
 { 
     interpreter_list::iterator i (interpreter_list::current(*p));
     return (i == interpreters_.begin()) ? 0 : &*(--i);
-}
-
-prefix_ void senf::detail::PacketImpl::appendInterpreter(PacketInterpreterBase * p)
-{
-    interpreters_.push_back(*p);
-    p->assignImpl(this);
-}
-
-prefix_ void senf::detail::PacketImpl::prependInterpreter(PacketInterpreterBase * p)
-{
-    interpreters_.push_front(*p);
-    p->assignImpl(this);
 }
 
 prefix_ void senf::detail::PacketImpl::truncateInterpreters(PacketInterpreterBase * p)
@@ -172,28 +165,18 @@ prefix_ void senf::detail::PacketImpl::erase(PacketData * self, iterator first, 
     updateIterators(self,first,-std::distance(first,last));
 }
 
-// private members
-
-prefix_ senf::detail::PacketImpl::PacketImpl()
-    : refcount_(0)
-{}
-
-prefix_ senf::detail::PacketImpl::PacketImpl(size_type size, byte initValue)
-    : refcount_(0), data_(size,initValue)
-{}
-
 ///////////////////////////////////////////////////////////////////////////
 // senf::detail::PacketImpl::Guard
 
 prefix_ senf::detail::PacketImpl::Guard::Guard(PacketImpl * impl)
-    : impl_ (impl)
+    : p (impl)
 {
-    impl_->add_ref();
+    p->add_ref();
 }
 
 prefix_ senf::detail::PacketImpl::Guard::~Guard()
 {
-    impl_->release();
+    p->release();
 }
 
 ///////////////////////////////cci.e///////////////////////////////////////

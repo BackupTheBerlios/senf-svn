@@ -52,7 +52,7 @@ namespace senf {
         }
 
         template<class Iterator>
-        static void do(Iterator i, boost::true_type) 
+        void do(Iterator i, boost::true_type) 
         {
             typename Iterator::pointer p (senf::storage_iterator(i));
             // Manipulate the container by manipulating the data pointed at via 'p'

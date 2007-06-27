@@ -35,6 +35,20 @@
 ///////////////////////////////////////////////////////////////////////////
 // senf::detail::PacketImpl
 
+// interpreter chain
+
+prefix_ void senf::detail::PacketImpl::appendInterpreter(PacketInterpreterBase * p)
+{
+    interpreters_.push_back(*p);
+    p->assignImpl(this);
+}
+
+prefix_ void senf::detail::PacketImpl::prependInterpreter(PacketInterpreterBase * p)
+{
+    interpreters_.push_front(*p);
+    p->assignImpl(this);
+}
+
 // Data container
 
 prefix_ void senf::detail::PacketImpl::clear(PacketData * self)
@@ -78,9 +92,9 @@ prefix_ void senf::detail::PacketImpl::updateIterators(PacketData * self, iterat
     // For c), the change must be outside the packet (we don't allow an upper packet to mess with
     // the the data owned by a packet further down the chain). It can be before or after the
     // packet.
-    
+
     // a)
-    for (; &(*i) != self; ++i) i->end_ += n;
+    for (; &(*i) != static_cast<PacketInterpreterBase*>(self); ++i) i->end_ += n;
 
     // b)
     i->end_ += n;

@@ -1,0 +1,88 @@
+// Copyright (C) 2007 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief PacketInterpreter non-inline template implementation  */
+
+//#include "PacketInterpreter.ih"
+
+// Custom includes
+
+#define prefix_
+///////////////////////////////ct.p////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketInterpreter<PacketType>
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::create()
+{
+    detail::PacketImpl::Guard p (new detail::PacketImpl(initSize(),0));
+    ptr pi (create(p.p,p.p->begin(),p.p->end(),Append));
+    pi->init();
+    return pi;
+}
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::createAfter(PacketInterpreterBase::ptr packet)
+{
+    optional_range r (packet->nextPacketRange());
+    if (!r) throw InvalidPacketChainException();
+
+    if (packet != packet->last())
+        packet->impl().truncateInterpreters(packet->next().get());
+
+    ptr pi (create(&packet->impl(),r->begin(),r->end(),Append));
+    pi->data().resize(initSize());
+    std::fill(pi->data().begin(), pi->data().end(),0);
+    pi->init();
+    return pi;
+}
+
+template <class PacketType>
+template <class ForwardReadableRange>
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::create(ForwardReadableRange const & range)
+{
+    detail::PacketImpl::Guard p (new detail::PacketImpl(boost::size(range)));
+    ptr pi (create(p.p,p.p->begin(),p.p->end(),Append));
+    return pi;
+}
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::optional_range
+senf::PacketInterpreter<PacketType>::v_nextPacketRange()
+{
+    return type::nextPacketRange(*this);
+}
+
+///////////////////////////////ct.e////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// End:

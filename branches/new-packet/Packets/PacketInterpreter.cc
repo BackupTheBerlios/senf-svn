@@ -19,37 +19,23 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /** \file
-    \brief PacketImpl inline template implementation */
+    \brief PacketInterpreter non-inline non-template implementation */
 
-//#include "PacketImpl.ih"
+#include "PacketInterpreter.hh"
+//#include "PacketInterpreter.ih"
 
 // Custom includes
 
-#define prefix_ inline
-///////////////////////////////cti.p///////////////////////////////////////
+//#include "PacketInterpreter.mpp"
+#define prefix_
+///////////////////////////////cc.p////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////
-// senf::detail::PacketImpl
-
-// Data container
-
-template <class InputIterator>
-prefix_ void senf::detail::PacketImpl::insert(PacketData * self, iterator pos, InputIterator f,
-                                              InputIterator l)
-{
-    /// \fixme The std::distance call will invalidate f and l if they are only input iterators (not
-    /// forward iterators)
-    data_.insert(pos,f,l);
-    updateIterators(self,pos,std::distance(f,l));
-}
-
-template <class InputIterator>
-prefix_ senf::detail::PacketImpl::PacketImpl(InputIterator first, InputIterator last)
-    : refcount_(0), data_(first,last)
+prefix_  senf::PacketInterpreterBase::~PacketInterpreterBase()
 {}
 
-///////////////////////////////cti.e///////////////////////////////////////
+///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
+//#include "PacketInterpreter.mpp"
 
 
 // Local Variables:

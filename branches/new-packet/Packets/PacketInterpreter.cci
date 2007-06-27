@@ -32,15 +32,26 @@
 
 // Structors and default members
 
-prefix_ senf::PacketInterpreterBase::ptr 
-senf::PacketInterpreterBase::create(size_type b, size_type e)
+prefix_ senf::PacketInterpreterBase::PacketInterpreterBase(detail::PacketImpl * impl,
+                                                           iterator b, iterator e, Append_t)
+    : PacketData(std::distance(impl->begin(),b),
+                 std::distance(impl->begin(),e))
 {
-    return ptr(new PacketInterpreterBase(b,e));
+    impl->appendInterpreter(this);
 }
 
-prefix_ senf::PacketInterpreterBase::PacketInterpreterBase(size_type b, size_type e)
-    : PacketData(b,e)
-{}
+prefix_ senf::PacketInterpreterBase::PacketInterpreterBase(detail::PacketImpl * impl,
+                                                           iterator b, iterator e, Prepend_t)
+    : PacketData(std::distance(impl->begin(),b),
+                 std::distance(impl->begin(),e))
+{
+        impl->prependInterpreter(this);
+}
+
+prefix_ senf::PacketInterpreterBase::factory_t senf::PacketInterpreterBase::no_factory()
+{
+    return 0;
+}
 
 // Interpreter chain access
 
@@ -64,6 +75,21 @@ prefix_ senf::PacketInterpreterBase::ptr senf::PacketInterpreterBase::last()
     return ptr(impl().last());
 }
 
+// Data access
+
+prefix_ senf::PacketData & senf::PacketInterpreterBase::data()
+{
+    return (*this);
+}
+
+// Interpreter chain information
+
+prefix_ senf::PacketInterpreterBase::optional_range
+senf::PacketInterpreterBase::nextPacketRange()
+{
+    return v_nextPacketRange();
+}
+
 // reference/memory management
 
 prefix_ void senf::PacketInterpreterBase::add_ref()
@@ -75,7 +101,8 @@ prefix_ void senf::PacketInterpreterBase::add_ref()
 
 prefix_ bool senf::PacketInterpreterBase::release()
 {
-    if (impl_)
+    if (impl_) 
+        // This call will set impl_ to 0 if we just removed the last reference ...
         impl_->release();
     return intrusive_refcount_t<PacketInterpreterBase>::release() && !impl_;
 }
