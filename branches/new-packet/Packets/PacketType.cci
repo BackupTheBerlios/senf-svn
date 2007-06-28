@@ -55,6 +55,12 @@ senf::PacketTypeBase::nextPacketType(interpreter &)
     return interpreter::no_factory();
 }
 
+prefix_ void senf::PacketTypeBase::finalize(interpreter & i)
+{}
+
+prefix_ void senf::PacketTypeBase::dump(interpreter & i, std::ostream & os)
+{}
+
 ///////////////////////////////cci.e///////////////////////////////////////
 #undef prefix_
 

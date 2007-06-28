@@ -47,6 +47,17 @@ prefix_ senf::PacketInterpreterBase::ptr senf::PacketInterpreterBase::clone()
     return pi;
 }
 
+// Access to the abstract interface
+
+prefix_ void senf::PacketInterpreterBase::dump(std::ostream & os)
+{
+    v_dump(os);
+    for (ptr i (next()); i; i = i->next()) {
+        os << "\n";
+        i->v_dump(os);
+    }
+}
+
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
 //#include "PacketInterpreter.mpp"

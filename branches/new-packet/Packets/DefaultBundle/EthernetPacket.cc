@@ -27,27 +27,17 @@
 
 // Custom includes
 #include <iomanip>
-#include <boost/format.hpp>
 
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
 namespace {
-    senf::PacketRegistry<senf::EtherTypes>::RegistrationProxy<senf::EthVLanPacket>
+    senf::PacketRegistry<senf::EtherTypes>::RegistrationProxy<senf::EthVLanPacketType>
         registerEthVLanPacket(0x8100);
 }
 
-prefix_ void senf::EthernetPacket::v_nextInterpreter()
-    const
-{
-    /** \todo Add LLC/SNAP support -> only use the registry
-        for type() values >=1536, otherwise expect an LLC header */
-    registerInterpreter(type(),begin()+bytes(),end());
-}
-
 namespace {
-
-    void dumpmac(std::ostream & os, senf::EthernetPacket::Parse_MAC mac)
+    void dumpmac(std::ostream & os, senf::MACAddress mac)
     {
         for (unsigned i = 0; i < 6; ++i) {
             if (i > 0)
@@ -56,50 +46,35 @@ namespace {
                << unsigned(mac[i]);
         }
     }
-
 }
 
-prefix_ void senf::EthernetPacket::v_dump(std::ostream & os)
-    const
+prefix_ void senf::EthernetPacketType::dump(interpreter & i, std::ostream & os)
 {
-    if (type() <= 1500)
+    if (i.fields().type() <= 1500)
         os << "Ethernet 802.3";
-    else if (type() >= 0x600)
+    else if (i.fields().type() >= 0x600)
         os << "Ethernet II (DIX)";
     else
         os << "Ethernet 802.3 (bad ethertype >1500 and <1536)";
     os << ": \n"
        << "  destination   : ";
-    dumpmac(os,destination());
+    dumpmac(os,i.fields().destination());
     os << "\n"
        << "  source        : ";
-    dumpmac(os,source());
+    dumpmac(os,i.fields().source());
     os << "\n"
        << "  ethertype     : " << std::hex << std::setw(4) << std::setfill('0')
-       << unsigned(type()) << "\n" << std::dec;
+       << unsigned(i.fields().type()) << "\n" << std::dec;
 }
 
-prefix_ void senf::EthernetPacket::v_finalize()
-{}
-
-prefix_ void senf::EthVLanPacket::v_nextInterpreter()
-    const
-{
-    /** \todo Add LLC/SNAP support (see above) */
-    registerInterpreter(type(),begin()+bytes(),end());
-}
-
-prefix_ void senf::EthVLanPacket::v_finalize()
-{}
-
-prefix_ void senf::EthVLanPacket::v_dump(std::ostream & os)
-    const
+prefix_ void senf::EthVLanPacketType::dump(interpreter & i, std::ostream & os)
 {
     os << "Ethernet 802.1q (VLAN):\n"
-       << "  priority      : " << priority() << "\n"
-       << "  cfi           : " << cfi() << "\n"
-       << "  vlan-ID       : " << vlanId() << "\n"
-       << "  ethertype     : " << boost::format("%04x") % type() << "\n";
+       << "  priority      : " << i.fields().priority() << "\n"
+       << "  cfi           : " << i.fields().cfi() << "\n"
+       << "  vlan-ID       : " << i.fields().vlanId() << "\n"
+       << "  ethertype     : " << std::hex << std::setw(4) << std::setfill('0')
+       << i.fields().type() << "\n" << std::dec;
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////

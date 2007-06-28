@@ -85,35 +85,35 @@ namespace packet {
     ///////////////////////////////////////////////////////////////////////////
     // Network byte order integer extraction
 
-    boost::uint16_t parse_uint16(iterator i)
+    inline boost::uint16_t parse_uint16(iterator i)
     {
         return i[1] | i[0]<<8;
     }
 
-    void write_uint16(iterator i, boost::uint16_t v)
+    inline void write_uint16(iterator i, boost::uint16_t v)
     {
         i[0] = ( v >>  8 ) & 0xff;
         i[1] = ( v       ) & 0xff;
     }
 
-    boost::uint32_t parse_uint24(iterator i)
+    inline boost::uint32_t parse_uint24(iterator i)
     {
         return i[2] | i[1]<<8 | i[0]<<16;
     }
 
-    void write_uint24(iterator i, boost::uint32_t v)
+    inline void write_uint24(iterator i, boost::uint32_t v)
     {
         i[0] = ( v >> 16 ) & 0xff;
         i[1] = ( v >>  8 ) & 0xff;
         i[2] = ( v       ) & 0xff;
     }
 
-    boost::uint32_t parse_uint32(iterator i)
+    inline boost::uint32_t parse_uint32(iterator i)
     {
         return i[3] | i[2]<<8 | i[1]<<16 | i[0]<<24;
     }
 
-    void write_uint32(iterator i, boost::uint32_t v)
+    inline void write_uint32(iterator i, boost::uint32_t v)
     {
         i[0] = ( v >> 24 ) & 0xff;
         i[1] = ( v >> 16 ) & 0xff;

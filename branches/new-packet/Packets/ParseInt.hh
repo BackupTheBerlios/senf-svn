@@ -40,7 +40,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_Int8,boost::int8_t>,
           public PacketParserBase
     {
-        Parse_Int8(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,1) {}
+        Parse_Int8(iterator i, state const & s) : PacketParserBase(i,s,1) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -50,14 +50,14 @@ namespace senf {
         void value(value_type v) { i()[0] = v; }
         Parse_Int8 const & operator= (value_type other) { value(other); return *this; }
     };
-    std::ostream & operator<<(std::ostream & os, Parse_Int8 const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_Int8 const & i)
     { os << i.value(); return os; }
 
     struct Parse_UInt8
         : public detail::packet::ParseIntOps<Parse_UInt8,boost::uint8_t>,
           public PacketParserBase
     {
-        Parse_UInt8(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,1) {}
+        Parse_UInt8(iterator i, state const & s) : PacketParserBase(i,s,1) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -67,14 +67,14 @@ namespace senf {
         void value(value_type v) { i()[0] = v; }
         Parse_UInt8 const & operator= (value_type other) { value(other); return *this; }
     };
-    std::ostream & operator<<(std::ostream & os, Parse_UInt8 const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_UInt8 const & i)
     { os << i.value(); return os; }
 
     struct Parse_Int16
         : public detail::packet::ParseIntOps<Parse_Int16,boost::int16_t>,
           public PacketParserBase
     {
-        Parse_Int16(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,2) {}
+        Parse_Int16(iterator i, state const & s) : PacketParserBase(i,s,2) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -84,14 +84,14 @@ namespace senf {
         void value(value_type v) { detail::packet::write_uint16(i(),v); }
         Parse_Int16 const & operator= (value_type other) { value(other); return *this; }
     };
-    std::ostream & operator<<(std::ostream & os, Parse_Int16 const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_Int16 const & i)
     { os << i.value(); return os; }
 
     struct Parse_UInt16
         : public detail::packet::ParseIntOps<Parse_UInt16,boost::uint16_t>,
           public PacketParserBase
     {
-        Parse_UInt16(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,2) {}
+        Parse_UInt16(iterator i, state const & s) : PacketParserBase(i,s,2) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -101,14 +101,14 @@ namespace senf {
         void value(value_type v) { detail::packet::write_uint16(i(),v); }
         Parse_UInt16 const & operator= (value_type other) { value(other); return *this; }
     };
-    std::ostream & operator<<(std::ostream & os, Parse_UInt16 const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_UInt16 const & i)
     { os << i.value(); return os; }
 
     struct Parse_Int24
         : public detail::packet::ParseIntOps<Parse_Int24,boost::int32_t>,
           public PacketParserBase
     {
-        Parse_Int24(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,3) {}
+        Parse_Int24(iterator i, state const & s) : PacketParserBase(i,s,3) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -119,14 +119,14 @@ namespace senf {
         void value(value_type v) { detail::packet::write_uint24(i(),v); }
         Parse_Int24 const & operator= (value_type other) { value(other); return *this; }
     };
-    std::ostream & operator<<(std::ostream & os, Parse_Int24 const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_Int24 const & i)
     { os << i.value(); return os; }
 
     struct Parse_UInt24
         : public detail::packet::ParseIntOps<Parse_UInt24,boost::uint32_t>,
           public PacketParserBase
     {
-        Parse_UInt24(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,3) {}
+        Parse_UInt24(iterator i, state const & s) : PacketParserBase(i,s,3) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -136,14 +136,14 @@ namespace senf {
         void value(value_type v) { detail::packet::write_uint24(i(),v); }
         Parse_UInt24 const & operator= (value_type other) { value(other); return *this; }
     };
-    std::ostream & operator<<(std::ostream & os, Parse_UInt24 const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_UInt24 const & i)
     { os << i.value(); return os; }
 
     struct Parse_Int32
         : public detail::packet::ParseIntOps<Parse_Int32,boost::int32_t>,
           public PacketParserBase
     {
-        Parse_Int32(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,4) {}
+        Parse_Int32(iterator i, state const & s) : PacketParserBase(i,s,4) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -153,14 +153,14 @@ namespace senf {
         void value(value_type v) { detail::packet::write_uint32(i(),v); }
         Parse_Int32 const & operator= (value_type other) { value(other); return *this; }
     };
-    std::ostream & operator<<(std::ostream & os, Parse_Int32 const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_Int32 const & i)
     { os << i.value(); return os; }
 
     struct Parse_UInt32
         : public detail::packet::ParseIntOps<Parse_UInt32,boost::uint32_t>,
           public PacketParserBase
     {
-        Parse_UInt32(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,4) {}
+        Parse_UInt32(iterator i, state const & s) : PacketParserBase(i,s,4) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -170,7 +170,7 @@ namespace senf {
         void value(value_type v) { detail::packet::write_uint32(i(),v); }
         Parse_UInt32 const & operator= (value_type other) { value(other); return *this; }
     };
-    std::ostream & operator<<(std::ostream & os, Parse_UInt32 const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_UInt32 const & i)
     { os << i.value(); return os; }
 
     template <unsigned Start, unsigned End>
@@ -178,7 +178,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_IntField<Start,End>,boost::int32_t>,
           public PacketParserBase
     {
-        Parse_IntField(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,(End-1)/8+1) {}
+        Parse_IntField(iterator i, state const & s) : PacketParserBase(i,s,(End-1)/8+1) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -197,7 +197,7 @@ namespace senf {
         BOOST_STATIC_ASSERT( End-Start<=32 );
     };
     template <unsigned Start, unsigned End>
-    std::ostream & operator<<(std::ostream & os, Parse_IntField<Start,End> const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_IntField<Start,End> const & i)
     { os << i.value(); return os; }
 
     template <unsigned Start, unsigned End>
@@ -205,7 +205,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_UIntField<Start,End>,boost::uint32_t>,
           public PacketParserBase
     {
-        Parse_UIntField(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,(End-1)/8+1) {}
+        Parse_UIntField(iterator i, state const & s) : PacketParserBase(i,s,(End-1)/8+1) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -220,7 +220,7 @@ namespace senf {
         BOOST_STATIC_ASSERT( End-Start<=32 );
     };
     template <unsigned Start, unsigned End>
-    std::ostream & operator<<(std::ostream & os, Parse_UIntField<Start,End> const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_UIntField<Start,End> const & i)
     { os << i.value(); return os; }
 
     template <unsigned bit>
@@ -228,7 +228,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_Flag<bit>,bool>,
           public PacketParserBase
     {
-        Parse_Flag(iterator i,PacketParserBase const & base) : PacketParserBase(i,base,1) {}
+        Parse_Flag(iterator i, state const & s) : PacketParserBase(i,s,1) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -242,7 +242,7 @@ namespace senf {
         Parse_Flag const & operator= (value_type other) { value(other); return *this; }
     };
     template <unsigned bit>
-    std::ostream & operator<<(std::ostream & os, Parse_Flag<bit> const & i)
+    inline std::ostream & operator<<(std::ostream & os, Parse_Flag<bit> const & i)
     { os << i.value(); return os; }
 
 }

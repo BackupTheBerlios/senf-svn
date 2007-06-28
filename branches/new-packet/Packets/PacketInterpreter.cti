@@ -29,18 +29,16 @@
 ///////////////////////////////cti.p///////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
-// senf::PacketInterpreterBase
+// senf::PacketInterpreter<PacketType>
 
 template <class PacketType>
-prefix_ senf::PacketInterpreterBase::factory_t senf::PacketInterpreterBase::factory()
+prefix_ typename senf::PacketInterpreter<PacketType>::factory_t
+senf::PacketInterpreter<PacketType>::factory()
 {
     // Remember: the correct overload (append) is automatically chosen due to the corresponding
     // return type
-    return & PacketInterpreter<PacketType>::create;
+    return & createFactory;
 }
-
-///////////////////////////////////////////////////////////////////////////
-// senf::PacketInterpreter<PacketType>
 
 // Create completely new packet
 
@@ -99,6 +97,14 @@ senf::PacketInterpreter<PacketType>::create(detail::PacketImpl * impl, iterator 
                                             Append_t)
 {
     return ptr(new PacketInterpreter(impl,b,e,Append));
+}
+
+template <class PacketType>
+prefix_ senf::PacketInterpreterBase::ptr
+senf::PacketInterpreter<PacketType>::createFactory(detail::PacketImpl * impl, iterator b,
+                                                   iterator e)
+{
+    return create(impl,b,e,Append);
 }
 
 template <class PacketType>

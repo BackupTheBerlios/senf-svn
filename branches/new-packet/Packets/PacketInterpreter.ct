@@ -128,6 +128,18 @@ senf::PacketInterpreter<PacketType>::v_appendClone(detail::PacketImpl * target)
                   Append);
 }
 
+template <class PacketType>
+prefix_ void senf::PacketInterpreter<PacketType>::v_finalize()
+{
+    type::finalize(*this);
+}
+
+template <class PacketType>
+prefix_ void senf::PacketInterpreter<PacketType>::v_dump(std::ostream & os)
+{
+    type::dump(*this,os);
+}
+
 ///////////////////////////////ct.e////////////////////////////////////////
 #undef prefix_
 

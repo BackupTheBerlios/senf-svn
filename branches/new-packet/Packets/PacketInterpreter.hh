@@ -64,7 +64,7 @@ namespace senf {
         enum Append_t { Append };
         enum Prepend_t { Prepend };
 
-        typedef ptr (*factory_t)(detail::PacketImpl *, iterator, iterator, Append_t);
+        typedef ptr (*factory_t)(detail::PacketImpl *, iterator, iterator);
 
         ///////////////////////////////////////////////////////////////////////////
         ///\name Structors and default members
@@ -77,7 +77,6 @@ namespace senf {
         virtual ~PacketInterpreterBase();
 
         static                             factory_t no_factory();
-        template <class PacketType> static factory_t factory();
         
         ptr clone();
 
@@ -101,10 +100,12 @@ namespace senf {
         
         ///@}
 
-        ///\name Interpreter chain information
+        ///\name Access to the abstract interface
         ///@{
 
         optional_range nextPacketRange();
+        void finalize();
+        void dump(std::ostream & os);
 
         ///@}
 
@@ -121,6 +122,8 @@ namespace senf {
 
         virtual optional_range v_nextPacketRange() = 0;
         virtual ptr v_appendClone(detail::PacketImpl * impl) = 0;
+        virtual void v_finalize() = 0;
+        virtual void v_dump(std::ostream & os) = 0;
 
         // reference/memory management. Only to be called by intrusive_refcount_t.
 
@@ -164,6 +167,8 @@ namespace senf {
         // no copy
         // no conversion constructors
 
+        static factory_t factory();
+
         // Create completely new packet
 
         static ptr create();
@@ -205,6 +210,9 @@ namespace senf {
         static ptr create(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
         static ptr create(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
 
+        static PacketInterpreterBase::ptr createFactory(detail::PacketImpl * impl, iterator b,
+                                                        iterator e);
+
         // PacketType access
 
         static size_type initSize();
@@ -216,6 +224,8 @@ namespace senf {
 
         virtual optional_range v_nextPacketRange();
         virtual PacketInterpreterBase::ptr v_appendClone(detail::PacketImpl * impl);
+        virtual void v_finalize();
+        virtual void v_dump(std::ostream & os);
 
         friend class detail::packet::test::TestDriver;
     };

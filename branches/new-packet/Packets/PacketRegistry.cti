@@ -20,26 +20,44 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-// Definition of inline template functions
+// Definition of inline template funPacketRegistry.ons
 
-//#include "EthernetPacket.ih"
+#include "PacketRegistry.ih"
 
 // Custom includes
 
 #define prefix_ inline
-///////////////////////////////cti.p///////////////////////////////////////
+///////////////////////////////PacketRegistry..p///////////////////////////////////////
 
-template <class Arg>
-prefix_ senf::EthernetPacket::EthernetPacket(Arg const & arg)
-    : Packet(arg)
-{}
+template <class Tag>
+template <class PacketType>
+prefix_ senf::PacketRegistry<Tag>::RegistrationProxy<PacketType>::
+RegistrationProxy(typename Tag::key_t key)
+{
+    PacketRegistry<Tag>::template registerPacket<PacketType>(key);
+}
 
-template <class Arg>
-prefix_ senf::EthVLanPacket::EthVLanPacket(Arg const & arg)
-    : Packet(arg)
-{}
+template <class Tag>
+template <class PacketType>
+prefix_ void senf::PacketRegistry<Tag>::registerPacket(typename Tag::key_t key)
+{
+    registry().registerPacket<PacketType>(key);
+}
 
-///////////////////////////////cti.e///////////////////////////////////////
+template <class Tag>
+template <class PacketType>
+prefix_ typename Tag::key_t senf::PacketRegistry<Tag>::key()
+{
+    return registry().key(senf::typeIdValue<PacketType>());
+}
+
+template <class Tag>
+prefix_ senf::PkReg_Entry const & senf::PacketRegistry<Tag>::lookup(typename Tag::key_t key)
+{
+    return registry().lookup(key);
+}
+
+///////////////////////////////PacketRegistry..e///////////////////////////////////////
 #undef prefix_
 
 

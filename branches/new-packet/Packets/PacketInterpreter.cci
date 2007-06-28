@@ -66,12 +66,17 @@ prefix_ senf::PacketData & senf::PacketInterpreterBase::data()
     return (*this);
 }
 
-// Interpreter chain information
+// Access to the abstract interface
 
 prefix_ senf::PacketInterpreterBase::optional_range
 senf::PacketInterpreterBase::nextPacketRange()
 {
     return v_nextPacketRange();
+}
+
+prefix_ void senf::PacketInterpreterBase::finalize()
+{
+    return v_finalize();
 }
 
 ////////////////////////////////////////

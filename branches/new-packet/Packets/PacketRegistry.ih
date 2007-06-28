@@ -1,7 +1,9 @@
-// Copyright (C) 2007 
+// $Id$
+//
+// Copyright (C) 2006
 // Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
 // Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
-//     Stefan Bund <g0dil@berlios.de>
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,78 +20,71 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-/** \file
-    \brief PacketParser public header */
-
-#ifndef HH_PacketParser_
-#define HH_PacketParser_ 1
+#ifndef IH_PacketRegistryImpl_
+#define IH_PacketRegistryImpl_ 1
 
 // Custom includes
-#include "PacketTypes.hh"
-#include "PacketData.hh"
+#include <boost/intrusive_ptr.hpp>
+#include "typeidvalue.hh"
 
-//#include "PacketParser.mpp"
-///////////////////////////////hh.p////////////////////////////////////////
+///////////////////////////////ih.p////////////////////////////////////////
 
 namespace senf {
-    
-    /** \brief
-      */
-    class PacketParserBase
+namespace detail {
+
+    template <class PacketType>
+    struct PkReg_EntryImpl
+        : public PkReg_Entry
+    {
+        virtual PacketInterpreterBase::factory_t factory() const;
+    };
+
+    template <class KeyType>
+    class PacketRegistryImpl 
+        : private boost::noncopyable
     {
     public:
         ///////////////////////////////////////////////////////////////////////////
         // Types
 
-        typedef detail::packet::iterator iterator;
-        typedef detail::packet::size_type size_type;
-        typedef PacketParserBase state;
-        typedef PacketData * container;
+        typedef KeyType key_t;
+
+        typedef PkReg_Entry Entry;
 
         ///////////////////////////////////////////////////////////////////////////
         ///\name Structors and default members
         ///@{
 
-        // no default constructor
-        // default copy
+        // default default constructor
+        // no copy constructor
+        // no copy assignment
         // default destructor
         // no conversion constructors
 
         ///@}
         ///////////////////////////////////////////////////////////////////////////
 
-        iterator i() const;
+        template <class PacketType>
+        void registerPacket(key_t key);
+
+        key_t key(senf::TypeIdValue const & type);
+
+        Entry const & lookup(key_t key);
 
     protected:
-        PacketParserBase(container data);
-        PacketParserBase(iterator i, state const & s);
-        PacketParserBase(iterator i, state const & s, size_type size);
-
-        bool check(size_type size);
-        void validate(size_type size);
-
-        template <class Parser>
-        Parser parse(iterator i) const;
 
     private:
-        iterator end();
+        typedef boost::intrusive_ptr<Entry> Entry_ptr;
+        typedef std::map<key_t, Entry_ptr> PacketMap;
+        typedef std::map<senf::TypeIdValue, key_t> ReversePacketMap;
 
-        iterator i_;
-        PacketData * data_;
+        PacketMap registry_;
+        ReversePacketMap reverseRegistry_;
     };
 
-    struct VoidPacketParser 
-    {
-        VoidPacketParser(detail::packet::iterator, PacketData *);
-    };
+}}
 
-
-}
-
-///////////////////////////////hh.e////////////////////////////////////////
-#include "PacketParser.cci"
-//#include "PacketParser.ct"
-#include "PacketParser.cti"
+///////////////////////////////ih.e////////////////////////////////////////
 #endif
 
 

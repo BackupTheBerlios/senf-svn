@@ -1,0 +1,82 @@
+// Copyright (C) 2007 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief PacketType inline template implementation */
+
+//#include "PacketType.ih"
+
+// Custom includes
+#include <boost/utility.hpp>
+#include "PacketRegistry.hh"
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketTypeMixin<Self,Registry>
+
+template <class Self, class Registry>
+prefix_ senf::PacketInterpreterBase::optional_range
+senf::PacketTypeMixin<Self,Registry>::nextPacketRange(interpreter & i)
+{
+    return PacketTypeMixin<Self>::nextPacketRange(i);
+}
+
+template <class Self, class Registry>
+prefix_ senf::PacketInterpreterBase::factory_t
+senf::PacketTypeMixin<Self,Registry>::nextPacketType(interpreter & i)
+{
+    if (i.data().size() < Self::initSize())
+        return interpreter::no_factory();
+    return PacketRegistry<Registry>::lookup( Self::nextPacketKey(i) ).factory();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketTypeMixin<Self,void>
+
+template <class Self>
+prefix_ senf::PacketInterpreterBase::optional_range
+senf::PacketTypeMixin<Self,void>::nextPacketRange(interpreter & i)
+{
+    if (i.data().size() < Self::initSize())
+        return interpreter::no_range();
+    interpreter::size_type sz (Self::initHeadSize());
+    ///\idea This if condition could be replaced with a compile time switch by checking, wether
+    /// Self::initHeadSize is different from PacketTypeBase::initHeadSize
+    if (sz == interpreter::size_type(-1))
+        return interpreter::range(boost::next(i.data().begin(),Self::initSize()),
+                                  i.data().end());
+    else
+        return interpreter::range(boost::next(i.data().begin(),sz),
+                                  boost::prior(i.data().end(),Self::initSize()-sz));
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// End:

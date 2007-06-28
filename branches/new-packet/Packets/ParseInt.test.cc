@@ -122,37 +122,37 @@ BOOST_AUTO_UNIT_TEST(parseInt_assign)
     BaseParser base (&p->data());
 
     Parse_Int8(p->data().begin(),base).value(0x2f);
-    BOOST_CHECK_EQUAL( p->data().begin()[0], 0x2f );
+    BOOST_CHECK_EQUAL( p->data()[0], 0x2f );
 
     Parse_Int16(p->data().begin(),base).value(0xa341);
-    BOOST_CHECK_EQUAL( p->data().begin()[0], 0xa3 );
-    BOOST_CHECK_EQUAL( p->data().begin()[1], 0x41 );
+    BOOST_CHECK_EQUAL( p->data()[0], 0xa3 );
+    BOOST_CHECK_EQUAL( p->data()[1], 0x41 );
 
     Parse_Int24(p->data().begin(),base).value(0x234567);
-    BOOST_CHECK_EQUAL( p->data().begin()[0], 0x23 );
-    BOOST_CHECK_EQUAL( p->data().begin()[1], 0x45 );
-    BOOST_CHECK_EQUAL( p->data().begin()[2], 0x67 );
+    BOOST_CHECK_EQUAL( p->data()[0], 0x23 );
+    BOOST_CHECK_EQUAL( p->data()[1], 0x45 );
+    BOOST_CHECK_EQUAL( p->data()[2], 0x67 );
 
     Parse_Int32(p->data().begin(),base).value(0xfedcba98);
-    BOOST_CHECK_EQUAL( p->data().begin()[0], 0xfe );
-    BOOST_CHECK_EQUAL( p->data().begin()[1], 0xdc );
-    BOOST_CHECK_EQUAL( p->data().begin()[2], 0xba );
-    BOOST_CHECK_EQUAL( p->data().begin()[3], 0x98 );
+    BOOST_CHECK_EQUAL( p->data()[0], 0xfe );
+    BOOST_CHECK_EQUAL( p->data()[1], 0xdc );
+    BOOST_CHECK_EQUAL( p->data()[2], 0xba );
+    BOOST_CHECK_EQUAL( p->data()[3], 0x98 );
 
     Parse_IntField<2,6>(p->data().begin(),base).value(0x3);
-    BOOST_CHECK_EQUAL( p->data().begin()[0], 0xce );
-    BOOST_CHECK_EQUAL( p->data().begin()[1], 0xdc );
+    BOOST_CHECK_EQUAL( p->data()[0], 0xce );
+    BOOST_CHECK_EQUAL( p->data()[1], 0xdc );
 
     Parse_IntField<6,9>(p->data().begin(),base).value(0x2);
-    BOOST_CHECK_EQUAL( p->data().begin()[0], 0xcd );
-    BOOST_CHECK_EQUAL( p->data().begin()[1], 0x5c );
-    BOOST_CHECK_EQUAL( p->data().begin()[2], 0xba );
+    BOOST_CHECK_EQUAL( p->data()[0], 0xcd );
+    BOOST_CHECK_EQUAL( p->data()[1], 0x5c );
+    BOOST_CHECK_EQUAL( p->data()[2], 0xba );
 
     Parse_IntField<2,21>(p->data().begin(),base).value(0x13d75);
-    BOOST_CHECK_EQUAL( p->data().begin()[0], 0xc9 );
-    BOOST_CHECK_EQUAL( p->data().begin()[1], 0xeb );
-    BOOST_CHECK_EQUAL( p->data().begin()[2], 0xaa );
-    BOOST_CHECK_EQUAL( p->data().begin()[3], 0x98 );
+    BOOST_CHECK_EQUAL( p->data()[0], 0xc9 );
+    BOOST_CHECK_EQUAL( p->data()[1], 0xeb );
+    BOOST_CHECK_EQUAL( p->data()[2], 0xaa );
+    BOOST_CHECK_EQUAL( p->data()[3], 0x98 );
 
     Parse_UIntField<4,34>(p->data().begin(),base).value(0x268ad497u);
     BOOST_CHECK_EQUAL( (Parse_UIntField<4,34>(p->data().begin(),base).value()), 0x268ad497u );
@@ -180,14 +180,14 @@ BOOST_AUTO_UNIT_TEST(parseInt_operators)
     BOOST_CHECK_EQUAL( p1, 6555902u );
     p2 += p1;
     // Here some idiotic automatic promotion from unsigned short ->
-    // int happens in the second macro parameter ... hrmpf ...
+    // int happens in the first macro parameter ... hrmpf ...
     BOOST_CHECK_EQUAL( p2, 15010 );
 
     p1 = 0x123456u;
-    BOOST_CHECK_EQUAL( p->data().begin()[0], 0x12 );
-    BOOST_CHECK_EQUAL( p->data().begin()[1], 0x34 );
-    BOOST_CHECK_EQUAL( p->data().begin()[2], 0x56 );
-    BOOST_CHECK_EQUAL( p->data().begin()[3], 0x3a );
+    BOOST_CHECK_EQUAL( p->data()[0], 0x12 );
+    BOOST_CHECK_EQUAL( p->data()[1], 0x34 );
+    BOOST_CHECK_EQUAL( p->data()[2], 0x56 );
+    BOOST_CHECK_EQUAL( p->data()[3], 0x3a );
 
     // I stop here ... this is absolutely identical for all other
     // operators and all other integer types. If really some error pops

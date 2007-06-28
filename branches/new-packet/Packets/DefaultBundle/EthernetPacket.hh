@@ -24,9 +24,9 @@
 #define HH_EthernetPacket_ 1
 
 // Custom includes
-#include "Packets/Packet.hh"
+#include <algorithm>
+#include "Packets/PacketType.hh"
 #include "Packets/ParseInt.hh"
-#include "Packets/ParseArray.hh"
 #include "Packets/PacketRegistry.hh"
 
 //#include "EthernetPacket.mpp"
@@ -34,27 +34,43 @@
 
 namespace senf {
 
-
-    template <class Iterator=nil, class IPacket=nil>
-    struct Parse_Ethernet : public ParserBase<Iterator,IPacket>
+    struct MACAddress
     {
-        template <class I, class P=nil>
-        struct rebind { typedef Parse_Ethernet<I,P> parser; };
-        typedef Iterator byte_iterator;
+        MACAddress() { std::fill(address,address+6,0u); }
+        template <class ForwardIterator>
+        MACAddress(ForwardIterator i) { std::copy(i,boost::next(i,6),address); }
 
-        Parse_Ethernet() {}
-        Parse_Ethernet(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
+        PacketInterpreterBase::byte operator[](unsigned i) const { return address[i]; }
+        PacketInterpreterBase::byte & operator[](unsigned i) { return address[i]; }
 
-        static unsigned bytes() { return 14; }
+        PacketInterpreterBase::byte address[6];
+    };
+
+    struct Parse_MAC : public PacketParserBase
+    {
+        Parse_MAC(iterator i, state const & s) : PacketParserBase(i,s,6) {}
+       
+        ///////////////////////////////////////////////////////////////////////////
+
+        typedef MACAddress value_type;
+
+        value_type value() const { return MACAddress(i()); }
+        void value(value_type v) { std::copy(v.address, v.address+6, i()); }
+        operator value_type () { return value(); }
+        Parse_MAC const & operator= (value_type other) { value(other); return *this; }
+    };
+
+    struct Parse_Ethernet : public PacketParserBase
+    {
+        Parse_Ethernet(container c) : PacketParserBase(c) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
-        typedef Parse_Array  < 6, Parse_UInt8<>, Iterator > Parse_MAC;
-        typedef Parse_UInt16 < Iterator  >                  Parse_Type;
+        typedef Parse_UInt16                      Parse_Type;
 
-        Parse_MAC  destination() const { return Parse_MAC  (this->i() ); }
-        Parse_MAC  source()      const { return Parse_MAC  (this->i() + Parse_MAC::size() ); }
-        Parse_Type type()        const { return Parse_Type (this->i() + 2*Parse_MAC::size() ); }
+        Parse_MAC  destination() const { return parse<Parse_MAC>  (i()    ); }
+        Parse_MAC  source()      const { return parse<Parse_MAC>  (i() + 2); }
+        Parse_Type type()        const { return parse<Parse_Type> (i() + 4); }
     };
 
     struct EtherTypes {
@@ -62,79 +78,65 @@ namespace senf {
         typedef boost::uint16_t key_t;
     };
 
-    class EthernetPacket
-        : public Packet,
-          public Parse_Ethernet<Packet::iterator, EthernetPacket>,
-          public PacketRegistryMixin<EtherTypes,EthernetPacket>
+    struct EthernetPacketType
+        : public PacketTypeBase,
+          public PacketTypeMixin<EthernetPacketType, EtherTypes>
     {
-        using PacketRegistryMixin<EtherTypes,EthernetPacket>::registerInterpreter;
-    public:
-        ///////////////////////////////////////////////////////////////////////////
-        // Types
+        typedef PacketTypeMixin<EthernetPacketType, EtherTypes> mixin;
+        typedef PacketInterpreter<EthernetPacketType> interpreter;
+        typedef Parse_Ethernet parser;
 
-        typedef ptr_t<EthernetPacket>::ptr ptr;
+        using mixin::nextPacketRange;
+        using mixin::nextPacketType;
 
-        ///////////////////////////////////////////////////////////////////////////
+        static interpreter::size_type initSize()
+            { return 14; }
+        
+        /** \todo Add LLC/SNAP support -> only use the registry
+            for type() values >=1536, otherwise expect an LLC header */
+        static registry_key_t nextPacketKey(interpreter & i) 
+            { return i.fields().type(); }
 
-    private:
-        template <class Arg>
-        EthernetPacket(Arg const & arg);
-
-        virtual void v_nextInterpreter() const;
-        virtual void v_finalize();
-        virtual void v_dump(std::ostream & os) const;
-
-        friend class Packet;
+        static void dump(interpreter & i, std::ostream & os);
     };
 
-    template <class Iterator=nil, class IPacket=nil>
-    struct Parse_EthVLan : public ParserBase<Iterator,IPacket>
+    struct Parse_EthVLan : public PacketParserBase
     {
-        template <class I, class P=nil>
-        struct rebind { typedef Parse_Ethernet<I,P> parser; };
-        typedef Iterator byte_iterator;
-
-        Parse_EthVLan() {}
-        Parse_EthVLan(Iterator const & i) : ParserBase<Iterator,IPacket>(i) {}
-
-        static unsigned bytes() { return 4; }
+        Parse_EthVLan(container c) : PacketParserBase(c) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
-        typedef Parse_UIntField < 0,  3, Iterator > Parse_Priority;
-        typedef Parse_Flag          < 3, Iterator > Parse_CFI;
-        typedef Parse_UIntField < 4, 16, Iterator > Parse_VLanId;
-        typedef Parse_UInt16           < Iterator > Parse_Type;
+        typedef Parse_UIntField < 0,  3 > Parse_Priority;
+        typedef Parse_Flag          < 3 > Parse_CFI;
+        typedef Parse_UIntField < 4, 16 > Parse_VLanId;
+        typedef Parse_UInt16              Parse_Type;
 
-        Parse_Priority priority() const { return Parse_Priority(this->i()); }
-        Parse_CFI      cfi()      const { return Parse_CFI(this->i()); }
-        Parse_VLanId   vlanId()   const { return Parse_VLanId(this->i()); }
-        Parse_Type     type()     const { return Parse_Type(this->i()+2); }
+        Parse_Priority priority() const { return parse<Parse_Priority> (i()    ); }
+        Parse_CFI      cfi()      const { return parse<Parse_CFI>      (i()    ); }
+        Parse_VLanId   vlanId()   const { return parse<Parse_VLanId>   (i()    ); }
+        Parse_Type     type()     const { return parse<Parse_Type>     (i() + 2); }
     };
 
-    class EthVLanPacket
-        : public Packet,
-          public Parse_EthVLan<Packet::iterator, EthVLanPacket>,
-          public PacketRegistryMixin<EtherTypes, EthVLanPacket>
+    struct EthVLanPacketType
+        : public PacketTypeBase, 
+          public PacketTypeMixin<EthVLanPacketType, EtherTypes>
     {
-        using PacketRegistryMixin<EtherTypes, EthVLanPacket>::registerInterpreter;
-    public:
-        ///////////////////////////////////////////////////////////////////////////
-        // Types
+        typedef PacketTypeMixin<EthVLanPacketType, EtherTypes> mixin;
+        typedef PacketInterpreter<EthVLanPacketType> interpreter;
+        typedef Parse_EthVLan parser;
 
-        typedef ptr_t<EthVLanPacket>::ptr ptr;
+        using mixin::nextPacketRange;
+        using mixin::nextPacketType;
 
-        ///////////////////////////////////////////////////////////////////////////
+        static interpreter::size_type initSize()
+            { return 4; }
 
-    private:
-        template <class Arg>
-        EthVLanPacket(Arg const & arg);
+        /** \todo Add LLC/SNAP support -> only use the registry
+            for type() values >=1536, otherwise expect an LLC header */
+        static registry_key_t nextPacketKey(interpreter & i) 
+            { return i.fields().type(); }
 
-        virtual void v_nextInterpreter() const;
-        virtual void v_finalize();
-        virtual void v_dump(std::ostream & os) const;
-
-        friend class Packet;
+        static void dump(interpreter & i, std::ostream & os);
     };
 
 }
@@ -143,7 +145,7 @@ namespace senf {
 ///////////////////////////////hh.e////////////////////////////////////////
 //#include "EthernetPacket.cci"
 //#include "EthernetPacket.ct"
-#include "EthernetPacket.cti"
+//#include "EthernetPacket.cti"
 #endif
 
 
