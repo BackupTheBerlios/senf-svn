@@ -19,40 +19,59 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /** \file
-    \brief PacketType inline non-template implementation */
+    \brief PacketParser inline non-template implementation */
 
 // Custom includes
+#include <iterator>
 
 #define prefix_ inline
 ///////////////////////////////cci.p///////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
-// senf::PacketTypeBase
+// senf::VoidPacketParser
 
-prefix_ senf::PacketTypeBase::interpreter::size_type
-senf::PacketTypeBase::initSize()
-{
-    return 0;
-}
-
-prefix_ senf::PacketTypeBase::interpreter::size_type senf::PacketTypeBase::initHeadSize()
-{
-    return interpreter::size_type(-1);
-}
-
-prefix_ void senf::PacketTypeBase::init(interpreter &)
+prefix_ senf::VoidPacketParser::VoidPacketParser(detail::packet::iterator, PacketData *)
 {}
 
-prefix_ senf::PacketTypeBase::interpreter::optional_range
-senf::PacketTypeBase::nextPacketRange(interpreter &)
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketParserBase
+
+prefix_ senf::PacketParserBase::iterator senf::PacketParserBase::i()
+    const
 {
-    return interpreter::no_range();
+    return i_;
 }
 
-prefix_ senf::PacketTypeBase::interpreter::factory_t
-senf::PacketTypeBase::nextPacketType(interpreter &)
+////////////////////////////////////////
+// protected members
+
+prefix_ senf::PacketParserBase::PacketParserBase(iterator i, PacketData * data)
+    : i_ (i), data_ (data)
+{}
+
+prefix_ senf::PacketParserBase::PacketParserBase(iterator i, PacketData * data, size_type size)
+    : i_ (i), data_ (data)
 {
-    return interpreter::no_factory();
+    validate(size);
+}
+
+prefix_ bool senf::PacketParserBase::check(size_type size)
+{
+    return size <= size_type(std::distance(i(),end()));
+}
+
+prefix_ void senf::PacketParserBase::validate(size_type size)
+{
+    if (! check(size))
+        throw TruncatedPacketException();
+}
+
+////////////////////////////////////////
+// private members
+
+prefix_ senf::PacketParserBase::iterator senf::PacketParserBase::end()
+{
+    return data_->end();
 }
 
 ///////////////////////////////cci.e///////////////////////////////////////

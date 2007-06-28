@@ -19,37 +19,50 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /** \file
-    \brief PacketInterpreter non-inline non-template implementation */
+    \brief PacketParser.test unit tests */
 
-#include "PacketInterpreter.hh"
-//#include "PacketInterpreter.ih"
+//#include "PacketParser.test.hh"
+//#include "PacketParser.test.ih"
 
 // Custom includes
+#include "PacketParser.hh"
+#include "PacketInterpreter.hh"
+#include "PacketType.hh"
 
-//#include "PacketInterpreter.mpp"
+#include <boost/test/auto_unit_test.hpp>
+#include <boost/test/test_tools.hpp>
+
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////
-// senf::PacketInterpreterBase
+namespace {
+    struct VoidPacket : public senf::PacketTypeBase {};
 
-// structors and default members
+    struct SimpleParser : public senf::PacketParserBase
+    {
+        SimpleParser(iterator i, senf::PacketData * data)
+            : senf::PacketParserBase(i,data) {}
+        
+        using senf::PacketParserBase::check;
+        using senf::PacketParserBase::validate;
+    };
+}
 
-prefix_  senf::PacketInterpreterBase::~PacketInterpreterBase()
-{}
-
-prefix_ senf::PacketInterpreterBase::ptr senf::PacketInterpreterBase::clone()
+BOOST_AUTO_UNIT_TEST(packetParserBase)
 {
-    detail::PacketImpl::Guard p (new detail::PacketImpl(begin(),end()));
-    ptr pi (appendClone(p.p));
-    for (ptr i (next()); i; i = i->next())
-        i->appendClone(p.p);
-    return pi;
+    senf::PacketInterpreter<VoidPacket>::ptr pi (senf::PacketInterpreter<VoidPacket>::create(4u));
+
+    SimpleParser p (pi->data().begin(), &pi->data());
+
+    BOOST_CHECK( pi->data().begin() == p.i() );
+    BOOST_CHECK( p.check(4u) );
+    BOOST_CHECK( ! p.check(5u) );
+    BOOST_CHECK_NO_THROW( p.validate(4u) );
+    BOOST_CHECK_THROW( p.validate(5u), senf::TruncatedPacketException );
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
-//#include "PacketInterpreter.mpp"
 
 
 // Local Variables:

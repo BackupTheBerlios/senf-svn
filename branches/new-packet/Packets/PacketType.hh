@@ -26,6 +26,8 @@
 
 // Custom includes
 #include "PacketTypes.hh"
+#include "PacketData.hh"
+#include "PacketParser.hh"
 
 //#include "PacketType.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
@@ -81,18 +83,43 @@ namespace senf {
     {
         typedef PacketInterpreterBase interpreter;
 
+        typedef VoidPacketParser parser;
+                                        ///< Parser to parser packet fields
+                                        /**< This typedef has to be set to the parser of the packet
+                                             
+                                             The default is a VoidPacketParser which does not parser
+                                             any field. */
+
         static interpreter::size_type initSize();
                                         ///< Get size of new (empty) packet
                                         /**< The default implementation returns 0.
                                              \returns size that needs to be allocated to a newly
                                              constructed packet */
 
+        static interpreter::size_type initHeadSize();
+                                        ///< Get size of new (empty) packet header
+                                        /**< This function gives the index within a newly created,
+                                             empty packet where a subpacket is to be placed.
+
+                                             The default implementation returns initSize(). 
+                                             
+                                             \implementation Ok, it does not really return
+                                                 initSize(), it returns size_type(-1) which is
+                                                 interpreted to mean initSize(). It can't return
+                                                 initSize since initSize() is not (and can't be
+                                                 since it is static) virtual. */
+
         static void init(interpreter &);
                                         ///< Initialize new packet
                                         /**< This member is called to initialize a just created new
-                                             packet.
+                                             packet. The new packet will have a size of at least
+                                             initSize() but the size may well be larger. It is also
+                                             possible for the packet to already have further
+                                             subpackets.
 
                                              The default implementation does nothing. */
+
+        
 
         static interpreter::optional_range nextPacketRange(interpreter &);
                                         ///< Get next packet placement

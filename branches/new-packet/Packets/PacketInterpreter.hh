@@ -79,6 +79,8 @@ namespace senf {
         static                             factory_t no_factory();
         template <class PacketType> static factory_t factory();
         
+        ptr clone();
+
         ///@}
         ///////////////////////////////////////////////////////////////////////////
 
@@ -107,18 +109,26 @@ namespace senf {
         ///@}
 
     protected:
+        // protected structors
+
         PacketInterpreterBase(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
         PacketInterpreterBase(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
 
+        ptr appendClone(detail::PacketImpl * impl);
+
     private:
         // abstract packet type interface
+
         virtual optional_range v_nextPacketRange() = 0;
+        virtual ptr v_appendClone(detail::PacketImpl * impl) = 0;
 
         // reference/memory management. Only to be called by intrusive_refcount_t.
+
         void add_ref();
         bool release();
 
         // containment management. Only to be called by PacketImpl.
+
         void assignImpl(detail::PacketImpl *);
         void releaseImpl();
 
@@ -144,6 +154,7 @@ namespace senf {
         typedef typename senf::detail::packet::smart_pointer<
             PacketInterpreter>::ptr_t ptr;
         typedef PacketType type;
+        typedef typename type::parser parser;
 
         ///////////////////////////////////////////////////////////////////////////
         ///\name Structors and default members
@@ -154,32 +165,57 @@ namespace senf {
         // no conversion constructors
 
         // Create completely new packet
-        static ptr create();
 
-        // Create packet from given data
+        static ptr create();
+        static ptr create(size_type size);
         template <class ForwardReadableRange>
         static ptr create(ForwardReadableRange const & range);
 
-        // Create packet as new (empty) packet after a given packet
+        // Create packet as new packet after a given packet
+
         static ptr createAfter(PacketInterpreterBase::ptr packet);
+        static ptr createAfter(PacketInterpreterBase::ptr packet, size_type size);
+        template <class ForwardReadableRange>
+        static ptr createAfter(PacketInterpreterBase::ptr packet, 
+                               ForwardReadableRange const & range);
+
+        // Create packet as new packet (header) before a given packet
+
+        static ptr createBefore(PacketInterpreterBase::ptr packet);
+
+        // Create a clone of the current packet
+
+        ptr clone();
 
         ///@}
         ///////////////////////////////////////////////////////////////////////////
 
+        // Packet field access
+
+        parser fields();
+
     protected:
 
     private:
+        // Private structors
+
         PacketInterpreter(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
         PacketInterpreter(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
 
         static ptr create(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
         static ptr create(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
 
+        // PacketType access
+
         static size_type initSize();
+        static size_type initHeadSize();
 
         void init();
 
+        // virtual interface
+
         virtual optional_range v_nextPacketRange();
+        virtual PacketInterpreterBase::ptr v_appendClone(detail::PacketImpl * impl);
 
         friend class detail::packet::test::TestDriver;
     };

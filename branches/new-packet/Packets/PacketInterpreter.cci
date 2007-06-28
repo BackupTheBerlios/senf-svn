@@ -32,22 +32,6 @@
 
 // Structors and default members
 
-prefix_ senf::PacketInterpreterBase::PacketInterpreterBase(detail::PacketImpl * impl,
-                                                           iterator b, iterator e, Append_t)
-    : PacketData(std::distance(impl->begin(),b),
-                 std::distance(impl->begin(),e))
-{
-    impl->appendInterpreter(this);
-}
-
-prefix_ senf::PacketInterpreterBase::PacketInterpreterBase(detail::PacketImpl * impl,
-                                                           iterator b, iterator e, Prepend_t)
-    : PacketData(std::distance(impl->begin(),b),
-                 std::distance(impl->begin(),e))
-{
-        impl->prependInterpreter(this);
-}
-
 prefix_ senf::PacketInterpreterBase::factory_t senf::PacketInterpreterBase::no_factory()
 {
     return 0;
@@ -90,6 +74,36 @@ senf::PacketInterpreterBase::nextPacketRange()
     return v_nextPacketRange();
 }
 
+////////////////////////////////////////
+// protected members
+
+// protected structors
+
+prefix_ senf::PacketInterpreterBase::PacketInterpreterBase(detail::PacketImpl * impl,
+                                                           iterator b, iterator e, Append_t)
+    : PacketData(std::distance(impl->begin(),b),
+                 std::distance(impl->begin(),e))
+{
+    impl->appendInterpreter(this);
+}
+
+prefix_ senf::PacketInterpreterBase::PacketInterpreterBase(detail::PacketImpl * impl,
+                                                           iterator b, iterator e, Prepend_t)
+    : PacketData(std::distance(impl->begin(),b),
+                 std::distance(impl->begin(),e))
+{
+        impl->prependInterpreter(this);
+}
+
+prefix_ senf::PacketInterpreterBase::ptr
+senf::PacketInterpreterBase::appendClone(detail::PacketImpl * impl)
+{
+    return v_appendClone(impl);
+}
+
+////////////////////////////////////////
+// private members
+
 // reference/memory management
 
 prefix_ void senf::PacketInterpreterBase::add_ref()
@@ -106,6 +120,8 @@ prefix_ bool senf::PacketInterpreterBase::release()
         impl_->release();
     return intrusive_refcount_t<PacketInterpreterBase>::release() && !impl_;
 }
+
+// containment management. Only to be called by PacketImpl.
 
 prefix_ void senf::PacketInterpreterBase::assignImpl(detail::PacketImpl * impl)
 {
@@ -126,6 +142,7 @@ prefix_ void senf::PacketInterpreterBase::releaseImpl()
         delete this;
     }
 }
+
 
 ///////////////////////////////cci.e///////////////////////////////////////
 #undef prefix_

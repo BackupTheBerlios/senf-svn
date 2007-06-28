@@ -31,28 +31,40 @@
 ///////////////////////////////////////////////////////////////////////////
 // senf::PacketInterpreter<PacketType>
 
+// Create completely new packet
+
 template <class PacketType>
 prefix_ typename senf::PacketInterpreter<PacketType>::ptr
-senf::PacketInterpreter<PacketType>::create()
+senf::PacketInterpreter<PacketType>::create(size_type size)
 {
-    detail::PacketImpl::Guard p (new detail::PacketImpl(initSize(),0));
+    if (size < initSize())
+        throw TruncatedPacketException();
+
+    detail::PacketImpl::Guard p (new detail::PacketImpl(size,0));
     ptr pi (create(p.p,p.p->begin(),p.p->end(),Append));
     pi->init();
     return pi;
 }
 
+// Create packet as new packet after a given packet
+
 template <class PacketType>
 prefix_ typename senf::PacketInterpreter<PacketType>::ptr
-senf::PacketInterpreter<PacketType>::createAfter(PacketInterpreterBase::ptr packet)
+senf::PacketInterpreter<PacketType>::createAfter(PacketInterpreterBase::ptr packet,
+                                                 size_type size)
 {
+    if (size < initSize())
+        throw TruncatedPacketException();
+
     optional_range r (packet->nextPacketRange());
-    if (!r) throw InvalidPacketChainException();
+    if (!r)
+        throw InvalidPacketChainException();
 
     if (packet != packet->last())
         packet->impl().truncateInterpreters(packet->next().get());
 
     ptr pi (create(&packet->impl(),r->begin(),r->end(),Append));
-    pi->data().resize(initSize());
+    pi->data().resize(size);
     std::fill(pi->data().begin(), pi->data().end(),0);
     pi->init();
     return pi;
@@ -61,18 +73,59 @@ senf::PacketInterpreter<PacketType>::createAfter(PacketInterpreterBase::ptr pack
 template <class PacketType>
 template <class ForwardReadableRange>
 prefix_ typename senf::PacketInterpreter<PacketType>::ptr
-senf::PacketInterpreter<PacketType>::create(ForwardReadableRange const & range)
+senf::PacketInterpreter<PacketType>::createAfter(PacketInterpreterBase::ptr packet,
+                                                 ForwardReadableRange const & range)
 {
-    detail::PacketImpl::Guard p (new detail::PacketImpl(boost::size(range)));
-    ptr pi (create(p.p,p.p->begin(),p.p->end(),Append));
+    optional_range r (packet->nextPacketRange());
+    if (!r)
+        throw InvalidPacketChainException();
+    
+    if (packet != packet->last())
+        packet->impl().truncateInterpreters(packet->next().get());
+
+    ptr pi (create(&packet->impl(),r->begin(),r->end(),Append));
+    pi->data().resize(boost::size(range));
+    std::copy(boost::begin(range), boost::end(range), pi->data().begin());
     return pi;
 }
+
+// Create packet as new packet (header) before a given packet
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::createBefore(PacketInterpreterBase::ptr packet)
+{
+    if (packet != packet->first())
+        packet->impl().truncateInterpretersBackwards(packet->prev().get());
+    
+    ptr pi (create(&packet->impl(),packet->data().begin(),packet->data().end(),Prepend));
+    pi->data().insert(pi->data().begin(),initHeadSize(),byte(0x00u));
+    pi->data().insert(pi->data().end(),initSize()-initHeadSize(),byte(0x00u));
+    pi->init();
+    return pi;
+}
+
+////////////////////////////////////////
+// private members
+
+// virtual interface
 
 template <class PacketType>
 prefix_ typename senf::PacketInterpreter<PacketType>::optional_range
 senf::PacketInterpreter<PacketType>::v_nextPacketRange()
 {
     return type::nextPacketRange(*this);
+}
+
+template <class PacketType>
+prefix_ senf::PacketInterpreterBase::ptr
+senf::PacketInterpreter<PacketType>::v_appendClone(detail::PacketImpl * target)
+{
+    return create(target,
+                  // Hrmpf ... this is awkward but does not depend on the internal representation
+                  boost::next(target->begin(),std::distance(impl().begin(),begin())),
+                  boost::next(target->begin(),std::distance(impl().begin(),end())),
+                  Append);
 }
 
 ///////////////////////////////ct.e////////////////////////////////////////

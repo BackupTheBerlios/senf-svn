@@ -75,6 +75,7 @@ namespace detail {
         void appendInterpreter    (PacketInterpreterBase * p);
         void prependInterpreter   (PacketInterpreterBase * p);
         void truncateInterpreters (PacketInterpreterBase * p);
+        void truncateInterpretersBackwards (PacketInterpreterBase * p);
 
         // Data container
 

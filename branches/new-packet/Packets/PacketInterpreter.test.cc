@@ -45,16 +45,55 @@ namespace {
 
 BOOST_AUTO_UNIT_TEST(packetInterpreterBase)
 {
-    senf::PacketInterpreterBase::ptr pi1 (senf::PacketInterpreter<VoidPacket>::create());
-    senf::PacketInterpreterBase::ptr pi2 (senf::PacketInterpreter<VoidPacket>::createAfter(pi1));
-    senf::PacketInterpreterBase::ptr pi3 (senf::PacketInterpreter<VoidPacket>::createAfter(pi2));
+    {
+        senf::PacketInterpreter<VoidPacket>::ptr pi2 (senf::PacketInterpreter<VoidPacket>::create());
+        senf::PacketInterpreter<VoidPacket>::ptr pi3 (senf::PacketInterpreter<VoidPacket>::createAfter(pi2)); 
+        senf::PacketInterpreter<VoidPacket>::ptr pi1 (senf::PacketInterpreter<VoidPacket>::createBefore(pi2));
+   
+        pi2->data().insert(pi2->data().begin(),0x02);
+        BOOST_CHECK_EQUAL( pi1->data().size(), 1u );
+        BOOST_CHECK_EQUAL( pi2->data().size(), 1u );
+        
+        BOOST_CHECK( pi2 == pi1->next() );
+        BOOST_CHECK( pi3 == pi2->next() );
+        BOOST_CHECK( ! pi3->next() );
+        BOOST_CHECK( pi2 == pi3->prev() );
+        BOOST_CHECK( pi1 == pi2->prev() );
+        BOOST_CHECK( ! pi1->prev() );
 
-    BOOST_CHECK( pi2 == pi1->next() );
-    BOOST_CHECK( pi3 == pi2->next() );
-    BOOST_CHECK( ! pi3->next() );
-    BOOST_CHECK( pi2 == pi3->prev() );
-    BOOST_CHECK( pi1 == pi2->prev() );
-    BOOST_CHECK( ! pi1->prev() );
+        pi1->data().insert(pi1->data().begin(),2,0x01u);
+        BOOST_CHECK_EQUAL( pi1->data().size(), 3u );
+        BOOST_CHECK_EQUAL( pi2->data().size(), 1u );
+        BOOST_CHECK_EQUAL( pi3->data().size(), 0u );
+
+        senf::PacketInterpreter<VoidPacket>::ptr pi2b (pi2->clone());
+        BOOST_REQUIRE( pi2b->next() );
+        BOOST_CHECK( ! pi2b->next()->next() );
+        BOOST_CHECK( ! pi2b->prev() );
+
+        pi2b->data().insert(pi2b->data().begin(),0x03u);
+        BOOST_CHECK_EQUAL( pi2->data().size(), 1u );
+        BOOST_CHECK_EQUAL( pi2b->data().size(), 2u );
+    }
+
+    {
+        senf::PacketInterpreter<VoidPacket>::ptr p
+            (senf::PacketInterpreter<VoidPacket>::create(4u));
+        
+        BOOST_CHECK_EQUAL( p->data().size(), 4u );
+        BOOST_CHECK_EQUAL( std::distance(p->data().begin(),p->data().end()), 4 );
+    }
+
+    {
+        senf::PacketInterpreter<VoidPacket>::byte data[] = { 0x01, 0x02, 0x03, 0x04 };
+        senf::PacketInterpreter<VoidPacket>::ptr p
+            (senf::PacketInterpreter<VoidPacket>::create(data));
+
+        BOOST_CHECK_EQUAL( p->data().size(), 4u );
+        BOOST_CHECK_EQUAL( std::distance(p->data().begin(),p->data().end()), 4 );
+        BOOST_CHECK( std::equal(p->data().begin(), p->data().end(), data) );
+    }
+            
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////

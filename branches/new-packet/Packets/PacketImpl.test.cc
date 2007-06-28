@@ -84,6 +84,7 @@ BOOST_AUTO_UNIT_TEST(packetImpl_mem)
         senf::pool_alloc_mixin<senf::PacketInterpreterBase>::allocCounter(), 0u);
     BOOST_CHECK_EQUAL(p->refcount(),1);
 
+
     // The refcount must be one here (from incrementing the refcount above)
     // Therefore we can safely delete the object.
     BOOST_CHECK_EQUAL(p->refcount(), 1);

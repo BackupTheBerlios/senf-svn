@@ -42,18 +42,56 @@ prefix_ senf::PacketInterpreterBase::factory_t senf::PacketInterpreterBase::fact
 ///////////////////////////////////////////////////////////////////////////
 // senf::PacketInterpreter<PacketType>
 
+// Create completely new packet
+
 template <class PacketType>
-prefix_ typename senf::PacketInterpreter<PacketType>::size_type
-senf::PacketInterpreter<PacketType>::initSize()
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::create()
 {
-    return type::initSize();
+    return create(initSize());
 }
 
 template <class PacketType>
-prefix_ void senf::PacketInterpreter<PacketType>::init()
+template <class ForwardReadableRange>
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::create(ForwardReadableRange const & range)
 {
-    return type::init(*this);
+    detail::PacketImpl::Guard p (new detail::PacketImpl(boost::begin(range),boost::end(range)));
+    ptr pi (create(p.p,p.p->begin(),p.p->end(),Append));
+    return pi;
 }
+
+// Create packet as new packet after a given packet
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::createAfter(PacketInterpreterBase::ptr packet)
+{
+    return createAfter(packet, initSize());
+}
+
+// Create clone of current packet
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::ptr
+senf::PacketInterpreter<PacketType>::clone()
+{
+    return boost::static_pointer_cast<typename ptr::element_type>(PacketInterpreterBase::clone());
+}
+
+// Packet field access
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::parser
+senf::PacketInterpreter<PacketType>::fields()
+{
+    return parser(data().begin(), data());
+}
+
+////////////////////////////////////////
+// private members
+
+// Private structors
 
 template <class PacketType>
 prefix_ typename senf::PacketInterpreter<PacketType>::ptr
@@ -82,6 +120,29 @@ prefix_ senf::PacketInterpreter<PacketType>::PacketInterpreter(detail::PacketImp
                                                                iterator b, iterator e, Prepend_t)
     : PacketInterpreterBase(impl,b,e,Prepend)
 {}
+
+// PacketType access
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::size_type
+senf::PacketInterpreter<PacketType>::initSize()
+{
+    return type::initSize();
+}
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::size_type
+senf::PacketInterpreter<PacketType>::initHeadSize()
+{
+    size_type sz (type::initHeadSize());
+    return  sz == size_type(-1) ? initSize() : sz ;
+}
+
+template <class PacketType>
+prefix_ void senf::PacketInterpreter<PacketType>::init()
+{
+    return type::init(*this);
+}
 
 ///////////////////////////////cti.e///////////////////////////////////////
 #undef prefix_

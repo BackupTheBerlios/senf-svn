@@ -108,6 +108,9 @@ namespace senf {
         friend class detail::PacketImpl;
     };
 
+    struct TruncatedPacketException : public std::exception
+    { virtual char const * what() const throw() { return "truncated packet"; } };
+
 }
 
 ///////////////////////////////hh.e////////////////////////////////////////

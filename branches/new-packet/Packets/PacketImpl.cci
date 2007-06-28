@@ -123,6 +123,12 @@ prefix_ void senf::detail::PacketImpl::truncateInterpreters(PacketInterpreterBas
     eraseInterpreters(interpreter_list::current(*p),interpreters_.end());
 }
 
+prefix_ void senf::detail::PacketImpl::truncateInterpretersBackwards(PacketInterpreterBase * p)
+{
+    Guard guard (this);
+    eraseInterpreters(interpreters_.begin(),boost::next(interpreter_list::current(*p)));
+}
+
 // Data container
 
 prefix_ senf::detail::PacketImpl::iterator senf::detail::PacketImpl::begin()
