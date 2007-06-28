@@ -40,8 +40,8 @@ namespace {
 
     struct SimpleParser : public senf::PacketParserBase
     {
-        SimpleParser(iterator i, senf::PacketData * data)
-            : senf::PacketParserBase(i,data) {}
+        SimpleParser( senf::PacketData * data)
+            : senf::PacketParserBase(data) {}
         
         using senf::PacketParserBase::check;
         using senf::PacketParserBase::validate;
@@ -52,7 +52,7 @@ BOOST_AUTO_UNIT_TEST(packetParserBase)
 {
     senf::PacketInterpreter<VoidPacket>::ptr pi (senf::PacketInterpreter<VoidPacket>::create(4u));
 
-    SimpleParser p (pi->data().begin(), &pi->data());
+    SimpleParser p (&pi->data());
 
     BOOST_CHECK( pi->data().begin() == p.i() );
     BOOST_CHECK( p.check(4u) );

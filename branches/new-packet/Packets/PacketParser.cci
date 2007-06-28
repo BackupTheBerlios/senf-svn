@@ -45,12 +45,17 @@ prefix_ senf::PacketParserBase::iterator senf::PacketParserBase::i()
 ////////////////////////////////////////
 // protected members
 
-prefix_ senf::PacketParserBase::PacketParserBase(iterator i, PacketData * data)
-    : i_ (i), data_ (data)
+prefix_ senf::PacketParserBase::PacketParserBase(PacketData * data)
+    : i_ (data->begin()), data_ (data)
 {}
 
-prefix_ senf::PacketParserBase::PacketParserBase(iterator i, PacketData * data, size_type size)
-    : i_ (i), data_ (data)
+prefix_ senf::PacketParserBase::PacketParserBase(iterator i, PacketParserBase const & base)
+    : i_ (i), data_ (base.data_)
+{}
+
+prefix_ senf::PacketParserBase::PacketParserBase(iterator i, PacketParserBase const & base,
+                                                 size_type size)
+    : i_ (i), data_ (base.data_)
 {
     validate(size);
 }

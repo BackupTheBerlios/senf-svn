@@ -59,8 +59,9 @@ namespace senf {
         iterator i() const;
 
     protected:
-        PacketParserBase(iterator i, PacketData * data);
-        PacketParserBase(iterator i, PacketData * data, size_type size);
+        PacketParserBase(PacketData * data);
+        PacketParserBase(iterator i, PacketParserBase const & base);
+        PacketParserBase(iterator i, PacketParserBase const & base, size_type size);
 
         bool check(size_type size);
         void validate(size_type size);
