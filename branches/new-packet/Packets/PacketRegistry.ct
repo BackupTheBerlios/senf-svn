@@ -64,6 +64,16 @@ senf::detail::PacketRegistryImpl<KeyType>::key(senf::TypeIdValue const & type)
 }
 
 template <class KeyType>
+prefix_ boost::optional<typename senf::detail::PacketRegistryImpl<KeyType>::key_t>
+senf::detail::PacketRegistryImpl<KeyType>::key(senf::TypeIdValue const & type, bool)
+{
+    typename ReversePacketMap::iterator i (reverseRegistry_.find(type));
+    if (i==reverseRegistry_.end())
+        return boost::optional<key_t>();
+    return i->second;
+}
+
+template <class KeyType>
 prefix_ typename senf::detail::PacketRegistryImpl<KeyType>::Entry const &
 senf::detail::PacketRegistryImpl<KeyType>::lookup(key_t key)
 {
@@ -71,6 +81,16 @@ senf::detail::PacketRegistryImpl<KeyType>::lookup(key_t key)
     if (i==registry_.end())
         throw PacketTypeNotRegisteredException();
     return *(i->second);
+}
+
+template <class KeyType>
+prefix_ typename senf::detail::PacketRegistryImpl<KeyType>::Entry const *
+senf::detail::PacketRegistryImpl<KeyType>::lookup(key_t key, bool)
+{
+    typename PacketMap::iterator i (registry_.find(key));
+    if (i==registry_.end())
+        return 0;
+    return i->second.get();
 }
 
 template <class Tag>

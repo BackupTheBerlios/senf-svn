@@ -27,6 +27,8 @@
 // Custom includes
 #include <map>
 #include <boost/utility.hpp> // for boost::noncopyable
+#include <boost/optional.hpp>
+#include "Utils/Exception.hh"
 #include "PacketInterpreter.hh"
 
 //#include "PacketRegistry.mpp"
@@ -130,6 +132,9 @@ namespace senf {
         template <class PacketType>
         static typename Tag::key_t key();
 
+        template <class PacketType>
+        static typename boost::optional<typename Tag::key_t> key(NoThrow_t);
+
         /** \brief Lookup a packet by it's key
 
             Returns the packet registration registered under \a key in the \a Tag registry
@@ -139,6 +144,8 @@ namespace senf {
             \throws PacketTypeNotRegistered if the packet type is not found in the registry
          */
         static PkReg_Entry const & lookup(typename Tag::key_t key);
+
+        static PkReg_Entry const * lookup(typename Tag::key_t key, NoThrow_t);
 
     private:
         typedef detail::PacketRegistryImpl<typename Tag::key_t> Registry;

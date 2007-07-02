@@ -68,8 +68,10 @@ namespace detail {
         void registerPacket(key_t key);
 
         key_t key(senf::TypeIdValue const & type);
+        boost::optional<key_t> key(senf::TypeIdValue const & type, bool);
 
         Entry const & lookup(key_t key);
+        Entry const * lookup(key_t key, bool);
 
     protected:
 

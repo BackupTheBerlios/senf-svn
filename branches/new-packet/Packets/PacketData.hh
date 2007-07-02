@@ -75,6 +75,7 @@ namespace senf {
         size_type size() const;
         bool empty() const;
         byte operator[](size_type n) const;
+        byte & operator[](size_type n);
 
         // Modifying the raw packet data
 

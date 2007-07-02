@@ -52,6 +52,12 @@ namespace senf {
                 return constant_initial_size_of_empty_packet;
             }
 
+            static interpreter::size_type initHeadSize()
+            {
+                // optional member
+                return constant_initial_size_of_header
+            }
+
             static void init(interpreter & i)
             {
                 // Initialize a new packet by e.g. setting some fields

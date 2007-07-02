@@ -64,6 +64,12 @@ prefix_ senf::PacketData::byte senf::PacketData::operator[](size_type n)
     return *( boost::next(begin(),n) );
 }
 
+prefix_ senf::PacketData::byte & senf::PacketData::operator[](size_type n)
+{
+    BOOST_ASSERT( n < size() );
+    return *( boost::next(begin(),n) );
+}
+
 // Modifying the raw packet data
 
 prefix_ void senf::PacketData::insert(iterator pos, byte v)

@@ -31,11 +31,14 @@
 #include "Utils/intrusive_refcount.hh"
 #include "Utils/pool_alloc_mixin.hh"
 #include "PacketData.hh"
+#include "typeidvalue.hh"
 
 //#include "PacketInterpreter.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
 
 namespace senf {
+
+    template <class PacketType> class PacketInterpreter;
 
     /** \brief
       */
@@ -63,8 +66,42 @@ namespace senf {
 
         enum Append_t { Append };
         enum Prepend_t { Prepend };
+        enum NoInit_t { noinit };
 
-        typedef ptr (*factory_t)(detail::PacketImpl *, iterator, iterator);
+        struct Factory { 
+            virtual ~Factory();
+
+            // Create completely new packet
+
+            virtual ptr create() const = 0;
+            virtual ptr create(NoInit_t) const = 0;
+            virtual ptr create(size_type size) const = 0;
+            virtual ptr create(size_type size, NoInit_t) const = 0;
+            template <class ForwardReadableRange>
+            ptr create(ForwardReadableRange const & range) const;
+            
+            // Create packet as new packet after a given packet
+
+            virtual ptr createAfter(PacketInterpreterBase::ptr packet) const = 0;
+            virtual ptr createAfter(PacketInterpreterBase::ptr packet, NoInit_t) const = 0;
+            virtual ptr createAfter(PacketInterpreterBase::ptr packet, size_type size) const = 0;
+            virtual ptr createAfter(PacketInterpreterBase::ptr packet, size_type size, 
+                                    NoInit_t) const = 0;
+            template <class ForwardReadableRange>
+            ptr createAfter(PacketInterpreterBase::ptr packet, 
+                            ForwardReadableRange const & range) const;
+            
+            // Create packet as new packet (header) const before a given packet
+
+            virtual ptr createBefore(PacketInterpreterBase::ptr packet) const = 0;
+            virtual ptr createBefore(PacketInterpreterBase::ptr packet, NoInit_t) const = 0;
+
+            // Parse next packet in chain
+
+            virtual ptr parseNext(ptr packet) const = 0;
+        };
+
+        typedef Factory const * factory_t;
 
         ///////////////////////////////////////////////////////////////////////////
         ///\name Structors and default members
@@ -79,7 +116,7 @@ namespace senf {
         static                             factory_t no_factory();
         
         ptr clone();
-
+ 
         ///@}
         ///////////////////////////////////////////////////////////////////////////
 
@@ -90,6 +127,11 @@ namespace senf {
         ptr prev();
         ptr first();
         ptr last();
+
+        template <class Type> typename PacketInterpreter<Type>::ptr parseNextAs();
+                                       ptr                          parseNextAs(factory_t factory);
+        template <class Type>          bool                         is();
+        template <class Type> typename PacketInterpreter<Type>::ptr as();
 
         ///@}
 
@@ -106,6 +148,7 @@ namespace senf {
         optional_range nextPacketRange();
         void finalize();
         void dump(std::ostream & os);
+        TypeIdValue typeId();
 
         ///@}
 
@@ -115,15 +158,16 @@ namespace senf {
         PacketInterpreterBase(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
         PacketInterpreterBase(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
 
-        ptr appendClone(detail::PacketImpl * impl);
+        ptr appendClone(detail::PacketImpl * impl, iterator begin);
 
     private:
         // abstract packet type interface
 
         virtual optional_range v_nextPacketRange() = 0;
-        virtual ptr v_appendClone(detail::PacketImpl * impl) = 0;
+        virtual ptr v_appendClone(detail::PacketImpl * impl, iterator begin) = 0;
         virtual void v_finalize() = 0;
         virtual void v_dump(std::ostream & os) = 0;
+        virtual TypeIdValue v_type() = 0;
 
         // reference/memory management. Only to be called by intrusive_refcount_t.
 
@@ -172,14 +216,18 @@ namespace senf {
         // Create completely new packet
 
         static ptr create();
+        static ptr create(NoInit_t);
         static ptr create(size_type size);
+        static ptr create(size_type size, NoInit_t);
         template <class ForwardReadableRange>
         static ptr create(ForwardReadableRange const & range);
 
         // Create packet as new packet after a given packet
 
         static ptr createAfter(PacketInterpreterBase::ptr packet);
+        static ptr createAfter(PacketInterpreterBase::ptr packet, NoInit_t);
         static ptr createAfter(PacketInterpreterBase::ptr packet, size_type size);
+        static ptr createAfter(PacketInterpreterBase::ptr packet, size_type size, NoInit_t);
         template <class ForwardReadableRange>
         static ptr createAfter(PacketInterpreterBase::ptr packet, 
                                ForwardReadableRange const & range);
@@ -187,6 +235,7 @@ namespace senf {
         // Create packet as new packet (header) before a given packet
 
         static ptr createBefore(PacketInterpreterBase::ptr packet);
+        static ptr createBefore(PacketInterpreterBase::ptr packet, NoInit_t);
 
         // Create a clone of the current packet
 
@@ -199,6 +248,11 @@ namespace senf {
 
         parser fields();
 
+        // PacketType access
+
+        static size_type initSize();
+        static size_type initHeadSize();
+
     protected:
 
     private:
@@ -210,24 +264,59 @@ namespace senf {
         static ptr create(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
         static ptr create(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
 
-        static PacketInterpreterBase::ptr createFactory(detail::PacketImpl * impl, iterator b,
-                                                        iterator e);
-
         // PacketType access
-
-        static size_type initSize();
-        static size_type initHeadSize();
 
         void init();
 
         // virtual interface
 
         virtual optional_range v_nextPacketRange();
-        virtual PacketInterpreterBase::ptr v_appendClone(detail::PacketImpl * impl);
+        virtual PacketInterpreterBase::ptr v_appendClone(detail::PacketImpl * impl, 
+                                                         iterator begin);
         virtual void v_finalize();
         virtual void v_dump(std::ostream & os);
+        virtual TypeIdValue v_type();
+
+        // factory
+
+        struct FactoryImpl : public Factory {
+            // Create completely new packet
+
+            virtual PacketInterpreterBase::ptr create() const;
+            virtual PacketInterpreterBase::ptr create(NoInit_t) const;
+            virtual PacketInterpreterBase::ptr create(size_type size) const;
+            virtual PacketInterpreterBase::ptr create(size_type size,NoInit_t) const;
+            
+            // Create packet as new packet after a given packet
+
+            virtual PacketInterpreterBase::ptr createAfter(PacketInterpreterBase::ptr packet) 
+                const;
+            virtual PacketInterpreterBase::ptr createAfter(PacketInterpreterBase::ptr packet, 
+                                                           NoInit_t) const;
+            virtual PacketInterpreterBase::ptr createAfter(PacketInterpreterBase::ptr packet, 
+                                                           size_type size) const;
+            virtual PacketInterpreterBase::ptr createAfter(PacketInterpreterBase::ptr packet, 
+                                                           size_type size, NoInit_t) const;
+            
+            // Create packet as new packet (header) before a given packet
+
+            virtual PacketInterpreterBase::ptr createBefore(PacketInterpreterBase::ptr packet) 
+                const;
+            virtual PacketInterpreterBase::ptr createBefore(PacketInterpreterBase::ptr packet,
+                                                            NoInit_t) 
+                const;
+
+            // Parse next packet in chain
+
+            virtual PacketInterpreterBase::ptr parseNext(PacketInterpreterBase::ptr packet) 
+                const;
+        };
+
+        static const FactoryImpl factory_;
 
         friend class detail::packet::test::TestDriver;
+        friend class PacketInterpreterBase;
+        friend class FactoryImpl;
     };
 
     struct InvalidPacketChainException : public std::exception

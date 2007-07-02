@@ -52,9 +52,23 @@ prefix_ typename Tag::key_t senf::PacketRegistry<Tag>::key()
 }
 
 template <class Tag>
+template <class PacketType>
+prefix_ typename boost::optional<typename Tag::key_t> senf::PacketRegistry<Tag>::key(NoThrow_t)
+{
+    return registry().key(senf::typeIdValue<PacketType>(true));
+}
+
+template <class Tag>
 prefix_ senf::PkReg_Entry const & senf::PacketRegistry<Tag>::lookup(typename Tag::key_t key)
 {
     return registry().lookup(key);
+}
+
+template <class Tag>
+prefix_ senf::PkReg_Entry const * senf::PacketRegistry<Tag>::lookup(typename Tag::key_t key,
+                                                                    NoThrow_t)
+{
+    return registry().lookup(key,true);
 }
 
 ///////////////////////////////PacketRegistry..e///////////////////////////////////////

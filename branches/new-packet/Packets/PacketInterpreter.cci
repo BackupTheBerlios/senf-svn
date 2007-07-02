@@ -59,6 +59,12 @@ prefix_ senf::PacketInterpreterBase::ptr senf::PacketInterpreterBase::last()
     return ptr(impl().last());
 }
 
+prefix_ senf::PacketInterpreterBase::ptr
+senf::PacketInterpreterBase::parseNextAs(factory_t factory)
+{
+    return factory->parseNext(ptr(this));
+}
+
 // Data access
 
 prefix_ senf::PacketData & senf::PacketInterpreterBase::data()
@@ -77,6 +83,11 @@ senf::PacketInterpreterBase::nextPacketRange()
 prefix_ void senf::PacketInterpreterBase::finalize()
 {
     return v_finalize();
+}
+
+prefix_ senf::TypeIdValue senf::PacketInterpreterBase::typeId()
+{
+    return v_type();
 }
 
 ////////////////////////////////////////
@@ -101,9 +112,9 @@ prefix_ senf::PacketInterpreterBase::PacketInterpreterBase(detail::PacketImpl * 
 }
 
 prefix_ senf::PacketInterpreterBase::ptr
-senf::PacketInterpreterBase::appendClone(detail::PacketImpl * impl)
+senf::PacketInterpreterBase::appendClone(detail::PacketImpl * impl, iterator begin)
 {
-    return v_appendClone(impl);
+    return v_appendClone(impl,begin);
 }
 
 ////////////////////////////////////////

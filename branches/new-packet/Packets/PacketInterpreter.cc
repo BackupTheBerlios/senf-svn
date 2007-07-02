@@ -41,9 +41,9 @@ prefix_  senf::PacketInterpreterBase::~PacketInterpreterBase()
 prefix_ senf::PacketInterpreterBase::ptr senf::PacketInterpreterBase::clone()
 {
     detail::PacketImpl::Guard p (new detail::PacketImpl(begin(),end()));
-    ptr pi (appendClone(p.p));
+    ptr pi (appendClone(p.p,begin()));
     for (ptr i (next()); i; i = i->next())
-        i->appendClone(p.p);
+        i->appendClone(p.p,begin());
     return pi;
 }
 
@@ -57,6 +57,12 @@ prefix_ void senf::PacketInterpreterBase::dump(std::ostream & os)
         i->v_dump(os);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketInterpreterBase::Factory
+
+prefix_  senf::PacketInterpreterBase::Factory::~Factory()
+{}
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
