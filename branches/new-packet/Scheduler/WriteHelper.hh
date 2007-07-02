@@ -105,7 +105,7 @@ namespace senf {
         mutable std::string data_;
         Callback callback_;
 
-        mutable std::string::size_type offset_;
+        mutable std::string::iterator offset_;
         int errno_;
     };
 
@@ -126,4 +126,5 @@ namespace senf {
 // c-file-style: "senf"
 // indent-tabs-mode: nil
 // ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
 // End:

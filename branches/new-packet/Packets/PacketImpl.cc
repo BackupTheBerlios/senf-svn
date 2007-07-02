@@ -122,4 +122,5 @@ prefix_ void senf::detail::PacketImpl::updateIterators(PacketData * self, iterat
 // c-file-style: "senf"
 // indent-tabs-mode: nil
 // ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
 // End:

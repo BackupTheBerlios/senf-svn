@@ -81,4 +81,5 @@ prefix_ senf::PkReg_Entry const * senf::PacketRegistry<Tag>::lookup(typename Tag
 // c-file-style: "senf"
 // indent-tabs-mode: nil
 // ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
 // End:
