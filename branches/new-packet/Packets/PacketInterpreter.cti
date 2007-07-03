@@ -69,7 +69,7 @@ template <class PacketType>
 prefix_ typename senf::PacketInterpreter<PacketType>::ptr
 senf::PacketInterpreter<PacketType>::create(NoInit_t)
 {
-    return create(initSize(),noinit);
+    return create(0,noinit);
 }
 
 template <class PacketType>
@@ -95,7 +95,7 @@ template <class PacketType>
 prefix_ typename senf::PacketInterpreter<PacketType>::ptr
 senf::PacketInterpreter<PacketType>::createAfter(PacketInterpreterBase::ptr packet, NoInit_t)
 {
-    return createAfter(packet, initSize(), noinit);
+    return createAfter(packet, 0, noinit);
 }
 
 // Create clone of current packet

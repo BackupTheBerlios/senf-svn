@@ -41,10 +41,34 @@ prefix_  senf::PacketInterpreterBase::~PacketInterpreterBase()
 prefix_ senf::PacketInterpreterBase::ptr senf::PacketInterpreterBase::clone()
 {
     detail::PacketImpl::Guard p (new detail::PacketImpl(begin(),end()));
-    ptr pi (appendClone(p.p,begin()));
+    ptr pi (appendClone(p.p,begin(),p.p->begin()));
     for (ptr i (next()); i; i = i->next())
-        i->appendClone(p.p,begin());
+        i->appendClone(p.p,begin(),p.p->begin());
     return pi;
+}
+
+// Interpreter chain access
+
+prefix_ senf::PacketInterpreterBase::ptr senf::PacketInterpreterBase::append(ptr packet)
+{
+    if (next())
+        impl().truncateInterpreters(next().get());
+    
+    optional_range r (nextPacketRange());
+    if (!r)
+        throw InvalidPacketChainException();
+    
+    if (r->size() < packet->data().size())
+        data().insert(r->end(), size_type(packet->data().size() - r->size()), byte(0x00u));
+    data().erase(
+        std::copy( packet->data().begin(), packet->data().end(), r->begin() ),
+        r->end() );
+
+    ptr rv (packet->appendClone(&impl(), packet->begin(), r->begin()));
+    for (ptr p (packet->next()) ; p ; p = p->next())
+        p->appendClone(&impl(), packet->begin(), r->begin());
+
+    return rv;
 }
 
 // Access to the abstract interface

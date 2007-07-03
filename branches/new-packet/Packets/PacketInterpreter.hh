@@ -133,6 +133,8 @@ namespace senf {
         template <class Type>          bool                         is();
         template <class Type> typename PacketInterpreter<Type>::ptr as();
 
+        ptr append(ptr packet);
+
         ///@}
 
         ///\name Data access
@@ -158,13 +160,13 @@ namespace senf {
         PacketInterpreterBase(detail::PacketImpl * impl, iterator b, iterator e, Append_t);
         PacketInterpreterBase(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
 
-        ptr appendClone(detail::PacketImpl * impl, iterator begin);
+        ptr appendClone(detail::PacketImpl * impl, iterator base, iterator new_base);
 
     private:
         // abstract packet type interface
 
         virtual optional_range v_nextPacketRange() = 0;
-        virtual ptr v_appendClone(detail::PacketImpl * impl, iterator begin) = 0;
+        virtual ptr v_appendClone(detail::PacketImpl * impl, iterator base, iterator new_base) = 0;
         virtual void v_finalize() = 0;
         virtual void v_dump(std::ostream & os) = 0;
         virtual TypeIdValue v_type() = 0;
@@ -272,7 +274,7 @@ namespace senf {
 
         virtual optional_range v_nextPacketRange();
         virtual PacketInterpreterBase::ptr v_appendClone(detail::PacketImpl * impl, 
-                                                         iterator begin);
+                                                         iterator base, iterator new_base);
         virtual void v_finalize();
         virtual void v_dump(std::ostream & os);
         virtual TypeIdValue v_type();

@@ -112,9 +112,10 @@ prefix_ senf::PacketInterpreterBase::PacketInterpreterBase(detail::PacketImpl * 
 }
 
 prefix_ senf::PacketInterpreterBase::ptr
-senf::PacketInterpreterBase::appendClone(detail::PacketImpl * impl, iterator begin)
+senf::PacketInterpreterBase::appendClone(detail::PacketImpl * impl, iterator base,
+                                         iterator new_base)
 {
-    return v_appendClone(impl,begin);
+    return v_appendClone(impl,base,new_base);
 }
 
 ////////////////////////////////////////

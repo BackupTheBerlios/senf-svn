@@ -162,12 +162,12 @@ senf::PacketInterpreter<PacketType>::v_nextPacketRange()
 
 template <class PacketType>
 prefix_ senf::PacketInterpreterBase::ptr
-senf::PacketInterpreter<PacketType>::v_appendClone(detail::PacketImpl * target, iterator base)
+senf::PacketInterpreter<PacketType>::v_appendClone(detail::PacketImpl * impl, iterator base,
+                                                   iterator new_base)
 {
-    return create(target,
-                  // Hrmpf ... this is awkward but does not depend on the internal representation
-                  boost::next(target->begin(),std::distance(base,begin())),
-                  boost::next(target->begin(),std::distance(base,end())),
+    return create(impl,
+                  boost::next(new_base,std::distance(base,begin())),
+                  boost::next(new_base,std::distance(base,end())),
                   Append);
 }
 
