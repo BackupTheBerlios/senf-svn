@@ -45,7 +45,8 @@ prefix_ senf::Packet senf::Packet::clone()
 prefix_ senf::Packet senf::Packet::next()
     const
 {
-    return Packet(ptr()->next());
+    PacketInterpreterBase::ptr p (ptr()->next());
+    return !p && ptr()->nextPacketRange() ? checkNext() : Packet(p);
 }
 
 prefix_ senf::Packet senf::Packet::prev()
@@ -63,7 +64,8 @@ prefix_ senf::Packet senf::Packet::first()
 prefix_ senf::Packet senf::Packet::last()
     const
 {
-    return Packet(ptr()->last());
+    Packet p (ptr()->last());
+    return p.next() ? checkLast() : p;
 }
 
 prefix_ senf::Packet senf::Packet::parseNextAs(factory_t factory)
@@ -85,6 +87,13 @@ prefix_ senf::PacketData & senf::Packet::data()
 {
     return ptr()->data();
 }
+
+prefix_ senf::Packet::size_type senf::Packet::size()
+    const
+{
+    return data().size();
+}
+
 
 // Other methods
 
@@ -110,6 +119,12 @@ prefix_ senf::TypeIdValue senf::Packet::typeId()
     const
 {
     return ptr()->typeId();
+}
+
+prefix_ senf::Packet::factory_t senf::Packet::factory()
+    const
+{
+    return ptr()->factory();
 }
 
 prefix_ bool senf::Packet::boolean_test()

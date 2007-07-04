@@ -85,6 +85,16 @@ prefix_ senf::TypeIdValue senf::PacketInterpreterBase::typeId()
     return v_type();
 }
 
+prefix_ senf::PacketInterpreterBase::factory_t senf::PacketInterpreterBase::factory()
+{
+    return v_factory();
+}
+
+prefix_ senf::PacketInterpreterBase::factory_t senf::PacketInterpreterBase::nextPacketType()
+{
+    return v_nextPacketType();
+}
+
 ////////////////////////////////////////
 // protected members
 

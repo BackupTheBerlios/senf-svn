@@ -48,12 +48,12 @@ namespace senf {
             typedef senf::ConcretePacket<SomePacketType> packet;
             typedef SomePacketParser parser;
             
-            static interpreter::size_type initSize()
+            static size_type initSize()
             {
                 return constant_initial_size_of_empty_packet;
             }
 
-            static interpreter::size_type initHeadSize()
+            static size_type initHeadSize()
             {
                 // optional member
                 return constant_initial_size_of_header
@@ -65,7 +65,7 @@ namespace senf {
                 p->some_field() = 1;
             }
 
-            static interpreter::optional_range nextPacketRange(packet p)
+            static optional_range nextPacketRange(packet p)
             {
                 if (have_next_packet)
                     // return iterator range delimiting the packet, e.g.:
@@ -74,11 +74,11 @@ namespace senf {
                     return no_range();
             }
 
-            static interpreter::factory_t nextPacketType(packet p)
+            static factory_t nextPacketType(packet p)
             {
                 if (have_next_packet && know_next_packet_type)
-                    // \a TypeOfNextPacket is the \c PacketType class of that packet
-                    return factory<TypeOfNextPacket>();
+                    // \a NextPacket is the \c ConcretePacket instantiation of the next packet
+                    return NextPacket::factory();
                 else
                     return no_factory();
             }

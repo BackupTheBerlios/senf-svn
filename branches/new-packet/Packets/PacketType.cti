@@ -56,7 +56,9 @@ senf::PacketTypeMixin<Self,Registry>::nextPacketType(Packet p)
 {
     if (p.data().size() < Self::initSize())
         return Self::no_factory();
-    return PacketRegistry<Registry>::lookup( Self::nextPacketKey(p) ).factory();
+    PkReg_Entry const * e (PacketRegistry<Registry>::lookup( 
+                               Self::nextPacketKey(p.as< ConcretePacket<Self> >()), nothrow));
+    return e ? e->factory() : PacketTypeBase::no_factory();
 }
 
 ///////////////////////////////////////////////////////////////////////////

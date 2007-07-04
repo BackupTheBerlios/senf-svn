@@ -155,6 +155,7 @@ namespace senf {
         void dump(std::ostream & os);
         TypeIdValue typeId();
         factory_t factory();
+        factory_t nextPacketType();
 
         ///@}
 
@@ -177,6 +178,7 @@ namespace senf {
         virtual void v_dump(std::ostream & os) = 0;
         virtual TypeIdValue v_type() = 0;
         virtual factory_t v_factory() = 0;
+        virtual factory_t v_nextPacketType() = 0;
 
         // reference/memory management. Only to be called by intrusive_refcount_t.
 
@@ -290,6 +292,7 @@ namespace senf {
         virtual void v_dump(std::ostream & os);
         virtual TypeIdValue v_type();
         virtual factory_t v_factory();
+        virtual factory_t v_nextPacketType();
 
         // factory
 

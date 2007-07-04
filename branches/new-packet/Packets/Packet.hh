@@ -26,6 +26,8 @@
 
 // Custom includes
 #include <boost/operators.hpp>
+
+#include "Utils/Exception.hh"
 #include "Utils/SafeBool.hh"
 #include "PacketInterpreter.hh"
 
@@ -90,6 +92,24 @@ namespace senf {
         template <class OtherPacket> bool        is() const;
         template <class OtherPacket> OtherPacket as() const;
 
+        template <class OtherPacket> OtherPacket next() const;
+        template <class OtherPacket> OtherPacket next(NoThrow_t) const;
+
+        template <class OtherPacket> OtherPacket prev() const;
+        template <class OtherPacket> OtherPacket prev(NoThrow_t) const;
+
+        template <class OtherPacket> OtherPacket findNext() const;
+        template <class OtherPacket> OtherPacket findNext(NoThrow_t) const;
+
+        template <class OtherPacket> OtherPacket findPrev() const;
+        template <class OtherPacket> OtherPacket findPrev(NoThrow_t) const;
+
+        template <class OtherPacket> OtherPacket last() const;
+        template <class OtherPacket> OtherPacket last(NoThrow_t) const;
+
+        template <class OtherPacket> OtherPacket first() const;
+        template <class OtherPacket> OtherPacket first(NoThrow_t) const;
+
         Packet append(Packet packet) const;
 
         ///@}
@@ -98,6 +118,7 @@ namespace senf {
         ///@{
 
         PacketData & data() const;
+        size_type size() const;
         
         ///@}
 
@@ -112,6 +133,7 @@ namespace senf {
         void dump(std::ostream & os) const;
 
         TypeIdValue typeId() const;
+        factory_t factory() const;
         
         ///@}
 
@@ -121,6 +143,9 @@ namespace senf {
         PacketInterpreterBase::ptr ptr() const;
 
     private:
+        Packet checkNext() const;
+        Packet checkLast() const;
+        
         PacketInterpreterBase::ptr packet_;
         
         template <class PacketType>
@@ -150,6 +175,8 @@ namespace senf {
         // no conversion constructors
 
         ConcretePacket();
+
+        static factory_t factory();
 
         // Create completely new packet
 
@@ -202,7 +229,7 @@ namespace senf {
 
 ///////////////////////////////hh.e////////////////////////////////////////
 #include "Packet.cci"
-//#include "Packet.ct"
+#include "Packet.ct"
 #include "Packet.cti"
 #endif
 

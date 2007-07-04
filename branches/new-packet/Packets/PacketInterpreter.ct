@@ -204,6 +204,14 @@ senf::PacketInterpreter<PacketType>::v_factory()
     return factory();
 }
 
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::factory_t
+senf::PacketInterpreter<PacketType>::v_nextPacketType()
+{
+    return type::nextPacketType(ConcretePacket<PacketType>(ptr(this)));
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 // senf::PacketInterpreterBase::Factory
 
