@@ -30,6 +30,7 @@
 #include <boost/optional.hpp>
 #include "Utils/Exception.hh"
 #include "PacketInterpreter.hh"
+#include "Packet.hh"
 
 //#include "PacketRegistry.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
@@ -134,6 +135,9 @@ namespace senf {
 
         template <class PacketType>
         static typename boost::optional<typename Tag::key_t> key(NoThrow_t);
+
+        static typename Tag::key_t key(Packet packet);
+        static typename Tag::key_t key(Packet packet, NoThrow_t);
 
         /** \brief Lookup a packet by it's key
 

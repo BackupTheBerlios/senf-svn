@@ -31,22 +31,32 @@
 ///////////////////////////////cti.p///////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
+// senf::PacketTypeBase
+
+template <class PacketType>
+prefix_ senf::PacketTypeBase::factory_t senf::PacketTypeBase::factory()
+{
+    return PacketInterpreter<PacketType>::factory();
+}
+
+///////////////////////////////////////////////////////////////////////////
 // senf::PacketTypeMixin<Self,Registry>
 
 template <class Self, class Registry>
 prefix_ senf::PacketInterpreterBase::optional_range
-senf::PacketTypeMixin<Self,Registry>::nextPacketRange(interpreter & i)
+senf::PacketTypeMixin<Self,Registry>::nextPacketRange(Packet p)
 {
-    return PacketTypeMixin<Self>::nextPacketRange(i);
+    // Call the member defined in the specialization below
+    return PacketTypeMixin<Self>::nextPacketRange(p);
 }
 
 template <class Self, class Registry>
 prefix_ senf::PacketInterpreterBase::factory_t
-senf::PacketTypeMixin<Self,Registry>::nextPacketType(interpreter & i)
+senf::PacketTypeMixin<Self,Registry>::nextPacketType(Packet p)
 {
-    if (i.data().size() < Self::initSize())
-        return interpreter::no_factory();
-    return PacketRegistry<Registry>::lookup( Self::nextPacketKey(i) ).factory();
+    if (p.data().size() < Self::initSize())
+        return Self::no_factory();
+    return PacketRegistry<Registry>::lookup( Self::nextPacketKey(p) ).factory();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -54,19 +64,19 @@ senf::PacketTypeMixin<Self,Registry>::nextPacketType(interpreter & i)
 
 template <class Self>
 prefix_ senf::PacketInterpreterBase::optional_range
-senf::PacketTypeMixin<Self,void>::nextPacketRange(interpreter & i)
+senf::PacketTypeMixin<Self,void>::nextPacketRange(Packet p)
 {
-    if (i.data().size() < Self::initSize())
-        return interpreter::no_range();
-    interpreter::size_type sz (Self::initHeadSize());
+    if (p.data().size() < Self::initSize())
+        return PacketTypeBase::no_range();
+    typename Self::size_type sz (Self::initHeadSize());
     ///\idea This if condition could be replaced with a compile time switch by checking, wether
     /// Self::initHeadSize is different from PacketTypeBase::initHeadSize
-    if (sz == interpreter::size_type(-1))
-        return interpreter::range(boost::next(i.data().begin(),Self::initSize()),
-                                  i.data().end());
+    if (sz == PacketTypeBase::size_type(-1))
+        return PacketTypeBase::range(boost::next(p.data().begin(),Self::initSize()),
+                                     p.data().end());
     else
-        return interpreter::range(boost::next(i.data().begin(),sz),
-                                  boost::prior(i.data().end(),Self::initSize()-sz));
+        return PacketTypeBase::range(boost::next(p.data().begin(),sz),
+                                     boost::prior(p.data().end(),Self::initSize()-sz));
 }
 
 ///////////////////////////////cti.e///////////////////////////////////////

@@ -37,9 +37,9 @@
 
 namespace {
     struct VoidPacket : public senf::PacketTypeBase {
-        typedef senf::PacketInterpreter<VoidPacket> interpreter;
-        static interpreter::optional_range nextPacketRange(interpreter & i)
-            { return interpreter::range(i.data().begin(), i.data().end()); }
+        typedef senf::ConcretePacket<VoidPacket> packet;
+        static optional_range nextPacketRange(packet p)
+            { return range(p.data().begin(), p.data().end()); }
     };
 }
 
@@ -96,10 +96,10 @@ namespace {
           public senf::PacketTypeMixin<OtherPacket>
     {
         using senf::PacketTypeMixin<OtherPacket>::nextPacketRange;
-        typedef senf::PacketInterpreter<OtherPacket> interpreter;
-        static interpreter::size_type initSize()     { return 8u; }
-        static interpreter::size_type initHeadSize() { return 6u; }
-        static void init(interpreter & i)            { i.data()[0] = 0x01u; }
+        typedef senf::ConcretePacket<OtherPacket> packet;
+        static size_type initSize()     { return 8u; }
+        static size_type initHeadSize() { return 6u; }
+        static void init(packet p)            { p.data()[0] = 0x01u; }
     };
 }
 

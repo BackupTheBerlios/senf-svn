@@ -83,22 +83,24 @@ namespace senf {
           public PacketTypeMixin<EthernetPacketType, EtherTypes>
     {
         typedef PacketTypeMixin<EthernetPacketType, EtherTypes> mixin;
-        typedef PacketInterpreter<EthernetPacketType> interpreter;
+        typedef ConcretePacket<EthernetPacketType> packet;
         typedef Parse_Ethernet parser;
 
         using mixin::nextPacketRange;
         using mixin::nextPacketType;
 
-        static interpreter::size_type initSize()
+        static size_type initSize()
             { return 14; }
         
         /** \todo Add LLC/SNAP support -> only use the registry
             for type() values >=1536, otherwise expect an LLC header */
-        static registry_key_t nextPacketKey(interpreter & i) 
-            { return i.fields().type(); }
+        static registry_key_t nextPacketKey(packet p) 
+            { return p->type(); }
 
-        static void dump(interpreter & i, std::ostream & os);
+        static void dump(packet p, std::ostream & os);
     };
+
+    typedef EthernetPacketType::packet EthernetPacket;
 
     struct Parse_EthVLan : public PacketParserBase
     {
@@ -122,23 +124,24 @@ namespace senf {
           public PacketTypeMixin<EthVLanPacketType, EtherTypes>
     {
         typedef PacketTypeMixin<EthVLanPacketType, EtherTypes> mixin;
-        typedef PacketInterpreter<EthVLanPacketType> interpreter;
+        typedef ConcretePacket<EthVLanPacketType> packet;
         typedef Parse_EthVLan parser;
 
         using mixin::nextPacketRange;
         using mixin::nextPacketType;
 
-        static interpreter::size_type initSize()
+        static size_type initSize()
             { return 4; }
 
         /** \todo Add LLC/SNAP support -> only use the registry
             for type() values >=1536, otherwise expect an LLC header */
-        static registry_key_t nextPacketKey(interpreter & i) 
-            { return i.fields().type(); }
+        static registry_key_t nextPacketKey(packet p) 
+            { return p->type(); }
 
-        static void dump(interpreter & i, std::ostream & os);
+        static void dump(packet p, std::ostream & os);
     };
 
+    typedef EthVLanPacketType::packet EthVLanPacket;
 }
 
 

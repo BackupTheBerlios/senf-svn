@@ -29,36 +29,43 @@
 ///////////////////////////////////////////////////////////////////////////
 // senf::PacketTypeBase
 
-prefix_ senf::PacketTypeBase::interpreter::size_type
-senf::PacketTypeBase::initSize()
+prefix_ senf::PacketTypeBase::optional_range senf::PacketTypeBase::no_range()
+{
+    return PacketInterpreterBase::no_range();
+}
+
+prefix_ senf::PacketTypeBase::factory_t senf::PacketTypeBase::no_factory()
+{
+    return PacketInterpreterBase::no_factory();
+}
+
+prefix_ senf::PacketTypeBase::size_type senf::PacketTypeBase::initSize()
 {
     return 0;
 }
 
-prefix_ senf::PacketTypeBase::interpreter::size_type senf::PacketTypeBase::initHeadSize()
+prefix_ senf::PacketTypeBase::size_type senf::PacketTypeBase::initHeadSize()
 {
-    return interpreter::size_type(-1);
+    return size_type(-1);
 }
 
-prefix_ void senf::PacketTypeBase::init(interpreter &)
+prefix_ void senf::PacketTypeBase::init(packet)
 {}
 
-prefix_ senf::PacketTypeBase::interpreter::optional_range
-senf::PacketTypeBase::nextPacketRange(interpreter &)
+prefix_ senf::PacketTypeBase::optional_range senf::PacketTypeBase::nextPacketRange(packet p)
 {
-    return interpreter::no_range();
+    return PacketInterpreterBase::no_range();
 }
 
-prefix_ senf::PacketTypeBase::interpreter::factory_t
-senf::PacketTypeBase::nextPacketType(interpreter &)
+prefix_ senf::PacketTypeBase::factory_t senf::PacketTypeBase::nextPacketType(packet p)
 {
-    return interpreter::no_factory();
+    return PacketInterpreterBase::no_factory();
 }
 
-prefix_ void senf::PacketTypeBase::finalize(interpreter & i)
+prefix_ void senf::PacketTypeBase::finalize(packet)
 {}
 
-prefix_ void senf::PacketTypeBase::dump(interpreter & i, std::ostream & os)
+prefix_ void senf::PacketTypeBase::dump(packet p, std::ostream & os)
 {}
 
 ///////////////////////////////cci.e///////////////////////////////////////

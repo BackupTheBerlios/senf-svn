@@ -55,7 +55,19 @@ template <class Tag>
 template <class PacketType>
 prefix_ typename boost::optional<typename Tag::key_t> senf::PacketRegistry<Tag>::key(NoThrow_t)
 {
-    return registry().key(senf::typeIdValue<PacketType>(true));
+    return registry().key(senf::typeIdValue<PacketType>(),true);
+}
+
+template <class Tag>
+prefix_ typename Tag::key_t senf::PacketRegistry<Tag>::key(Packet packet)
+{
+    return registry().key(packet.typeId());
+}
+
+template <class Tag>
+prefix_ typename Tag::key_t senf::PacketRegistry<Tag>::key(Packet packet, NoThrow_t)
+{
+    return registry().key(packet.typeId(),true);
 }
 
 template <class Tag>

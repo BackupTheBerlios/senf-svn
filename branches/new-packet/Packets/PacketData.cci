@@ -97,6 +97,11 @@ prefix_ void senf::PacketData::clear()
     impl().clear(this);
 }
 
+prefix_ bool senf::PacketData::valid()
+{
+    return impl_;
+}
+
 // protected members
 
 prefix_ senf::PacketData::PacketData(size_type b, size_type e)

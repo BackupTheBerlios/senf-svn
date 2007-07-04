@@ -80,11 +80,6 @@ senf::PacketInterpreterBase::nextPacketRange()
     return v_nextPacketRange();
 }
 
-prefix_ void senf::PacketInterpreterBase::finalize()
-{
-    return v_finalize();
-}
-
 prefix_ senf::TypeIdValue senf::PacketInterpreterBase::typeId()
 {
     return v_type();
@@ -116,6 +111,12 @@ senf::PacketInterpreterBase::appendClone(detail::PacketImpl * impl, iterator bas
                                          iterator new_base)
 {
     return v_appendClone(impl,base,new_base);
+}
+
+prefix_ senf::PacketInterpreterBase::ptr
+senf::PacketInterpreterBase::appendClone(detail::PacketImpl * impl, range r)
+{
+    return v_appendClone(impl,r);
 }
 
 ////////////////////////////////////////

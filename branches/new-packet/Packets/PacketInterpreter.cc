@@ -58,15 +58,12 @@ prefix_ senf::PacketInterpreterBase::ptr senf::PacketInterpreterBase::append(ptr
     if (!r)
         throw InvalidPacketChainException();
     
-    if (r->size() < packet->data().size())
-        data().insert(r->end(), size_type(packet->data().size() - r->size()), byte(0x00u));
-    data().erase(
-        std::copy( packet->data().begin(), packet->data().end(), r->begin() ),
-        r->end() );
+    ptr rv (packet->appendClone(&impl(), *r));
+    rv->data().resize(packet->data().size());
+    std::copy(packet->data().begin(), packet->data().end(), rv->data().begin());
 
-    ptr rv (packet->appendClone(&impl(), packet->begin(), r->begin()));
     for (ptr p (packet->next()) ; p ; p = p->next())
-        p->appendClone(&impl(), packet->begin(), r->begin());
+        p->appendClone(&impl(), packet->data().begin(), rv->data().begin());
 
     return rv;
 }
@@ -76,10 +73,15 @@ prefix_ senf::PacketInterpreterBase::ptr senf::PacketInterpreterBase::append(ptr
 prefix_ void senf::PacketInterpreterBase::dump(std::ostream & os)
 {
     v_dump(os);
-    for (ptr i (next()); i; i = i->next()) {
-        os << "\n";
+    for (ptr i (next()); i; i = i->next())
         i->v_dump(os);
-    }
+}
+
+prefix_ void senf::PacketInterpreterBase::finalize()
+{
+    for (ptr i (last()) ; i.get() != this ; i = i->prev())
+        i->v_finalize();
+    v_finalize();
 }
 
 ///////////////////////////////////////////////////////////////////////////

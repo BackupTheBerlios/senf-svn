@@ -95,6 +95,8 @@ namespace senf {
 
         ///@}
 
+        bool valid();
+
     protected:
         PacketData(size_type b, size_type e);
 

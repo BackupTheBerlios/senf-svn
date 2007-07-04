@@ -79,8 +79,9 @@ namespace senf {
     };
 
     struct VoidPacketParser 
+        : public PacketParserBase
     {
-        VoidPacketParser(detail::packet::iterator, PacketData *);
+        VoidPacketParser(container data);
     };
 
 

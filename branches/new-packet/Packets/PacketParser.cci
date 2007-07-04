@@ -30,7 +30,8 @@
 ///////////////////////////////////////////////////////////////////////////
 // senf::VoidPacketParser
 
-prefix_ senf::VoidPacketParser::VoidPacketParser(detail::packet::iterator, PacketData *)
+prefix_ senf::VoidPacketParser::VoidPacketParser(container data)
+    : PacketParserBase(data)
 {}
 
 ///////////////////////////////////////////////////////////////////////////

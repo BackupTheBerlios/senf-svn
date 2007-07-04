@@ -48,33 +48,33 @@ namespace {
     }
 }
 
-prefix_ void senf::EthernetPacketType::dump(interpreter & i, std::ostream & os)
+prefix_ void senf::EthernetPacketType::dump(packet p, std::ostream & os)
 {
-    if (i.fields().type() <= 1500)
+    if (p->type() <= 1500)
         os << "Ethernet 802.3";
-    else if (i.fields().type() >= 0x600)
+    else if (p->type() >= 0x600)
         os << "Ethernet II (DIX)";
     else
         os << "Ethernet 802.3 (bad ethertype >1500 and <1536)";
     os << ": \n"
        << "  destination   : ";
-    dumpmac(os,i.fields().destination());
+    dumpmac(os,p->destination());
     os << "\n"
        << "  source        : ";
-    dumpmac(os,i.fields().source());
+    dumpmac(os,p->source());
     os << "\n"
        << "  ethertype     : " << std::hex << std::setw(4) << std::setfill('0')
-       << unsigned(i.fields().type()) << "\n" << std::dec;
+       << unsigned(p->type()) << "\n" << std::dec;
 }
 
-prefix_ void senf::EthVLanPacketType::dump(interpreter & i, std::ostream & os)
+prefix_ void senf::EthVLanPacketType::dump(packet p, std::ostream & os)
 {
     os << "Ethernet 802.1q (VLAN):\n"
-       << "  priority      : " << i.fields().priority() << "\n"
-       << "  cfi           : " << i.fields().cfi() << "\n"
-       << "  vlan-ID       : " << i.fields().vlanId() << "\n"
+       << "  priority      : " << p->priority() << "\n"
+       << "  cfi           : " << p->cfi() << "\n"
+       << "  vlan-ID       : " << p->vlanId() << "\n"
        << "  ethertype     : " << std::hex << std::setw(4) << std::setfill('0')
-       << i.fields().type() << "\n" << std::dec;
+       << p->type() << "\n" << std::dec;
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////

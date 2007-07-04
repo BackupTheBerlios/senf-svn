@@ -28,6 +28,8 @@
 #include <boost/intrusive/ilist.hpp>
 #include <boost/optional.hpp>
 #include <boost/range.hpp>
+#include <boost/type_traits/aligned_storage.hpp>
+#include <boost/type_traits/alignment_of.hpp>
 #include "Utils/intrusive_refcount.hh"
 #include "Utils/pool_alloc_mixin.hh"
 #include "PacketData.hh"
@@ -140,6 +142,7 @@ namespace senf {
         ///\name Data access
         ///@{
 
+        using PacketData::valid;
         PacketData & data();
         
         ///@}
@@ -151,6 +154,7 @@ namespace senf {
         void finalize();
         void dump(std::ostream & os);
         TypeIdValue typeId();
+        factory_t factory();
 
         ///@}
 
@@ -161,15 +165,18 @@ namespace senf {
         PacketInterpreterBase(detail::PacketImpl * impl, iterator b, iterator e, Prepend_t);
 
         ptr appendClone(detail::PacketImpl * impl, iterator base, iterator new_base);
+        ptr appendClone(detail::PacketImpl * impl, range r);
 
     private:
         // abstract packet type interface
 
         virtual optional_range v_nextPacketRange() = 0;
         virtual ptr v_appendClone(detail::PacketImpl * impl, iterator base, iterator new_base) = 0;
+        virtual ptr v_appendClone(detail::PacketImpl * impl, range r) =0;
         virtual void v_finalize() = 0;
         virtual void v_dump(std::ostream & os) = 0;
         virtual TypeIdValue v_type() = 0;
+        virtual factory_t v_factory() = 0;
 
         // reference/memory management. Only to be called by intrusive_refcount_t.
 
@@ -213,6 +220,8 @@ namespace senf {
         // no copy
         // no conversion constructors
 
+        ~PacketInterpreter();
+
         static factory_t factory();
 
         // Create completely new packet
@@ -249,6 +258,7 @@ namespace senf {
         // Packet field access
 
         parser fields();
+        parser * fields_p();
 
         // PacketType access
 
@@ -275,9 +285,11 @@ namespace senf {
         virtual optional_range v_nextPacketRange();
         virtual PacketInterpreterBase::ptr v_appendClone(detail::PacketImpl * impl, 
                                                          iterator base, iterator new_base);
+        virtual PacketInterpreterBase::ptr v_appendClone(detail::PacketImpl * impl, range r);
         virtual void v_finalize();
         virtual void v_dump(std::ostream & os);
         virtual TypeIdValue v_type();
+        virtual factory_t v_factory();
 
         // factory
 
@@ -315,6 +327,11 @@ namespace senf {
         };
 
         static const FactoryImpl factory_;
+
+        parser * parser_p();
+
+        boost::aligned_storage< sizeof(parser), 
+                                boost::alignment_of<parser>::value > parserStorage_;
 
         friend class detail::packet::test::TestDriver;
         friend class PacketInterpreterBase;

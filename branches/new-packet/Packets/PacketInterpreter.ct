@@ -24,6 +24,7 @@
 //#include "PacketInterpreter.ih"
 
 // Custom includes
+#include "Packet.hh"
 
 #define prefix_
 ///////////////////////////////ct.p////////////////////////////////////////
@@ -157,7 +158,7 @@ template <class PacketType>
 prefix_ typename senf::PacketInterpreter<PacketType>::optional_range
 senf::PacketInterpreter<PacketType>::v_nextPacketRange()
 {
-    return type::nextPacketRange(*this);
+    return type::nextPacketRange(ConcretePacket<PacketType>(ptr(this)));
 }
 
 template <class PacketType>
@@ -172,21 +173,35 @@ senf::PacketInterpreter<PacketType>::v_appendClone(detail::PacketImpl * impl, it
 }
 
 template <class PacketType>
+prefix_ senf::PacketInterpreterBase::ptr
+senf::PacketInterpreter<PacketType>::v_appendClone(detail::PacketImpl * impl, range r)
+{
+    return create(impl, r.begin(), r.end(), Append);
+}
+
+template <class PacketType>
 prefix_ void senf::PacketInterpreter<PacketType>::v_finalize()
 {
-    type::finalize(*this);
+    type::finalize(ConcretePacket<PacketType>(ptr(this)));
 }
 
 template <class PacketType>
 prefix_ void senf::PacketInterpreter<PacketType>::v_dump(std::ostream & os)
 {
-    type::dump(*this,os);
+    type::dump(ConcretePacket<PacketType>(ptr(this)),os);
 }
 
 template <class PacketType>
 prefix_ senf::TypeIdValue senf::PacketInterpreter<PacketType>::v_type()
 {
     return typeIdValue<PacketType>();
+}
+
+template <class PacketType>
+prefix_ typename senf::PacketInterpreter<PacketType>::factory_t
+senf::PacketInterpreter<PacketType>::v_factory()
+{
+    return factory();
 }
 
 ///////////////////////////////////////////////////////////////////////////
