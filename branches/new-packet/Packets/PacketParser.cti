@@ -32,14 +32,14 @@ template <class Parser>
 prefix_ Parser senf::PacketParserBase::parse(data_iterator i)
     const
 {
-    return Parser(i,*this);
+    return Parser(i,state());
 }
 
 template <class Parser>
 prefix_ Parser senf::PacketParserBase::parse(size_type n)
     const
 {
-    return Parser(boost::next(i(),n),*this);
+    return Parser(boost::next(i(),n),state());
 }
 
 ///////////////////////////////cti.e///////////////////////////////////////

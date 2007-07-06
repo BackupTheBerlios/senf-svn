@@ -41,34 +41,28 @@ using namespace senf;
 namespace {
     struct VoidPacket : public PacketTypeBase
     {};
-
-    struct BaseParser : public PacketParserBase
-    {
-        SENF_PACKET_PARSER_INIT(BaseParser);
-    };
 }
 
 BOOST_AUTO_UNIT_TEST(parseInt_fixedSizes)
 {
     PacketInterpreterBase::byte data[] = { 0x8e, 0x2f, 0x57, 0x12, 0xd1 };
     PacketInterpreterBase::ptr p (PacketInterpreter<VoidPacket>::create(data));
-    BaseParser base (&p->data());
 
-    BOOST_CHECK_EQUAL(Parse_Int8(p->data().begin(),base).value(), -114);
-    BOOST_CHECK_EQUAL(Parse_Int8(p->data().begin()+1,base).value(), 47);
-    BOOST_CHECK_EQUAL(Parse_UInt8(p->data().begin(),base).value(), 142u);
+    BOOST_CHECK_EQUAL(Parse_Int8(p->data().begin(),&p->data()).value(), -114);
+    BOOST_CHECK_EQUAL(Parse_Int8(p->data().begin()+1,&p->data()).value(), 47);
+    BOOST_CHECK_EQUAL(Parse_UInt8(p->data().begin(),&p->data()).value(), 142u);
 
-    BOOST_CHECK_EQUAL(Parse_Int16(p->data().begin(),base).value(), -29137);
-    BOOST_CHECK_EQUAL(Parse_Int16(p->data().begin()+1,base).value(), 12119);
-    BOOST_CHECK_EQUAL(Parse_UInt16(p->data().begin(),base).value(), 36399u);
+    BOOST_CHECK_EQUAL(Parse_Int16(p->data().begin(),&p->data()).value(), -29137);
+    BOOST_CHECK_EQUAL(Parse_Int16(p->data().begin()+1,&p->data()).value(), 12119);
+    BOOST_CHECK_EQUAL(Parse_UInt16(p->data().begin(),&p->data()).value(), 36399u);
 
-    BOOST_CHECK_EQUAL(Parse_Int24(p->data().begin(),base).value(), -7458985);
-    BOOST_CHECK_EQUAL(Parse_Int24(p->data().begin()+1,base).value(), 3102482);
-    BOOST_CHECK_EQUAL(Parse_UInt24(p->data().begin(),base).value(), 9318231u);
+    BOOST_CHECK_EQUAL(Parse_Int24(p->data().begin(),&p->data()).value(), -7458985);
+    BOOST_CHECK_EQUAL(Parse_Int24(p->data().begin()+1,&p->data()).value(), 3102482);
+    BOOST_CHECK_EQUAL(Parse_UInt24(p->data().begin(),&p->data()).value(), 9318231u);
 
-    BOOST_CHECK_EQUAL(Parse_Int32(p->data().begin(),base).value(), -1909500142);
-    BOOST_CHECK_EQUAL(Parse_Int32(p->data().begin()+1,base).value(), 794235601);
-    BOOST_CHECK_EQUAL(Parse_UInt32(p->data().begin(),base).value(), 2385467154u);
+    BOOST_CHECK_EQUAL(Parse_Int32(p->data().begin(),&p->data()).value(), -1909500142);
+    BOOST_CHECK_EQUAL(Parse_Int32(p->data().begin()+1,&p->data()).value(), 794235601);
+    BOOST_CHECK_EQUAL(Parse_UInt32(p->data().begin(),&p->data()).value(), 2385467154u);
 }
 
 BOOST_AUTO_UNIT_TEST(parseInt_bits)
@@ -79,93 +73,90 @@ BOOST_AUTO_UNIT_TEST(parseInt_bits)
     //                       011000111101011101011010001100011010010001000110
     PacketInterpreterBase::byte data[] = { 0x63,   0xd7,   0x5a,   0x31,   0xa4,   0x46 };
     PacketInterpreterBase::ptr p (PacketInterpreter<VoidPacket>::create(data));
-    BaseParser base (&p->data());
 
     // 1 byte
-    BOOST_CHECK_EQUAL((Parse_UIntField<2,7>(p->data().begin(),base).value()), 17u);
-    BOOST_CHECK_EQUAL((Parse_IntField<2,7>(p->data().begin(),base).value()), -15);
-    BOOST_CHECK_EQUAL((Parse_UIntField<3,7>(p->data().begin(),base).value()), 1u);
-    BOOST_CHECK_EQUAL((Parse_IntField<3,7>(p->data().begin(),base).value()), 1);
-    BOOST_CHECK_EQUAL((Parse_UIntField<0,8>(p->data().begin(),base).value()), 99u);
+    BOOST_CHECK_EQUAL((Parse_UIntField<2,7>(p->data().begin(),&p->data()).value()), 17u);
+    BOOST_CHECK_EQUAL((Parse_IntField<2,7>(p->data().begin(),&p->data()).value()), -15);
+    BOOST_CHECK_EQUAL((Parse_UIntField<3,7>(p->data().begin(),&p->data()).value()), 1u);
+    BOOST_CHECK_EQUAL((Parse_IntField<3,7>(p->data().begin(),&p->data()).value()), 1);
+    BOOST_CHECK_EQUAL((Parse_UIntField<0,8>(p->data().begin(),&p->data()).value()), 99u);
 
     // 2 byte
-    BOOST_CHECK_EQUAL((Parse_UIntField<5,12>(p->data().begin(),base).value()), 61u);
-    BOOST_CHECK_EQUAL((Parse_UIntField<0,12>(p->data().begin(),base).value()), 1597u);
-    BOOST_CHECK_EQUAL((Parse_UIntField<8,13>(p->data().begin(),base).value()), 26u);
-    BOOST_CHECK_EQUAL((Parse_UIntField<8,16>(p->data().begin(),base).value()), 215u);
-    BOOST_CHECK_EQUAL((Parse_UIntField<0,16>(p->data().begin(),base).value()), 25559u);
+    BOOST_CHECK_EQUAL((Parse_UIntField<5,12>(p->data().begin(),&p->data()).value()), 61u);
+    BOOST_CHECK_EQUAL((Parse_UIntField<0,12>(p->data().begin(),&p->data()).value()), 1597u);
+    BOOST_CHECK_EQUAL((Parse_UIntField<8,13>(p->data().begin(),&p->data()).value()), 26u);
+    BOOST_CHECK_EQUAL((Parse_UIntField<8,16>(p->data().begin(),&p->data()).value()), 215u);
+    BOOST_CHECK_EQUAL((Parse_UIntField<0,16>(p->data().begin(),&p->data()).value()), 25559u);
 
     // 3 byte
-    BOOST_CHECK_EQUAL((Parse_UIntField<6,20>(p->data().begin(),base).value()), 15733u);
-    BOOST_CHECK_EQUAL((Parse_IntField<6,20>(p->data().begin(),base).value()), -651);
-    BOOST_CHECK_EQUAL((Parse_UIntField<13,22>(p->data().begin(),base).value()), 470u);
+    BOOST_CHECK_EQUAL((Parse_UIntField<6,20>(p->data().begin(),&p->data()).value()), 15733u);
+    BOOST_CHECK_EQUAL((Parse_IntField<6,20>(p->data().begin(),&p->data()).value()), -651);
+    BOOST_CHECK_EQUAL((Parse_UIntField<13,22>(p->data().begin(),&p->data()).value()), 470u);
 
     // 4 byte
-    BOOST_CHECK_EQUAL((Parse_UIntField<3,28>(p->data().begin(),base).value()), 4027811u);
-    BOOST_CHECK_EQUAL((Parse_UIntField<13,38>(p->data().begin(),base).value()), 30837865u);
-    BOOST_CHECK_EQUAL((Parse_UIntField<8,40>(p->data().begin(),base).value()), 3613012388u);
-    BOOST_CHECK_EQUAL((Parse_IntField<8,40>(p->data().begin(),base).value()), -681954908);
+    BOOST_CHECK_EQUAL((Parse_UIntField<3,28>(p->data().begin(),&p->data()).value()), 4027811u);
+    BOOST_CHECK_EQUAL((Parse_UIntField<13,38>(p->data().begin(),&p->data()).value()), 30837865u);
+    BOOST_CHECK_EQUAL((Parse_UIntField<8,40>(p->data().begin(),&p->data()).value()), 3613012388u);
+    BOOST_CHECK_EQUAL((Parse_IntField<8,40>(p->data().begin(),&p->data()).value()), -681954908);
 
     // 5 byte
-    BOOST_CHECK_EQUAL((Parse_UIntField<3,34>(p->data().begin(),base).value()), 257779910u);
-    BOOST_CHECK_EQUAL((Parse_IntField<13,41>(p->data().begin(),base).value()), -21732536);
+    BOOST_CHECK_EQUAL((Parse_UIntField<3,34>(p->data().begin(),&p->data()).value()), 257779910u);
+    BOOST_CHECK_EQUAL((Parse_IntField<13,41>(p->data().begin(),&p->data()).value()), -21732536);
 
     // single bit
-    BOOST_CHECK_EQUAL((Parse_Flag<32>(p->data().begin(),base).value()), true);
-    BOOST_CHECK_EQUAL((Parse_Flag<12>(p->data().begin(),base).value()), false);
+    BOOST_CHECK_EQUAL((Parse_Flag<32>(p->data().begin(),&p->data()).value()), true);
+    BOOST_CHECK_EQUAL((Parse_Flag<12>(p->data().begin(),&p->data()).value()), false);
 }
 
 BOOST_AUTO_UNIT_TEST(parseInt_assign)
 {
     PacketInterpreterBase::byte data[] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
     PacketInterpreterBase::ptr p (PacketInterpreter<VoidPacket>::create(data));
-    BaseParser base (&p->data());
 
-    Parse_Int8(p->data().begin(),base).value(0x2f);
+    Parse_Int8(p->data().begin(),&p->data()).value(0x2f);
     BOOST_CHECK_EQUAL( p->data()[0], 0x2f );
 
-    Parse_Int16(p->data().begin(),base).value(0xa341);
+    Parse_Int16(p->data().begin(),&p->data()).value(0xa341);
     BOOST_CHECK_EQUAL( p->data()[0], 0xa3 );
     BOOST_CHECK_EQUAL( p->data()[1], 0x41 );
 
-    Parse_Int24(p->data().begin(),base).value(0x234567);
+    Parse_Int24(p->data().begin(),&p->data()).value(0x234567);
     BOOST_CHECK_EQUAL( p->data()[0], 0x23 );
     BOOST_CHECK_EQUAL( p->data()[1], 0x45 );
     BOOST_CHECK_EQUAL( p->data()[2], 0x67 );
 
-    Parse_Int32(p->data().begin(),base).value(0xfedcba98);
+    Parse_Int32(p->data().begin(),&p->data()).value(0xfedcba98);
     BOOST_CHECK_EQUAL( p->data()[0], 0xfe );
     BOOST_CHECK_EQUAL( p->data()[1], 0xdc );
     BOOST_CHECK_EQUAL( p->data()[2], 0xba );
     BOOST_CHECK_EQUAL( p->data()[3], 0x98 );
 
-    Parse_IntField<2,6>(p->data().begin(),base).value(0x3);
+    Parse_IntField<2,6>(p->data().begin(),&p->data()).value(0x3);
     BOOST_CHECK_EQUAL( p->data()[0], 0xce );
     BOOST_CHECK_EQUAL( p->data()[1], 0xdc );
 
-    Parse_IntField<6,9>(p->data().begin(),base).value(0x2);
+    Parse_IntField<6,9>(p->data().begin(),&p->data()).value(0x2);
     BOOST_CHECK_EQUAL( p->data()[0], 0xcd );
     BOOST_CHECK_EQUAL( p->data()[1], 0x5c );
     BOOST_CHECK_EQUAL( p->data()[2], 0xba );
 
-    Parse_IntField<2,21>(p->data().begin(),base).value(0x13d75);
+    Parse_IntField<2,21>(p->data().begin(),&p->data()).value(0x13d75);
     BOOST_CHECK_EQUAL( p->data()[0], 0xc9 );
     BOOST_CHECK_EQUAL( p->data()[1], 0xeb );
     BOOST_CHECK_EQUAL( p->data()[2], 0xaa );
     BOOST_CHECK_EQUAL( p->data()[3], 0x98 );
 
-    Parse_UIntField<4,34>(p->data().begin(),base).value(0x268ad497u);
-    BOOST_CHECK_EQUAL( (Parse_UIntField<4,34>(p->data().begin(),base).value()), 0x268ad497u );
+    Parse_UIntField<4,34>(p->data().begin(),&p->data()).value(0x268ad497u);
+    BOOST_CHECK_EQUAL( (Parse_UIntField<4,34>(p->data().begin(),&p->data()).value()), 0x268ad497u );
 }
 
 BOOST_AUTO_UNIT_TEST(parseInt_operators)
 {
     PacketInterpreterBase::byte data[] = { 0x63, 0xd7, 0x5a, 0x31, 0xa4, 0x46 };
     PacketInterpreterBase::ptr p (PacketInterpreter<VoidPacket>::create(data));
-    BaseParser base (&p->data());
 
-    Parse_UInt24 p1(p->data().begin(),base);
-    Parse_UInt16 p2(p->data().begin()+3,base);
+    Parse_UInt24 p1(p->data().begin(),&p->data());
+    Parse_UInt16 p2(p->data().begin()+3,&p->data());
 
     BOOST_CHECK_EQUAL( ~p1, 4288424101u );
     BOOST_CHECK ( !!p1 );

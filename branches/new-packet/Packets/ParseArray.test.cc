@@ -40,11 +40,6 @@
 namespace {
     struct VoidPacket : public senf::PacketTypeBase
     {};
-
-    struct BaseParser : public senf::PacketParserBase
-    {
-        BaseParser(container data) : PacketParserBase(data) {}
-    };
 }
 
 BOOST_AUTO_UNIT_TEST(parseArray_test)
@@ -52,12 +47,14 @@ BOOST_AUTO_UNIT_TEST(parseArray_test)
     senf::PacketParserBase::byte data[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 };
     senf::PacketInterpreterBase::ptr p (senf::PacketInterpreter<VoidPacket>::create(data));   
     typedef senf::Parse_Array<6,senf::Parse_UInt8> Parse_UInt8Array6;
-    BaseParser base (&p->data());
-    Parse_UInt8Array6 v (p->data().begin(),base);
+    Parse_UInt8Array6 v (p->data().begin(),&p->data());
 
     BOOST_CHECK_EQUAL( v[0], 0x00 );
     BOOST_CHECK_EQUAL( v[5], 0x05 );
     BOOST_CHECK_EQUAL( *v.begin(), 0x00 );
+    BOOST_CHECK_EQUAL( std::distance(v.begin(),v.end()), 
+                       Parse_UInt8Array6::difference_type(v.size()) );
+    BOOST_CHECK_EQUAL( v.size(), 6u );
     Parse_UInt8Array6::iterator i1 (v.begin());
     Parse_UInt8Array6::iterator i2 (v.begin());
     ++i1;

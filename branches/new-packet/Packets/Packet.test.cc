@@ -57,7 +57,7 @@ namespace {
 
     struct BarPacketParser : public senf::PacketParserBase
     {
-        BarPacketParser(container c) : PacketParserBase(c) {}
+        SENF_PACKET_PARSER_INIT(BarPacketParser);
         
         typedef senf::Parse_UInt16 Parse_Type;
         typedef senf::Parse_Int32  Parse_Length;

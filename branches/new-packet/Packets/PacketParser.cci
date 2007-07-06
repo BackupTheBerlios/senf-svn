@@ -28,13 +28,6 @@
 ///////////////////////////////cci.p///////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
-// senf::VoidPacketParser
-
-prefix_ senf::VoidPacketParser::VoidPacketParser(container data)
-    : PacketParserBase(data)
-{}
-
-///////////////////////////////////////////////////////////////////////////
 // senf::PacketParserBase
 
 prefix_ senf::PacketParserBase::data_iterator senf::PacketParserBase::i()
@@ -43,20 +36,22 @@ prefix_ senf::PacketParserBase::data_iterator senf::PacketParserBase::i()
     return i_;
 }
 
+prefix_ senf::PacketParserBase::state_type senf::PacketParserBase::state()
+    const
+{
+    return data_;
+}
+
 ////////////////////////////////////////
 // protected members
 
-prefix_ senf::PacketParserBase::PacketParserBase(container data)
-    : i_ (data->begin()), data_ (data)
+prefix_ senf::PacketParserBase::PacketParserBase(data_iterator i, state_type s)
+    : i_ (i), data_ (s)
 {}
 
-prefix_ senf::PacketParserBase::PacketParserBase(data_iterator i, state s)
-    : i_ (i), data_ (s.data_)
-{}
-
-prefix_ senf::PacketParserBase::PacketParserBase(data_iterator i, state s, 
+prefix_ senf::PacketParserBase::PacketParserBase(data_iterator i, state_type s, 
                                                  size_type size)
-    : i_ (i), data_ (s.data_)
+    : i_ (i), data_ (s)
 {
     validate(size);
 }

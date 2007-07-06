@@ -39,11 +39,6 @@
 ///////////////////////////////////////////////////////////////////////////
 // senf::Parse_Array<elements,ElementParser>
 
-template <unsigned elements, class ElementParser>
-prefix_ senf::Parse_Array<elements,ElementParser>::Parse_Array(data_iterator i, state s)
-    : PacketParserBase(i,s)
-{}
-
 // Container interface
 
 template <unsigned elements, class ElementParser>
@@ -58,7 +53,7 @@ prefix_ typename senf::Parse_Array<elements,ElementParser>::iterator
 senf::Parse_Array<elements,ElementParser>::begin()
     const
 {
-    return iterator(i(),*this);
+    return iterator(i(),state());
 }
 
 template <unsigned elements, class ElementParser>
@@ -66,15 +61,7 @@ prefix_ typename senf::Parse_Array<elements,ElementParser>::iterator
 senf::Parse_Array<elements,ElementParser>::end()
     const
 {
-    return iterator(boost::next(i(),bytes));
-}
-
-template <unsigned elements, class ElementParser>
-prefix_ typename senf::Parse_Array<elements,ElementParser>::range_type
-senf::Parse_Array<elements,ElementParser>::range()
-    const
-{
-    return range_type(begin(),end());
+    return iterator(boost::next(i(),bytes),state());
 }
 
 template <unsigned elements, class ElementParser>
@@ -95,7 +82,7 @@ prefix_ senf::detail::Parse_Array_iterator<ElementParser>::Parse_Array_iterator(
 
 template <class ElementParser>
 prefix_  senf::detail::Parse_Array_iterator<ElementParser>::
-Parse_Array_iterator(PacketParserBase::data_iterator const & i, PacketParserBase::state s)
+Parse_Array_iterator(PacketParserBase::data_iterator const & i, PacketParserBase::state_type s)
     : i_(i), s_(s)
 {}
 

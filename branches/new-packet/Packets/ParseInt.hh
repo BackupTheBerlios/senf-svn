@@ -40,7 +40,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_Int8,boost::int8_t>,
           public PacketParserBase
     {
-        Parse_Int8(data_iterator i, state s) : PacketParserBase(i,s,1) {}
+        SENF_PACKET_PARSER_INIT(Parse_Int8);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -58,7 +58,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_UInt8,boost::uint8_t>,
           public PacketParserBase
     {
-        Parse_UInt8(data_iterator i, state s) : PacketParserBase(i,s,1) {}
+        SENF_PACKET_PARSER_INIT(Parse_UInt8);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -76,7 +76,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_Int16,boost::int16_t>,
           public PacketParserBase
     {
-        Parse_Int16(data_iterator i, state s) : PacketParserBase(i,s,2) {}
+        SENF_PACKET_PARSER_INIT(Parse_Int16);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -94,7 +94,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_UInt16,boost::uint16_t>,
           public PacketParserBase
     {
-        Parse_UInt16(data_iterator i, state s) : PacketParserBase(i,s,2) {}
+        SENF_PACKET_PARSER_INIT(Parse_UInt16);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -112,7 +112,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_Int24,boost::int32_t>,
           public PacketParserBase
     {
-        Parse_Int24(data_iterator i, state s) : PacketParserBase(i,s,3) {}
+        SENF_PACKET_PARSER_INIT(Parse_Int24);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -131,7 +131,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_UInt24,boost::uint32_t>,
           public PacketParserBase
     {
-        Parse_UInt24(data_iterator i, state s) : PacketParserBase(i,s,3) {}
+        SENF_PACKET_PARSER_INIT(Parse_UInt24);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -149,7 +149,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_Int32,boost::int32_t>,
           public PacketParserBase
     {
-        Parse_Int32(data_iterator i, state s) : PacketParserBase(i,s,4) {}
+        SENF_PACKET_PARSER_INIT(Parse_Int32);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -167,7 +167,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_UInt32,boost::uint32_t>,
           public PacketParserBase
     {
-        Parse_UInt32(data_iterator i, state s) : PacketParserBase(i,s,4) {}
+        SENF_PACKET_PARSER_INIT(Parse_UInt32);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -186,7 +186,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_IntField<Start,End>,boost::int32_t>,
           public PacketParserBase
     {
-        Parse_IntField(data_iterator i, state s) : PacketParserBase(i,s,(End-1)/8+1) {}
+        SENF_PACKET_PARSER_INIT(Parse_IntField);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -214,7 +214,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_UIntField<Start,End>,boost::uint32_t>,
           public PacketParserBase
     {
-        Parse_UIntField(data_iterator i, state s) : PacketParserBase(i,s,(End-1)/8+1) {}
+        SENF_PACKET_PARSER_INIT(Parse_UIntField);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -238,7 +238,7 @@ namespace senf {
         : public detail::packet::ParseIntOps<Parse_Flag<bit>,bool>,
           public PacketParserBase
     {
-        Parse_Flag(data_iterator i, state s) : PacketParserBase(i,s,1) {}
+        SENF_PACKET_PARSER_INIT(Parse_Flag);
 
         ///////////////////////////////////////////////////////////////////////////
 

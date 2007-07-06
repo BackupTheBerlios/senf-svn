@@ -38,21 +38,19 @@ namespace senf {
     template <unsigned elements, class ElementParser>
     struct Parse_Array : public PacketParserBase
     {
-        Parse_Array(data_iterator i, state s);
+        SENF_PACKET_PARSER_INIT(Parse_Array);
 
         ///////////////////////////////////////////////////////////////////////////
         // Container interface
 
         typedef ElementParser value_type;
         typedef detail::Parse_Array_iterator<value_type> iterator;
-        typedef boost::iterator_range<iterator> range_type;
         static size_type const bytes = elements*ElementParser::bytes;
 
         static size_type size();
 
         iterator begin() const;
         iterator end() const;
-        range_type range() const;
 
         value_type operator[](difference_type i) const;
     };

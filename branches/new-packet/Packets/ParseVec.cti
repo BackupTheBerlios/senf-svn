@@ -1,0 +1,273 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+// Definition of inline template functions
+
+//#include "ParseVec.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::Parse_Vector<ElementParser,Sizer>
+
+template <class ElementParser, class Sizer>
+prefix_ senf::Parse_Vector<ElementParser,Sizer>::Parse_Vector(data_iterator i, state_type s)
+    : PacketParserBase(i,s), sizer_()
+{}
+
+template <class ElementParser, class Sizer>
+prefix_ senf::Parse_Vector<ElementParser,Sizer>::Parse_Vector(Sizer sizer, data_iterator i,
+                                                              state_type s)
+    : PacketParserBase(i,s), sizer_(sizer)
+{}
+
+// Container interface
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector<ElementParser,Sizer>::size_type
+senf::Parse_Vector<ElementParser,Sizer>::bytes()
+    const
+{
+    return size()*ElementParser::bytes + sizer_.bytes(i(),state());
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector<ElementParser,Sizer>::size_type
+senf::Parse_Vector<ElementParser,Sizer>::size()
+    const
+{
+    return sizer_.size(i(),state());
+}
+
+template <class ElementParser, class Sizer>
+prefix_ bool senf::Parse_Vector<ElementParser,Sizer>::empty()
+    const
+{
+    return size()==0;
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector<ElementParser,Sizer>::iterator
+senf::Parse_Vector<ElementParser,Sizer>::begin()
+    const
+{
+    return iterator(sizer_.begin(i(),state()),state());
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector<ElementParser,Sizer>::iterator
+senf::Parse_Vector<ElementParser,Sizer>::end()
+    const
+{
+    return boost::next(begin(),size());
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector<ElementParser,Sizer>::value_type
+senf::Parse_Vector<ElementParser,Sizer>::operator[](difference_type i)
+    const
+{
+    return begin()[i];
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::SimpleSizeParser<SizeParser,offset>
+
+template <class SizeParser, unsigned offset>
+prefix_ typename senf::SimpleVectorSizer<SizeParser,offset>::size_type
+senf::SimpleVectorSizer<SizeParser,offset>::size(iterator i, state_type s)
+    const
+{
+    return SizeParser(i,s).value();
+}
+
+template <class SizeParser, unsigned offset>
+prefix_ void senf::SimpleVectorSizer<SizeParser,offset>::size(iterator i, state_type s,
+                                                              size_type v)
+    const
+{
+    SizeParser(i,s).value(v);
+}
+
+template <class SizeParser, unsigned offset>
+prefix_ typename senf::SimpleVectorSizer<SizeParser,offset>::iterator
+senf::SimpleVectorSizer<SizeParser,offset>::begin(iterator i, state_type s)
+    const
+{
+    return boost::next(i,offset);
+}
+
+template <class SizeParser, unsigned offset>
+prefix_ typename senf::SimpleVectorSizer<SizeParser,offset>::size_type
+senf::SimpleVectorSizer<SizeParser,offset>::bytes(iterator i, state_type s)
+    const
+{
+    return offset;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::Parse_Vector_wrapper<Parser,SizeParser,Container>
+
+// structors and default members
+
+template <class ElementParser, class Sizer>
+prefix_ senf::Parse_Vector_Container<ElementParser,Sizer>::
+Parse_Vector_Container(parser const & vector)
+    : sizer_ (vector.sizer_), state_ (vector.state()),
+      i_ (std::distance(data().begin(),vector.i()))
+{}
+
+// accessors
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::size_type
+senf::Parse_Vector_Container<ElementParser,Sizer>::size()
+    const
+{
+    return sizer_.size(i(),state());
+}
+
+template <class ElementParser, class Sizer>
+prefix_ bool senf::Parse_Vector_Container<ElementParser,Sizer>::empty()
+    const
+{
+    return size() == 0;
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::iterator
+senf::Parse_Vector_Container<ElementParser,Sizer>::begin()
+    const
+{
+    return iterator(sizer_.begin(i(),state()),state());
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::iterator
+senf::Parse_Vector_Container<ElementParser,Sizer>::end()
+    const
+{
+    return boost::next(begin(),size());
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::range_type
+senf::Parse_Vector_Container<ElementParser,Sizer>::range()
+    const
+{
+    return range_type(begin(), end());
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::value_type
+senf::Parse_Vector_Container<ElementParser,Sizer>::operator[](difference_type i)
+    const
+{
+    return begin()[i];
+}
+
+// mutators
+
+template <class ElementParser, class Sizer>
+template <class Value>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::insert(iterator pos,
+                                                                       Value const & t)
+{
+    *shift(pos) = t;
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::erase(iterator pos, size_type n)
+{
+    data().erase(pos.raw(),boost::next(pos.raw(),n*ElementParser::bytes));
+    setSize(size()-n);
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::erase(iterator f, iterator l)
+{
+    erase(f,std::distance(f,l));
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::clear()
+{
+    erase(begin(),end());
+}
+
+// Parser interface
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::data_iterator
+senf::Parse_Vector_Container<ElementParser,Sizer>::i()
+    const
+{
+    return boost::next(data().begin(),i_);
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::state_type
+senf::Parse_Vector_Container<ElementParser,Sizer>::state()
+    const
+{
+    return state_;
+}
+
+template <class ElementParser, class Sizer>
+prefix_ senf::PacketData &
+senf::Parse_Vector_Container<ElementParser,Sizer>::data()
+    const
+{
+    return *state_;
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::size_type
+senf::Parse_Vector_Container<ElementParser,Sizer>::bytes()
+    const
+{
+    return size()*ElementParser::bytes;
+}
+
+// private members
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::setSize(size_type value)
+{
+    sizer_.size(i(),state(),value);
+}
+
+/////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

@@ -71,8 +71,7 @@ namespace senf {
         typedef detail::packet::size_type size_type;
         typedef detail::packet::difference_type difference_type;
         typedef detail::packet::byte byte;
-        typedef PacketParserBase const & state;
-        typedef PacketData * container;
+        typedef PacketData * state_type;
 
         ///////////////////////////////////////////////////////////////////////////
         ///\name Structors and default members
@@ -87,11 +86,12 @@ namespace senf {
         ///////////////////////////////////////////////////////////////////////////
 
         data_iterator i() const;
+        state_type state() const;
+        PacketData & data() const;
 
     protected:
-        explicit PacketParserBase(container data);
-        PacketParserBase(data_iterator i, state s);
-        PacketParserBase(data_iterator i, state s, size_type size);
+        PacketParserBase(data_iterator i, state_type s);
+        PacketParserBase(data_iterator i, state_type s, size_type size);
 
         bool check(size_type size);
         void validate(size_type size);
@@ -107,13 +107,12 @@ namespace senf {
     };
 
 #   define SENF_PACKET_PARSER_INIT(name)                                \
-        explicit name(container data) : senf::PacketParserBase(data) {} \
-        name(data_iterator i, state s) : senf::PacketParserBase(i,s) {}
+        name(data_iterator i, state_type s) : senf::PacketParserBase(i,s) {}
 
     struct VoidPacketParser 
         : public PacketParserBase
     {
-        VoidPacketParser(container data);
+        SENF_PACKET_PARSER_INIT(VoidPacketParser);
     };
 
 }

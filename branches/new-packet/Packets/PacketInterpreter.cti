@@ -144,7 +144,7 @@ senf::PacketInterpreter<PacketType>::fields_p()
     // packet chain makes some read-only operations change the packet which is not thread safe).
 
     parser_p()->~parser();
-    new (parser_p()) parser (&data());
+    new (parser_p()) parser (data().begin(),&data());
     return parser_p();
 }
 
@@ -174,7 +174,7 @@ prefix_ senf::PacketInterpreter<PacketType>::PacketInterpreter(detail::PacketImp
                                                                iterator b, iterator e, Append_t)
     : PacketInterpreterBase(impl,b,e,Append)
 {
-    new (parser_p()) parser (&data());
+    new (parser_p()) parser (data().begin(),&data());
 }
 
 template <class PacketType>
@@ -182,7 +182,7 @@ prefix_ senf::PacketInterpreter<PacketType>::PacketInterpreter(detail::PacketImp
                                                                iterator b, iterator e, Prepend_t)
     : PacketInterpreterBase(impl,b,e,Prepend)
 {
-    new (parser_p()) parser (&data());
+    new (parser_p()) parser (data().begin(),&data());
 }
 
 // PacketType access
