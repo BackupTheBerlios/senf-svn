@@ -44,7 +44,7 @@ namespace {
 
     struct BaseParser : public PacketParserBase
     {
-        BaseParser(PacketData * data) : PacketParserBase(data) {}
+        SENF_PACKET_PARSER_INIT(BaseParser);
     };
 }
 

@@ -49,7 +49,6 @@ namespace senf {
         // Types
         
         typedef void type;
-        typedef PacketInterpreterBase interpreter;
         typedef senf::detail::packet::iterator iterator;
         typedef senf::detail::packet::const_iterator const_iterator;
         typedef senf::detail::packet::size_type size_type;
@@ -68,13 +67,12 @@ namespace senf {
         // default destructor
         
         Packet();
+        Packet clone() const;
 
         // conversion constructors
 
         template <class PacketType>
         Packet(ConcretePacket<PacketType> packet);
-
-        Packet clone() const;
 
         ///@}
         ///////////////////////////////////////////////////////////////////////////
@@ -82,33 +80,31 @@ namespace senf {
         ///\name Interpreter chain access
         ///@{
 
-        Packet next() const;
-        Packet prev() const;
-        Packet first() const;
-        Packet last() const;
+                                     Packet      next() const;
+        template <class OtherPacket> OtherPacket next() const;
+        template <class OtherPacket> OtherPacket next(NoThrow_t) const;
+        template <class OtherPacket> OtherPacket findNext() const;
+        template <class OtherPacket> OtherPacket findNext(NoThrow_t) const;
+
+                                     Packet      prev() const;
+        template <class OtherPacket> OtherPacket prev() const;
+        template <class OtherPacket> OtherPacket prev(NoThrow_t) const;
+        template <class OtherPacket> OtherPacket findPrev() const;
+        template <class OtherPacket> OtherPacket findPrev(NoThrow_t) const;
+
+                                     Packet      first() const;
+        template <class OtherPacket> OtherPacket first() const;
+        template <class OtherPacket> OtherPacket first(NoThrow_t) const;
+
+                                     Packet      last() const;
+        template <class OtherPacket> OtherPacket last() const;
+        template <class OtherPacket> OtherPacket last(NoThrow_t) const;
+
 
         template <class OtherPacket> OtherPacket parseNextAs() const;
                                      Packet      parseNextAs(factory_t factory) const;
         template <class OtherPacket> bool        is() const;
         template <class OtherPacket> OtherPacket as() const;
-
-        template <class OtherPacket> OtherPacket next() const;
-        template <class OtherPacket> OtherPacket next(NoThrow_t) const;
-
-        template <class OtherPacket> OtherPacket prev() const;
-        template <class OtherPacket> OtherPacket prev(NoThrow_t) const;
-
-        template <class OtherPacket> OtherPacket findNext() const;
-        template <class OtherPacket> OtherPacket findNext(NoThrow_t) const;
-
-        template <class OtherPacket> OtherPacket findPrev() const;
-        template <class OtherPacket> OtherPacket findPrev(NoThrow_t) const;
-
-        template <class OtherPacket> OtherPacket last() const;
-        template <class OtherPacket> OtherPacket last(NoThrow_t) const;
-
-        template <class OtherPacket> OtherPacket first() const;
-        template <class OtherPacket> OtherPacket first(NoThrow_t) const;
 
         Packet append(Packet packet) const;
 

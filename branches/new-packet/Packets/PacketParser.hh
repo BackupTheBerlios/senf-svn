@@ -33,7 +33,33 @@
 
 namespace senf {
     
-    /** \brief
+    /** \brief Parser Baseclass
+
+        To implement a new parser, derive from PacketParserBase and implement the necessary parser
+        members:
+
+        \code
+          struct FooParser : public PacketParserBase
+          {
+              // This line will add the required standard members (constuctors)
+              SENF_PACKET_PARSER_INIT(FooParser);
+
+              // If this parser has a fixed size, you may optionally define this size here
+              // This definition allows the parser to be used within the list, vector and array
+              // parsers
+              static size_type const bytes = some_constant_size;
+
+              ///////////////////////////////////////////////////////////////////////////
+
+              // Add here members returning (sub-)parsers for the fields. The 'parse' member is 
+              // used to construct the sub-parsers. This member either takes an iterator to the
+              // data to be parsed or just an offset in bytes.
+
+              senf::Parse_UInt16 type() { return parse<Parse_UInt16>( 0 ); }
+              senf::Parse_UInt16 size() { return parse<Parse_UInt16>( 2 ); }
+          };
+
+        \endcode
       */
     class PacketParserBase
     {
@@ -41,9 +67,11 @@ namespace senf {
         ///////////////////////////////////////////////////////////////////////////
         // Types
 
-        typedef detail::packet::iterator iterator;
+        typedef detail::packet::iterator data_iterator;
         typedef detail::packet::size_type size_type;
-        typedef PacketParserBase state;
+        typedef detail::packet::difference_type difference_type;
+        typedef detail::packet::byte byte;
+        typedef PacketParserBase const & state;
         typedef PacketData * container;
 
         ///////////////////////////////////////////////////////////////////////////
@@ -58,32 +86,35 @@ namespace senf {
         ///@}
         ///////////////////////////////////////////////////////////////////////////
 
-        iterator i() const;
+        data_iterator i() const;
 
     protected:
-        PacketParserBase(container data);
-        PacketParserBase(iterator i, state const & s);
-        PacketParserBase(iterator i, state const & s, size_type size);
+        explicit PacketParserBase(container data);
+        PacketParserBase(data_iterator i, state s);
+        PacketParserBase(data_iterator i, state s, size_type size);
 
         bool check(size_type size);
         void validate(size_type size);
 
-        template <class Parser>
-        Parser parse(iterator i) const;
+        template <class Parser> Parser parse(data_iterator i) const;
+        template <class Parser> Parser parse(size_type n) const;
 
     private:
-        iterator end();
+        data_iterator end();
 
-        iterator i_;
+        data_iterator i_;
         PacketData * data_;
     };
+
+#   define SENF_PACKET_PARSER_INIT(name)                                \
+        explicit name(container data) : senf::PacketParserBase(data) {} \
+        name(data_iterator i, state s) : senf::PacketParserBase(i,s) {}
 
     struct VoidPacketParser 
         : public PacketParserBase
     {
         VoidPacketParser(container data);
     };
-
 
 }
 

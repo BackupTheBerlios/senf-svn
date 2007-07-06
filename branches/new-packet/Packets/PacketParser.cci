@@ -37,7 +37,7 @@ prefix_ senf::VoidPacketParser::VoidPacketParser(container data)
 ///////////////////////////////////////////////////////////////////////////
 // senf::PacketParserBase
 
-prefix_ senf::PacketParserBase::iterator senf::PacketParserBase::i()
+prefix_ senf::PacketParserBase::data_iterator senf::PacketParserBase::i()
     const
 {
     return i_;
@@ -50,11 +50,11 @@ prefix_ senf::PacketParserBase::PacketParserBase(container data)
     : i_ (data->begin()), data_ (data)
 {}
 
-prefix_ senf::PacketParserBase::PacketParserBase(iterator i, state const & s)
+prefix_ senf::PacketParserBase::PacketParserBase(data_iterator i, state s)
     : i_ (i), data_ (s.data_)
 {}
 
-prefix_ senf::PacketParserBase::PacketParserBase(iterator i, state const & s,
+prefix_ senf::PacketParserBase::PacketParserBase(data_iterator i, state s, 
                                                  size_type size)
     : i_ (i), data_ (s.data_)
 {
@@ -75,7 +75,7 @@ prefix_ void senf::PacketParserBase::validate(size_type size)
 ////////////////////////////////////////
 // private members
 
-prefix_ senf::PacketParserBase::iterator senf::PacketParserBase::end()
+prefix_ senf::PacketParserBase::data_iterator senf::PacketParserBase::end()
 {
     return data_->end();
 }

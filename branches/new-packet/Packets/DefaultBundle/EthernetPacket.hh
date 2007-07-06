@@ -48,7 +48,7 @@ namespace senf {
 
     struct Parse_MAC : public PacketParserBase
     {
-        Parse_MAC(iterator i, state const & s) : PacketParserBase(i,s,6) {}
+        Parse_MAC(iterator i, state s) : PacketParserBase(i,s,6) {}
        
         ///////////////////////////////////////////////////////////////////////////
 
@@ -62,7 +62,7 @@ namespace senf {
 
     struct Parse_Ethernet : public PacketParserBase
     {
-        Parse_Ethernet(container c) : PacketParserBase(c) {}
+        explicit Parse_Ethernet(container c) : PacketParserBase(c) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -104,7 +104,7 @@ namespace senf {
 
     struct Parse_EthVLan : public PacketParserBase
     {
-        Parse_EthVLan(container c) : PacketParserBase(c) {}
+        explicit Parse_EthVLan(container c) : PacketParserBase(c) {}
 
         ///////////////////////////////////////////////////////////////////////////
 
