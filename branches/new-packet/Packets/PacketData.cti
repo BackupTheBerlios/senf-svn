@@ -34,7 +34,9 @@
 // Modifying the raw packet data
 
 template <class InputIterator>
-prefix_ void senf::PacketData::insert(iterator pos, InputIterator f, InputIterator l)
+prefix_ void senf::PacketData::
+insert(iterator pos, InputIterator f, InputIterator l,
+       typename boost::disable_if< boost::is_convertible<InputIterator,size_type> >::type *)
 {
      impl().insert(this,pos,f,l);
 }

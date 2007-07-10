@@ -92,6 +92,59 @@ senf::Parse_Vector<ElementParser,Sizer>::operator[](difference_type i)
     return begin()[i];
 }
 
+// Mutators
+
+template <class ElementParser, class Sizer>
+template <class Value>
+prefix_ void senf::Parse_Vector<ElementParser,Sizer>::push_back(Value value, size_type n)
+    const
+{
+    container c (*this);
+    c.push_back(value,n);
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector<ElementParser,Sizer>::push_back_space(size_type n)
+    const
+{
+    container c (*this);
+    c.push_back_space(n);
+}
+
+template <class ElementParser, class Sizer>
+template <class Value>
+prefix_ void senf::Parse_Vector<ElementParser,Sizer>::push_front(Value value, size_type n)
+    const
+{
+    container c (*this);
+    c.push_front(value,n);
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector<ElementParser,Sizer>::push_front_space(size_type n)
+    const
+{
+    container c (*this);
+    c.push_front_space(n);
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector<ElementParser,Sizer>::resize(size_type n)
+    const
+{
+    container c (*this);
+    c.resize(n);
+}
+
+template <class ElementParser, class Sizer>
+template <class Value>
+prefix_ void senf::Parse_Vector<ElementParser,Sizer>::resize(size_type n, Value value)
+    const
+{
+    container c (*this);
+    c.resize(n,value);
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // senf::SimpleSizeParser<SizeParser,offset>
 
@@ -215,6 +268,53 @@ template <class ElementParser, class Sizer>
 prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::clear()
 {
     erase(begin(),end());
+}
+
+template <class ElementParser, class Sizer>
+template <class Value>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::push_back(Value value,
+                                                                          size_type n)
+{
+    insert(end(),n,value);
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::push_back_space(size_type n)
+{
+    shift(end(),n);
+}
+
+template <class ElementParser, class Sizer>
+template <class Value>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::push_front(Value value,
+                                                                           size_type n)
+{
+    insert(begin(),n,value);
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::push_front_space(size_type n)
+{
+    shift(begin(),n);
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::resize(size_type n)
+{
+    if (size()>=n)
+        erase(boost::next(begin(),n),end());
+    else
+        push_back_space(n-size());
+}
+
+template <class ElementParser, class Sizer>
+template <class Value>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::resize(size_type n, Value value)
+{
+    if (size()>=n)
+        erase(boost::next(begin(),n),end());
+    else
+        push_back(value,n-size());
 }
 
 // Parser interface

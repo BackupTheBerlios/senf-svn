@@ -27,6 +27,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/utility.hpp>
 #include <boost/range.hpp>
+#include <boost/type_traits.hpp>
 #include "PacketParser.hh"
 #include "ParseArray.hh" // for Parse_Array_iterator
 
@@ -60,6 +61,19 @@ namespace senf {
         iterator end() const;
 
         value_type operator[](difference_type i) const;
+
+        // Mutators
+        
+        // The mutators provided here are those which don't take an iterator argument.
+        // If you need to pass an iterator it is much simpler and cleaner to use the
+        // 'container' wrapper
+                   
+        template <class Value> void push_back        (Value value, size_type n=1) const;
+                               void push_back_space  (size_type n=1) const;
+        template <class Value> void push_front       (Value value, size_type n=1) const;
+                               void push_front_space (size_type n=1) const;
+                               void resize           (size_type n) const;
+        template <class Value> void resize           (size_type n, Value value) const;
 
      private:
         Sizer sizer_;
@@ -137,11 +151,19 @@ namespace senf {
         template <class Value>
         void insert(iterator pos, size_type n, Value const & t);
         template <class ForwardIterator>
-        void insert(iterator pos, ForwardIterator f, ForwardIterator l);
+        void insert(iterator pos, ForwardIterator f, ForwardIterator l,
+                    typename boost::disable_if< boost::is_convertible<ForwardIterator,size_type> >::type * = 0);
 
         void erase(iterator pos, size_type n=1);
         void erase(iterator f, iterator l);
         void clear();
+
+        template <class Value> void push_back        (Value value, size_type n=1);
+                               void push_back_space  (size_type n=1);
+        template <class Value> void push_front       (Value value, size_type n=1);
+                               void push_front_space (size_type n=1);
+                               void resize           (size_type n);
+        template <class Value> void resize           (size_type n, Value value);
 
         ///@}
 

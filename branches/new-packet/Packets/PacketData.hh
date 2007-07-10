@@ -26,6 +26,7 @@
 
 // Custom includes
 #include <boost/utility.hpp>
+#include <boost/type_traits.hpp>
 #include "PacketTypes.hh"
 
 //#include "PacketData.mpp"
@@ -85,7 +86,8 @@ namespace senf {
         void insert(iterator pos, byte v);
         void insert(iterator pos, size_type n, byte v);
         template <class InputIterator>
-        void insert(iterator pos, InputIterator f, InputIterator l);
+        void insert(iterator pos, InputIterator f, InputIterator l,
+                    typename boost::disable_if< boost::is_convertible<InputIterator,size_type> >::type * = 0);
 
         void erase(iterator pos);
         void erase(iterator first, iterator last);

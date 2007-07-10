@@ -50,18 +50,21 @@ namespace senf {
             
             static size_type initSize()
             {
-                return constant_initial_size_of_empty_packet;
+                // This value can in most cases be taken from the parser
+                return senf::init_size<parser>::value;
             }
 
             static size_type initHeadSize()
             {
-                // optional member
+                // optional member. This is only needed, if the packet has header and trailer.
                 return constant_initial_size_of_header
             }
 
             static void init(packet p)
             {
-                // Initialize a new packet by e.g. setting some fields
+                // Initialize a new packet by e.g. setting some fields. Should call
+                // the packet parsers init() member
+                p->init();
                 p->some_field() = 1;
             }
 
