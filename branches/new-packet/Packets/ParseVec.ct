@@ -36,6 +36,7 @@ template <class ElementParser, class Sizer>
 prefix_ void senf::Parse_Vector<ElementParser,Sizer>::init()
     const
 {
+    sizer_.init(i(),state());
     iterator i (begin());
     iterator const e (end());
     for (; i!=e; ++i)

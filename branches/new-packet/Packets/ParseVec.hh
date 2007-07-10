@@ -38,6 +38,10 @@ namespace senf {
 
     template <class ElementParser, class Sizer> class Parse_Vector_Container;
 
+    /** \brief
+        
+        \todo Make the sizer a private baseclass to profit from the empty-base-class optimization
+     */
     template <class ElementParser, class Sizer>
     struct Parse_Vector : public PacketParserBase
     {
@@ -46,6 +50,8 @@ namespace senf {
 
         size_type bytes() const;
         void init() const;
+
+        static const size_type init_size = Sizer::init_size;
 
         ///////////////////////////////////////////////////////////////////////////
         // Container interface
@@ -88,10 +94,13 @@ namespace senf {
         typedef PacketParserBase::data_iterator iterator;
         typedef PacketParserBase::state_type state_type;
 
-        size_type size(iterator i, state_type s) const;
-        void size(iterator i, state_type s, size_type v) const;
-        iterator begin(iterator i, state_type s) const;
-        size_type bytes(iterator i, state_type s) const;
+        static const size_type init_bytes = offset;
+
+        size_type  size  (iterator i, state_type s) const;
+        void       size  (iterator i, state_type s, size_type v) const;
+        iterator   begin (iterator i, state_type s) const;
+        size_type  bytes (iterator i, state_type s) const;
+        void       init  (iterator i, state_type s) const;
     };
 
     /** \brief

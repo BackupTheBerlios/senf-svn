@@ -180,6 +180,11 @@ senf::SimpleVectorSizer<SizeParser,offset>::bytes(iterator i, state_type s)
     return offset;
 }
 
+template <class SizeParser, unsigned offset>
+prefix_ void senf::SimpleVectorSizer<SizeParser,offset>::init(iterator i, state_type s)
+    const
+{}
+
 ///////////////////////////////////////////////////////////////////////////
 // senf::Parse_Vector_wrapper<Parser,SizeParser,Container>
 
