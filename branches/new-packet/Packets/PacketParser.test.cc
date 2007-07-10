@@ -28,6 +28,7 @@
 #include "PacketParser.hh"
 #include "PacketInterpreter.hh"
 #include "PacketType.hh"
+#include "ParseInt.hh"
 
 #include <boost/test/auto_unit_test.hpp>
 #include <boost/test/test_tools.hpp>
@@ -45,18 +46,47 @@ namespace {
         using senf::PacketParserBase::check;
         using senf::PacketParserBase::validate;
     };
+
+    struct FooParser : public senf::PacketParserBase
+    {
+        SENF_PACKET_PARSER_INIT(FooParser);
+
+        SENF_PACKET_PARSER_DEFINE_FIXED_FIELDS(
+            ((Field)( name, senf::Parse_UInt16 ))
+            ((Field)( id,   senf::Parse_Int32  )) );
+    };
+
+    struct BarParser : public senf::PacketParserBase
+    {
+        SENF_PACKET_PARSER_INIT(BarParser);
+
+        SENF_PACKET_PARSER_DEFINE_FIELDS(
+            ((Field)( name, senf::Parse_UInt16 ))
+            ((Field)( id,   senf::Parse_Int32  )) );
+    };
 }
 
 BOOST_AUTO_UNIT_TEST(packetParserBase)
 {
-    senf::PacketInterpreter<VoidPacket>::ptr pi (senf::PacketInterpreter<VoidPacket>::create(4u));
+    senf::PacketInterpreter<VoidPacket>::ptr pi (senf::PacketInterpreter<VoidPacket>::create(6u));
     SimpleParser p (pi->data().begin(),&pi->data());
 
     BOOST_CHECK( pi->data().begin() == p.i() );
-    BOOST_CHECK( p.check(4u) );
-    BOOST_CHECK( ! p.check(5u) );
-    BOOST_CHECK_NO_THROW( p.validate(4u) );
-    BOOST_CHECK_THROW( p.validate(5u), senf::TruncatedPacketException );
+    BOOST_CHECK( p.check(6u) );
+    BOOST_CHECK( ! p.check(7u) );
+    BOOST_CHECK_NO_THROW( p.validate(6u) );
+    BOOST_CHECK_THROW( p.validate(7u), senf::TruncatedPacketException );
+
+    // ?? Why the heck do I need the +0? I get an 'undefined symbol FooParser::fixed_bytes'
+    // otherwise ...
+    BOOST_CHECK_EQUAL( FooParser::fixed_bytes+0, 6u );
+    BOOST_CHECK_EQUAL( BarParser(pi->data().begin(),&pi->data()).bytes(), 6u );
+    BOOST_CHECK_EQUAL( senf::bytes(senf::Parse_UInt16(pi->data().begin(),&pi->data())), 2u );
+    BOOST_CHECK_EQUAL( senf::bytes(FooParser(pi->data().begin(),&pi->data())), 6u );
+    BOOST_CHECK_EQUAL( senf::bytes(BarParser(pi->data().begin(),&pi->data())), 6u );
+
+    BOOST_CHECK_EQUAL( senf::init_bytes<FooParser>::value, 6u );
+    BOOST_CHECK_EQUAL( senf::init_bytes<BarParser>::value, 6u );
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////

@@ -40,30 +40,62 @@
 namespace {
     struct VoidPacket : public senf::PacketTypeBase
     {};
+
+    struct SomePacketParser : public senf::PacketParserBase
+    {
+        SENF_PACKET_PARSER_INIT(SomePacketParser);
+
+        typedef senf::Parse_Array<2,senf::Parse_UInt24> Parse_Array2;
+        
+        SENF_PACKET_PARSER_DEFINE_FIXED_FIELDS(
+            ((Field)( array, Parse_Array2 ))
+            ((Field)( index, senf::Parse_UInt16 )) );
+    };
+
+    struct SomeOtherParser : public senf::PacketParserBase
+    {
+        SENF_PACKET_PARSER_INIT(SomeOtherParser);
+        
+        typedef senf::Parse_Array<1,SomePacketParser> Parse_Array1;
+
+        SENF_PACKET_PARSER_DEFINE_FIXED_FIELDS(
+            ((Field)( fields, Parse_Array1 )) );
+    };
 }
 
 BOOST_AUTO_UNIT_TEST(parseArray_test)
 {
     senf::PacketParserBase::byte data[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 };
     senf::PacketInterpreterBase::ptr p (senf::PacketInterpreter<VoidPacket>::create(data));   
-    typedef senf::Parse_Array<6,senf::Parse_UInt8> Parse_UInt8Array6;
-    Parse_UInt8Array6 v (p->data().begin(),&p->data());
 
-    BOOST_CHECK_EQUAL( v[0], 0x00 );
-    BOOST_CHECK_EQUAL( v[5], 0x05 );
-    BOOST_CHECK_EQUAL( *v.begin(), 0x00 );
-    BOOST_CHECK_EQUAL( std::distance(v.begin(),v.end()), 
-                       Parse_UInt8Array6::difference_type(v.size()) );
-    BOOST_CHECK_EQUAL( v.size(), 6u );
-    Parse_UInt8Array6::iterator i1 (v.begin());
-    Parse_UInt8Array6::iterator i2 (v.begin());
-    ++i1;
-    BOOST_CHECK_EQUAL( *i1, 0x01 );
-    BOOST_CHECK_EQUAL( i1[-1], 0x00 );
-    BOOST_CHECK_EQUAL( i1-i2, 1 );
-    BOOST_CHECK_EQUAL( i2-i1, -1 );
-    --i1;
-    BOOST_CHECK( i1==i2 );
+    {
+        typedef senf::Parse_Array<6,senf::Parse_UInt8> Parse_UInt8Array6;
+        Parse_UInt8Array6 v (p->data().begin(),&p->data());
+
+        BOOST_CHECK_EQUAL( v[0], 0x00 );
+        BOOST_CHECK_EQUAL( v[5], 0x05 );
+        BOOST_CHECK_EQUAL( *v.begin(), 0x00 );
+        BOOST_CHECK_EQUAL( std::distance(v.begin(),v.end()), 
+                           Parse_UInt8Array6::difference_type(v.size()) );
+        BOOST_CHECK_EQUAL( v.size(), 6u );
+        Parse_UInt8Array6::iterator i1 (v.begin());
+        Parse_UInt8Array6::iterator i2 (v.begin());
+        ++i1;
+        BOOST_CHECK_EQUAL( *i1, 0x01 );
+        BOOST_CHECK_EQUAL( i1[-1], 0x00 );
+        BOOST_CHECK_EQUAL( i1-i2, 1 );
+        BOOST_CHECK_EQUAL( i2-i1, -1 );
+        --i1;
+        BOOST_CHECK( i1==i2 );
+    }
+    
+    {
+        SomeOtherParser v (p->data().begin(),&p->data());
+
+        BOOST_CHECK_EQUAL( senf::bytes(v), 8u );
+        BOOST_CHECK_EQUAL( v.fields()[0].array()[1], 0x030405u );
+        BOOST_CHECK_THROW( v.fields()[0].index(), senf::TruncatedPacketException );
+    }
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////

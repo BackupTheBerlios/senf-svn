@@ -43,14 +43,15 @@ namespace senf {
         Parse_Vector(data_iterator i, state_type s);
         Parse_Vector(Sizer sizer, data_iterator i, state_type s);
 
+        size_type bytes() const;
+        void init() const;
+
         ///////////////////////////////////////////////////////////////////////////
         // Container interface
 
         typedef ElementParser value_type;
         typedef detail::Parse_Array_iterator<value_type> iterator;
         typedef Parse_Vector_Container<ElementParser,Sizer> container;
-
-        size_type bytes() const;
 
         size_type size() const;
         bool empty() const;
@@ -66,7 +67,7 @@ namespace senf {
         friend class Parse_Vector_Container<ElementParser,Sizer>;
     };
 
-    template <class SizeParser, unsigned offset=SizeParser::bytes>
+    template <class SizeParser, unsigned offset=SizeParser::fixed_bytes>
     struct SimpleVectorSizer
     {
         typedef PacketParserBase::size_type size_type;
@@ -150,7 +151,9 @@ namespace senf {
         data_iterator i() const;
         state_type state() const;
         PacketData & data() const;
+
         size_type bytes() const;
+        void init() const;
         
         ///@}
 

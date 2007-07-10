@@ -30,7 +30,31 @@
 ///////////////////////////////ct.p////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
+// senf::Parse_Vector<ElementParser,Sizer>
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector<ElementParser,Sizer>::init()
+    const
+{
+    iterator i (begin());
+    iterator const e (end());
+    for (; i!=e; ++i)
+        (*i).init();
+}
+
+
+///////////////////////////////////////////////////////////////////////////
 // senf::Parse_Vector_Container<ElementParser,Sizer>
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::init()
+    const
+{
+    iterator i (begin());
+    iterator const e (end());
+    for (; i!=e; ++i)
+        (*i).init();
+}
 
 // Mutators
 
@@ -39,7 +63,7 @@ prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::iterator
 senf::Parse_Vector_Container<ElementParser,Sizer>::shift(iterator pos, size_type n)
 {
     size_type ix (std::distance(data().begin(),pos.raw()));
-    data().insert(pos.raw(),n*ElementParser::bytes,0);
+    data().insert(pos.raw(),n*ElementParser::fixed_bytes,0);
     setSize(size()+n);
     return iterator(boost::next(data().begin(),ix),state());
 }

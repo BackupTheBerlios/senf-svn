@@ -28,6 +28,7 @@
 #include "Packets/PacketType.hh"
 #include "Packets/ParseInt.hh"
 #include "Packets/PacketRegistry.hh"
+#include "Packets/PacketParser.hh"
 
 //#include "EthernetPacket.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
@@ -48,11 +49,12 @@ namespace senf {
 
     struct Parse_MAC : public PacketParserBase
     {
-        Parse_MAC(iterator i, state s) : PacketParserBase(i,s,6) {}
+        Parse_MAC(data_iterator i, state_type s) : PacketParserBase(i,s,fixed_bytes) {}
        
         ///////////////////////////////////////////////////////////////////////////
 
         typedef MACAddress value_type;
+        static const size_type fixed_bytes = 6u;
 
         value_type value() const { return MACAddress(i()); }
         void value(value_type v) { std::copy(v.address, v.address+6, i()); }
@@ -62,15 +64,16 @@ namespace senf {
 
     struct Parse_Ethernet : public PacketParserBase
     {
-        explicit Parse_Ethernet(container c) : PacketParserBase(c) {}
+        SENF_PACKET_PARSER_INIT(Parse_Ethernet);
 
         ///////////////////////////////////////////////////////////////////////////
 
         typedef Parse_UInt16                      Parse_Type;
 
-        Parse_MAC  destination() const { return parse<Parse_MAC>  (i()    ); }
-        Parse_MAC  source()      const { return parse<Parse_MAC>  (i() + 2); }
-        Parse_Type type()        const { return parse<Parse_Type> (i() + 4); }
+        SENF_PACKET_PARSER_DEFINE_FIXED_FIELDS(
+            ((Field)( destination, Parse_MAC  ))
+            ((Field)( source,      Parse_MAC  ))
+            ((Field)( type,        Parse_Type )) );
     };
 
     struct EtherTypes {
@@ -104,7 +107,7 @@ namespace senf {
 
     struct Parse_EthVLan : public PacketParserBase
     {
-        explicit Parse_EthVLan(container c) : PacketParserBase(c) {}
+        SENF_PACKET_PARSER_INIT(Parse_EthVLan);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -113,10 +116,11 @@ namespace senf {
         typedef Parse_UIntField < 4, 16 > Parse_VLanId;
         typedef Parse_UInt16              Parse_Type;
 
-        Parse_Priority priority() const { return parse<Parse_Priority> (i()    ); }
-        Parse_CFI      cfi()      const { return parse<Parse_CFI>      (i()    ); }
-        Parse_VLanId   vlanId()   const { return parse<Parse_VLanId>   (i()    ); }
-        Parse_Type     type()     const { return parse<Parse_Type>     (i() + 2); }
+        SENF_PACKET_PARSER_DEFINE_FIXED_FIELDS(
+            ((OverlayField)( priority, Parse_Priority ))
+            ((OverlayField)( cfi,      Parse_CFI      ))
+            ((Field       )( vlanId,   Parse_VLanId   ))
+            ((Field       )( type,     Parse_Type     )) );
     };
 
     struct EthVLanPacketType

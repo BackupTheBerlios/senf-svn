@@ -38,14 +38,17 @@ namespace senf {
     template <unsigned elements, class ElementParser>
     struct Parse_Array : public PacketParserBase
     {
-        SENF_PACKET_PARSER_INIT(Parse_Array);
+        Parse_Array(data_iterator i, state_type s);
+
+        static size_type const fixed_bytes = elements*ElementParser::fixed_bytes;
+
+        void init() const;
 
         ///////////////////////////////////////////////////////////////////////////
         // Container interface
 
         typedef ElementParser value_type;
         typedef detail::Parse_Array_iterator<value_type> iterator;
-        static size_type const bytes = elements*ElementParser::bytes;
 
         static size_type size();
 

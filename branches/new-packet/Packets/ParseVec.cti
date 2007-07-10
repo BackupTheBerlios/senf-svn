@@ -43,15 +43,15 @@ prefix_ senf::Parse_Vector<ElementParser,Sizer>::Parse_Vector(Sizer sizer, data_
     : PacketParserBase(i,s), sizer_(sizer)
 {}
 
-// Container interface
-
 template <class ElementParser, class Sizer>
 prefix_ typename senf::Parse_Vector<ElementParser,Sizer>::size_type
 senf::Parse_Vector<ElementParser,Sizer>::bytes()
     const
 {
-    return size()*ElementParser::bytes + sizer_.bytes(i(),state());
+    return size()*ElementParser::fixed_bytes + sizer_.bytes(i(),state());
 }
+
+// Container interface
 
 template <class ElementParser, class Sizer>
 prefix_ typename senf::Parse_Vector<ElementParser,Sizer>::size_type
@@ -201,7 +201,7 @@ prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::insert(iterator 
 template <class ElementParser, class Sizer>
 prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::erase(iterator pos, size_type n)
 {
-    data().erase(pos.raw(),boost::next(pos.raw(),n*ElementParser::bytes));
+    data().erase(pos.raw(),boost::next(pos.raw(),n*ElementParser::fixed_bytes));
     setSize(size()-n);
 }
 
@@ -248,7 +248,7 @@ prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::size_type
 senf::Parse_Vector_Container<ElementParser,Sizer>::bytes()
     const
 {
-    return size()*ElementParser::bytes;
+    return size()*ElementParser::fixed_bytes + sizer_.bytes(i(),state());
 }
 
 // private members

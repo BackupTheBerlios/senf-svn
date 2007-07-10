@@ -42,6 +42,16 @@ prefix_ senf::PacketParserBase::state_type senf::PacketParserBase::state()
     return data_;
 }
 
+prefix_ senf::PacketData & senf::PacketParserBase::data()
+    const
+{
+    return * data_;
+}
+
+prefix_ void senf::PacketParserBase::init()
+    const
+{}
+
 ////////////////////////////////////////
 // protected members
 

@@ -21,12 +21,15 @@
 /** \file
     \brief PacketParser inline template implementation */
 
-//#include "PacketParser.ih"
+#include "PacketParser.ih"
 
 // Custom includes
 
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketParserBase
 
 template <class Parser>
 prefix_ Parser senf::PacketParserBase::parse(data_iterator i)
@@ -40,6 +43,32 @@ prefix_ Parser senf::PacketParserBase::parse(size_type n)
     const
 {
     return Parser(boost::next(i(),n),state());
+}
+
+prefix_ void senf::PacketParserBase::defaultInit()
+    const
+{}
+
+///////////////////////////////////////////////////////////////////////////
+// namespace members
+
+template <class Parser>
+prefix_ senf::PacketParserBase::size_type senf::bytes(Parser p)
+{
+    return detail::packetParserSize(p,0);
+}
+
+template <class Parser>
+prefix_ senf::PacketParserBase::size_type
+senf::detail::packetParserSize(Parser p, int, Parser_TakeNum<Parser::fixed_bytes> *)
+{
+    return Parser::fixed_bytes;
+}
+
+template <class Parser>
+prefix_ senf::PacketParserBase::size_type senf::detail::packetParserSize(Parser p, ...)
+{
+    return p.bytes();
 }
 
 ///////////////////////////////cti.e///////////////////////////////////////
