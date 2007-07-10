@@ -211,7 +211,7 @@ namespace senf {
 
         This mixin class simplifies the definition of simple packets with fixed-size headers and/or
         trailers. For this type of Packet, this mixin provides the nextPacketRange() and
-        nextPacketType() members.
+        nextPacketType() members:
         \code
         struct SimplePacketType 
             : public senf::PacketTypeBase
@@ -219,6 +219,9 @@ namespace senf {
         {
             static interpreter::size_type initSize()
             {
+                // This member is optional. If it is not defined, 'senf::init_size<parser>::value'
+                // will be returned.
+        
                 // The value returned is the length of the header if initHeadSize() is not defined.
                 // If initHeadSize is defined, this value is the combined size of the header
                 // and trailer while initHeadSize() will return the size of the header only.
@@ -250,6 +253,8 @@ namespace senf {
 
         static PacketInterpreterBase::optional_range nextPacketRange (Packet p);
         static PacketInterpreterBase::factory_t      nextPacketType  (Packet p);
+        static PacketInterpreterBase::size_type      initSize        ();
+        static void                                  init            (Packet p);
     };
 
     template <class Self>
@@ -257,6 +262,8 @@ namespace senf {
     {
     public:
         static PacketInterpreterBase::optional_range nextPacketRange (Packet p);
+        static PacketInterpreterBase::size_type      initSize        ();
+        static void                                  init            (Packet p);
     };
 
 }

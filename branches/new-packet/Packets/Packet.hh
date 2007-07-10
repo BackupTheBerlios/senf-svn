@@ -220,7 +220,6 @@ namespace senf {
         friend class PacketInterpreter<PacketType>;
     };
 
-
 }
 
 ///////////////////////////////hh.e////////////////////////////////////////

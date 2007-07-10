@@ -49,6 +49,8 @@ namespace {
           public senf::PacketTypeMixin<FooPacketType>
     {
         using senf::PacketTypeMixin<FooPacketType>::nextPacketRange;
+        using senf::PacketTypeMixin<FooPacketType>::initSize;
+        using senf::PacketTypeMixin<FooPacketType>::init;
         typedef senf::PacketInterpreter<FooPacketType> interpreter;
         static interpreter::size_type initSize()
             { return 4u; }
@@ -77,6 +79,8 @@ namespace {
         typedef BarPacketParser parser;
         using mixin::nextPacketRange;
         using mixin::nextPacketType;
+        using mixin::initSize;
+        using mixin::init;
         static size_type initSize() 
             { return 8u; }
         static void init(packet p) {

@@ -91,10 +91,9 @@ namespace senf {
 
         using mixin::nextPacketRange;
         using mixin::nextPacketType;
+        using mixin::initSize;
+        using mixin::init;
 
-        static size_type initSize()
-            { return 14; }
-        
         /** \todo Add LLC/SNAP support -> only use the registry
             for type() values >=1536, otherwise expect an LLC header */
         static registry_key_t nextPacketKey(packet p) 
@@ -133,9 +132,8 @@ namespace senf {
 
         using mixin::nextPacketRange;
         using mixin::nextPacketType;
-
-        static size_type initSize()
-            { return 4; }
+        using mixin::initSize;
+        using mixin::init;
 
         /** \todo Add LLC/SNAP support -> only use the registry
             for type() values >=1536, otherwise expect an LLC header */
