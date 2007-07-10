@@ -54,7 +54,7 @@ namespace ppi {
                                              called to calculate the new throttling state.
                                              
                                              \param[in] input Connector holding the queue
-                                             \param[in] event Type of event triggering the upate
+                                             \param[in] event Type of event triggering the update
                                              \returns new throttling state */
     };
 
@@ -74,4 +74,5 @@ namespace ppi {
 // indent-tabs-mode: nil
 // ispell-local-dictionary: "american"
 // compile-command: "scons -u test"
+// comment-column: 40
 // End:

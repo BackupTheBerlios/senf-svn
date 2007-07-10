@@ -2,11 +2,12 @@
 
  (defconst senf-c-style
   '((c-basic-offset              . 4)
-    (c-cleanup-list             . (empty-defun-braces 
-                                   defun-close-semi 
-                                   list-close-comma 
-                                   scope-operator 
-                                   compact-empty-funcall))
+    (c-backslash-column          . 98)
+    (c-cleanup-list              . (empty-defun-braces 
+				    defun-close-semi 
+				    list-close-comma 
+				    scope-operator 
+				    compact-empty-funcall))
     (c-hanging-braces-alist      . ((namespace-open after)
                                     (namespace-close before after)
                                     (brace-list-open)
@@ -27,7 +28,8 @@
 (c-add-style "senf" senf-c-style)
 
 (set (make-local-variable 'ccide-file-vars)
-     '(( fill-column  . 100    )
+     '(( fill-column  . 100 )
+       ( comment-column . 40 )
        ( c-file-style . "senf" )
        ( indent-tabs-mode . nil )
        ( ispell-local-dictionary . "american" )

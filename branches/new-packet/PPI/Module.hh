@@ -79,9 +79,9 @@ namespace module {
                                              The return value may be used to alter routing
                                              parameters like throttling parameters.
                                              
-                                             \param[in] source Data source, object which controlls
+                                             \param[in] source Data source, object which controls
                                                  incoming data
-                                             \param[in] target Data target, object which controlls
+                                             \param[in] target Data target, object which controls
                                                  outgoing data
                                              \returns Route instance describing this route */
 
@@ -144,4 +144,5 @@ namespace module {
 // indent-tabs-mode: nil
 // ispell-local-dictionary: "american"
 // compile-command: "scons -u test"
+// comment-column: 40
 // End:

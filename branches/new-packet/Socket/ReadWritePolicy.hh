@@ -120,7 +120,7 @@ namespace senf {
                                              \param[in] handle socket handle to write data to
                                              \param[in] buffer address of buffer to send
                                              \param[in] size number of bytes to write
-                                             \param[in] address peer to send data to
+                                             \param[in] addr peer to send data to
                                              \returns number of bytes written
                                           */
 
@@ -158,4 +158,5 @@ namespace senf {
 // indent-tabs-mode: nil
 // ispell-local-dictionary: "american"
 // compile-command: "scons -u test"
+// comment-column: 40
 // End:

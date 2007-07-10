@@ -53,4 +53,5 @@ prefix_ void senf::PacketData::resize(size_type n, byte v)
 // indent-tabs-mode: nil
 // ispell-local-dictionary: "american"
 // compile-command: "scons -u test"
+// comment-column: 40
 // End:

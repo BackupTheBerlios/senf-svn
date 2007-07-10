@@ -178,7 +178,7 @@ namespace senf {
                                              range. read returns a past-the-end iterator after the
                                              last character read. This iterator will point to
                                              somewhere within the input range.
-                                             \param[in/out] range Range to store data in 
+                                             \param[in,out] range Range to store data in 
                                              \returns past-the-end iterator pointer to after the
                                                  last read character 
                                              \see \ref read() \n
@@ -239,7 +239,7 @@ namespace senf {
                                              range. read returns a past-the-end iterator after the
                                              last character read. This iterator will point to
                                              somewhere within the input range.
-                                             \param[in/out] range Range to store data in 
+                                             \param[in,out] range Range to store data in 
                                              \param[out] from peers address from which the data was
                                                  received
                                              \returns past-the-end iterator pointer to after the
@@ -267,14 +267,15 @@ namespace senf {
                                              \see \ref readfrom() */
         char *       readfrom     (char * start, char * end, Address & from);
                                         ///< Read data into memory buffer
-                                        /**< This variant will read data into the memory area at \c
-                                           buffer of size \c size. This is the most performant
-                                           version of readfrom().
-                                           \param[in] buffer address of buffer to store data at
-                                           \param[in] size size of buffer
-                                           \param[out] from peer address
-                                           \returns Number of bytes read
-                                           \see \ref readfrom() */
+                                        /**< This variant will read data into the memory area from
+                                             \a start to before \a end. This is guaranteed to be the
+                                             most efficient version  of readfrom().
+                                             \param[in] start address of buffer to store data at
+                                             \param[in] end address one past the end of the buffer
+                                             \param[out] from peers address from which the data was
+                                                 received
+                                             \returns pointer past the end of the data read
+                                             \see \ref read() */
 
 
         /** \brief Write data to socket
@@ -451,4 +452,5 @@ namespace senf {
 // indent-tabs-mode: nil
 // ispell-local-dictionary: "american"
 // compile-command: "scons -u test"
+// comment-column: 40
 // End:
