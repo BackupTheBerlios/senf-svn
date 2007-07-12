@@ -33,6 +33,8 @@
 ///////////////////////////////hh.p////////////////////////////////////////
 
 namespace senf {
+
+    namespace detail { class SafePacketIterator; }
     
     /** \brief
 
@@ -48,6 +50,7 @@ namespace senf {
         typedef senf::detail::packet::smart_pointer<PacketData>::ptr_t ptr;
         
         typedef senf::detail::packet::iterator iterator;
+        typedef detail::SafePacketIterator safe_iterator;
         typedef senf::detail::packet::const_iterator const_iterator;
         typedef senf::detail::packet::size_type size_type;
         typedef senf::detail::packet::difference_type difference_type;

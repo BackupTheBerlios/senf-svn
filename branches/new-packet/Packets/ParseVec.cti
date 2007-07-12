@@ -92,6 +92,22 @@ senf::Parse_Vector<ElementParser,Sizer>::operator[](difference_type i)
     return begin()[i];
 }
 
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector<ElementParser,Sizer>::value_type
+senf::Parse_Vector<ElementParser,Sizer>::front()
+    const
+{
+    return begin()[0];
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector<ElementParser,Sizer>::value_type
+senf::Parse_Vector<ElementParser,Sizer>::back()
+    const
+{
+    return begin()[size()-1];
+}
+
 // Mutators
 
 template <class ElementParser, class Sizer>
@@ -239,6 +255,22 @@ senf::Parse_Vector_Container<ElementParser,Sizer>::operator[](difference_type i)
     const
 {
     return begin()[i];
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::value_type
+senf::Parse_Vector_Container<ElementParser,Sizer>::front()
+    const
+{
+    return begin()[0];
+}
+
+template <class ElementParser, class Sizer>
+prefix_ typename senf::Parse_Vector_Container<ElementParser,Sizer>::value_type
+senf::Parse_Vector_Container<ElementParser,Sizer>::back()
+    const
+{
+    return begin()[size()-1];
 }
 
 // Mutators

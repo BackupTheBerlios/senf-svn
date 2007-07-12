@@ -174,6 +174,13 @@ BOOST_AUTO_UNIT_TEST(parseInt_operators)
     // int happens in the first macro parameter ... hrmpf ...
     BOOST_CHECK_EQUAL( p2, 15010 );
 
+    BOOST_CHECK_EQUAL( ++p1, 6555903u );
+    BOOST_CHECK_EQUAL( p1++, 6555903u );
+    BOOST_CHECK_EQUAL( p1, 6555904u );
+    BOOST_CHECK_EQUAL( --p1, 6555903u );
+    BOOST_CHECK_EQUAL( p1--, 6555903u );
+    BOOST_CHECK_EQUAL( p1, 6555902u );
+
     p1 = 0x123456u;
     BOOST_CHECK_EQUAL( p->data()[0], 0x12 );
     BOOST_CHECK_EQUAL( p->data()[1], 0x34 );

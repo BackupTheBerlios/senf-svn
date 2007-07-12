@@ -73,15 +73,18 @@ template <class ElementParser, class ListPolicy>
 prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::iterator
 senf::Parse_List_Container<ElementParser,ListPolicy>::shift(iterator pos, size_type n)
 {
+    data_iterator ii (i());
+    size_type ix (std::distance(data().begin(),ii));
     data_iterator p (pos.raw());
+    size_type px (std::distance(data().begin(),p));
     for (; n>0; --n) {
-        size_type ix (std::distance(data().begin(),p));
         data().insert(p,senf::init_bytes<ElementParser>::value,0);
-        p = boost::next(data().begin(),ix);
+        p = boost::next(data().begin(),px);
+        ii = boost::next(data().begin(),ix);
         ElementParser(p,state()).init();
-        ListPolicy::insert(i(),state(),p);
+        ListPolicy::insert(ii,state(),p);
     }
-    return iterator(i(),state(),p);
+    return iterator(ii,state(),p);
 }
 
 template <class ElementParser, class ListPolicy>

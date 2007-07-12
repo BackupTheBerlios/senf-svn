@@ -67,6 +67,8 @@ namespace senf {
         iterator end() const;
 
         value_type operator[](difference_type i) const;
+        value_type front() const;
+        value_type back() const;
 
         // Mutators
         
@@ -139,6 +141,8 @@ namespace senf {
         iterator end() const;
 
         value_type operator[](difference_type i) const;
+        value_type front() const;
+        value_type back() const;
 
         ///@}
         ///\name Mutators
