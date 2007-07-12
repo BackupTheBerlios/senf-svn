@@ -103,6 +103,9 @@ namespace senf {
         In the same way, dont access \c init_bytes directly, always use the senf::init_bytes
         metafunction class which will correctly support fixed size parsers.
 
+        \fixme Implement generic assignment operator to allow assignment of one parser to another
+            one.
+
         \ingroup packetparser
       */
     class PacketParserBase

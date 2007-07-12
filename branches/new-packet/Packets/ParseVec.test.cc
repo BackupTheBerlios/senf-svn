@@ -50,7 +50,7 @@ BOOST_AUTO_UNIT_TEST(parseVec)
     senf::PacketInterpreterBase::ptr p (senf::PacketInterpreter<VoidPacket>::create(data));
     typedef senf::Parse_Vector<
         senf::Parse_UInt16,
-        senf::SimpleVectorSizer<senf::Parse_UInt8>
+        senf::detail::Parse_VectorN_Sizer<senf::Parse_UInt8>
         > Parse_UInt16Vec;
 
     {
@@ -125,7 +125,7 @@ BOOST_AUTO_UNIT_TEST(parseVec_wrapper)
     senf::PacketInterpreterBase::ptr p (senf::PacketInterpreter<VoidPacket>::create(data));
     typedef senf::Parse_Vector<
         senf::Parse_UInt16,
-        senf::SimpleVectorSizer<senf::Parse_UInt8>
+        senf::detail::Parse_VectorN_Sizer<senf::Parse_UInt8>
         > Parse_UInt16Vec;
     Parse_UInt16Vec v (p->data().begin(), &p->data());
     Parse_UInt16Vec::container w (v);
@@ -170,20 +170,9 @@ BOOST_AUTO_UNIT_TEST(parseVec_wrapper)
     BOOST_CHECK_EQUAL( w.size(), 0u );
     BOOST_CHECK( w.begin() == w.end() );
     BOOST_CHECK_EQUAL( p->data().size(), 1u );
+
+    BOOST_CHECK_EQUAL( w.parser().size(), 0u );
 }
-
-#if 0
-
-// This really belongs into ParserBase.test.cc but it's simpler here
-BOOST_AUTO_UNIT_TEST(parserTraits_test)
-{
-    // Really, this could be checked by BOOST_STATIC_ASSERT since
-    // it's compile-time ...
-    BOOST_CHECK( Parser_traits< Parse_UInt32<> >::fixed_size );
-    BOOST_CHECK( (! Parser_traits< Parse_Vector< Parse_UInt16<>,Parse_UInt16<> > >::fixed_size) );
-}
-
-#endif
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_

@@ -51,7 +51,7 @@ namespace senf {
         size_type bytes() const;
         void init() const;
 
-        static const size_type init_size = Sizer::init_size;
+        static const size_type init_bytes = Sizer::init_bytes;
 
         ///////////////////////////////////////////////////////////////////////////
         // Container interface
@@ -87,20 +87,13 @@ namespace senf {
         friend class Parse_Vector_Container<ElementParser,Sizer>;
     };
 
-    template <class SizeParser, unsigned offset=SizeParser::fixed_bytes>
-    struct SimpleVectorSizer
+    namespace detail { template <class SizeParser> class Parse_VectorN_Sizer; }
+
+    template <class ElementParser, class SizeParser>
+    struct Parse_VectorN
     {
-        typedef PacketParserBase::size_type size_type;
-        typedef PacketParserBase::data_iterator iterator;
-        typedef PacketParserBase::state_type state_type;
-
-        static const size_type init_bytes = offset;
-
-        size_type  size  (iterator i, state_type s) const;
-        void       size  (iterator i, state_type s, size_type v) const;
-        iterator   begin (iterator i, state_type s) const;
-        size_type  bytes (iterator i, state_type s) const;
-        void       init  (iterator i, state_type s) const;
+        typedef Parse_Vector< ElementParser,
+                              detail::Parse_VectorN_Sizer<SizeParser> > parser;
     };
 
     /** \brief
@@ -109,19 +102,17 @@ namespace senf {
       */
     template <class ElementParser, class Sizer>
     class Parse_Vector_Container
-        : boost::noncopyable
     {
     public:
         ///////////////////////////////////////////////////////////////////////////
         // Types
 
-        typedef Parse_Vector<ElementParser,Sizer> parser;
+        typedef Parse_Vector<ElementParser,Sizer> parser_type;
         typedef PacketParserBase::data_iterator data_iterator;
         typedef PacketParserBase::size_type size_type;
         typedef PacketParserBase::difference_type difference_type;
         typedef ElementParser value_type;
         typedef detail::Parse_Array_iterator<value_type> iterator;
-        typedef boost::iterator_range<iterator> range_type;
         typedef PacketParserBase::state_type state_type;
 
         ///////////////////////////////////////////////////////////////////////////
@@ -129,11 +120,11 @@ namespace senf {
         ///@{
 
         // no default constructor
-        // no copy
+        // default copy
         // default destructor
         // conversion constructors
 
-        Parse_Vector_Container(parser const & vector);
+        Parse_Vector_Container(parser_type const & vector);
 
         ///@}
         ///////////////////////////////////////////////////////////////////////////
@@ -146,7 +137,6 @@ namespace senf {
 
         iterator begin() const;
         iterator end() const;
-        range_type range() const;
 
         value_type operator[](difference_type i) const;
 
@@ -179,6 +169,7 @@ namespace senf {
         ///\name Parser interface
         ///@{
 
+        parser_type parser() const;
         data_iterator i() const;
         state_type state() const;
         PacketData & data() const;
@@ -194,7 +185,7 @@ namespace senf {
         void setSize(size_type value);
 
         Sizer sizer_;
-        PacketParserBase::state_type state_;
+        state_type state_;
         size_type i_;
     };
 

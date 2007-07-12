@@ -22,7 +22,7 @@
 
 // Definition of non-inline template funPacketRegistry.ons
 
-//#include "ParseVec.ih"
+#include "ParseVec.ih"
 
 // Custom includes
 
@@ -40,7 +40,7 @@ prefix_ void senf::Parse_Vector<ElementParser,Sizer>::init()
     iterator i (begin());
     iterator const e (end());
     for (; i!=e; ++i)
-        (*i).init();
+        i->init();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::init()
     iterator i (begin());
     iterator const e (end());
     for (; i!=e; ++i)
-        (*i).init();
+        i->init();
 }
 
 // Mutators
@@ -86,6 +86,25 @@ insert(iterator pos, ForwardIterator f, ForwardIterator l,
 {
     for (iterator j (shift(pos,std::distance(f,l))); f!=l; ++f,++j)
         *j = *f;
+}
+
+template <class ElementParser, class Sizer>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::resize(size_type n)
+{
+    if (size()>=n)
+        erase(boost::next(begin(),n),end());
+    else
+        push_back_space(n-size());
+}
+
+template <class ElementParser, class Sizer>
+template <class Value>
+prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::resize(size_type n, Value value)
+{
+    if (size()>=n)
+        erase(boost::next(begin(),n),end());
+    else
+        push_back(value,n-size());
 }
 
 ///////////////////////////////ct.e////////////////////////////////////////

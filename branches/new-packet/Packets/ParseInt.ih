@@ -124,6 +124,10 @@ namespace packet {
     ///////////////////////////////////////////////////////////////////////////
     // bitfield extraction
 
+    // Doxygen doesn't like this stuff ... 
+
+#   ifndef DOXYGEN
+
     template <unsigned offset, unsigned endb, unsigned start, unsigned end>
     struct parse_bitfield_i
     {
@@ -201,6 +205,8 @@ namespace packet {
                 | ((v & boost::low_bits_mask_t<end-start>::sig_bits) << (8-end));
         }
     };
+
+#   endif
 
     template <unsigned start, unsigned end>
     struct parse_bitfield

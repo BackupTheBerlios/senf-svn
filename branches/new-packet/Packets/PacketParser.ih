@@ -31,6 +31,10 @@
 namespace senf {
 namespace detail {
 
+    // PLEASE don't add this to doxygen ... it just looks to weird and does not help ...
+
+#   ifndef DOXYGEN
+
     template <PacketParserBase::size_type i>
     struct Parser_TakeNum {};
 
@@ -60,6 +64,8 @@ namespace detail {
     template <class Parser>
     struct ParserInitBytes
         : public ParserInitBytes_Choose<Parser, sizeof(ParserInitBytes_Choose_<Parser>(0))> {};
+
+#   endif
 
 }}
 

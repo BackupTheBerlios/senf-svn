@@ -1,0 +1,362 @@
+// Copyright (C) 2007 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ParseList inline template implementation */
+
+#include "ParseList.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::Parse_List<ElementParser,ListPolicy>
+
+template <class ElementParser, class ListPolicy>
+prefix_ senf::Parse_List<ElementParser,ListPolicy>::Parse_List(data_iterator i, state_type s)
+    : PacketParserBase(i,s), ListPolicy()
+{}
+
+template <class ElementParser, class ListPolicy>
+prefix_ senf::Parse_List<ElementParser,ListPolicy>::Parse_List(ListPolicy policy,
+                                                               data_iterator i, state_type s)
+    : PacketParserBase(i,s), ListPolicy(policy)
+{}
+
+template <class ElementParser, class ListPolicy>
+prefix_ senf::PacketParserBase::size_type
+senf::Parse_List<ElementParser,ListPolicy>::bytes()
+    const
+{
+    return ListPolicy::bytes(i(),state());
+}
+
+///////////////////////////////////////////////////////////////////////////
+// Container interface
+
+template <class ElementParser, class ListPolicy>
+prefix_ senf::PacketParserBase::size_type
+senf::Parse_List<ElementParser,ListPolicy>::size()
+    const
+{
+    return ListPolicy::size(i(),state());
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ bool senf::Parse_List<ElementParser,ListPolicy>::empty()
+    const
+{
+    return begin() == end();
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List<ElementParser,ListPolicy>::iterator
+senf::Parse_List<ElementParser,ListPolicy>::begin()
+    const
+{
+    return iterator(i(),state(),iterator::Begin);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List<ElementParser,ListPolicy>::iterator
+senf::Parse_List<ElementParser,ListPolicy>::end()
+    const
+{
+    return iterator(i(),state(),iterator::End);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List<ElementParser,ListPolicy>::value_type
+senf::Parse_List<ElementParser,ListPolicy>::front()
+    const
+{
+    BOOST_ASSERT( ! empty() );
+    return *begin();
+}
+
+template <class ElementParser, class ListPolicy>
+template <class Value>
+prefix_ void senf::Parse_List<ElementParser,ListPolicy>::push_back(Value value, size_type n)
+    const
+{
+    container c(*this);
+    c.push_back(value,n);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ void senf::Parse_List<ElementParser,ListPolicy>::push_back_space(size_type n)
+    const
+{
+    container c(*this);
+    c.push_back_space(n);
+}
+
+template <class ElementParser, class ListPolicy>
+template <class Value>
+prefix_ void senf::Parse_List<ElementParser,ListPolicy>::push_front(Value value, size_type n)
+    const
+{
+    container c(*this);
+    c.push_front(value,n);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ void senf::Parse_List<ElementParser,ListPolicy>::push_front_space(size_type n)
+    const
+{
+    container c(*this);
+    c.push_front_space(n);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ void senf::Parse_List<ElementParser,ListPolicy>::resize(size_type n)
+    const
+{
+    container c(*this);
+    c.resize(n);
+}
+
+template <class ElementParser, class ListPolicy>
+template <class Value>
+prefix_ void senf::Parse_List<ElementParser,ListPolicy>::resize(size_type n, Value value)
+    const
+{
+    container c(*this);
+    c.resize(n,value);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>
+
+template <class ElementParser, class IteratorPolicy>
+prefix_ senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>::Parse_List_Iterator()
+{}
+
+template <class ElementParser, class IteratorPolicy>
+prefix_ senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>::
+Parse_List_Iterator(PacketParserBase::data_iterator i, PacketParserBase::state_type s, Begin_t)
+    : IteratorPolicy(), i_(IteratorPolicy::setBegin(i,s)), s_(s)
+{}
+
+template <class ElementParser, class IteratorPolicy>
+prefix_ senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>::
+Parse_List_Iterator(PacketParserBase::data_iterator i, PacketParserBase::state_type s, End_t)
+    : IteratorPolicy(), i_(IteratorPolicy::setEnd(i,s)), s_(s)
+{}
+
+template <class ElementParser, class IteratorPolicy>
+prefix_ senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>::
+Parse_List_Iterator(PacketParserBase::data_iterator i, PacketParserBase::state_type s,
+                    PacketParserBase::data_iterator p)
+    : IteratorPolicy(), i_(p), s_(s)
+{
+    IteratorPolicy::setFromPosition(i,s,p);
+}
+
+template <class ElementParser, class IteratorPolicy>
+prefix_ senf::PacketParserBase::data_iterator
+senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>::raw()
+    const
+{
+    return IteratorPolicy::raw(i_,s_);
+}
+
+template <class ElementParser, class IteratorPolicy>
+prefix_ ElementParser
+senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>::dereference()
+    const
+{
+    return ElementParser(i_,s_);
+}
+
+template <class ElementParser, class IteratorPolicy>
+prefix_ bool senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>::
+equal(Parse_List_Iterator const & other)
+    const
+{
+    return i_ == other.i_;
+}
+
+template <class ElementParser, class IteratorPolicy>
+prefix_ void senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>::increment()
+{
+    i_ = IteratorPolicy::next(i_,s_);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::Parse_List_Container<ElementParser,ListPolicy>
+
+// Structors and default members
+
+template <class ElementParser, class ListPolicy>
+prefix_ senf::Parse_List_Container<ElementParser,ListPolicy>::
+Parse_List_Container(parser_type const & list)
+    : ListPolicy(list), state_(list.state()), i_(std::distance(data().begin(),list.i()))
+{}
+
+// Accessors
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::size_type
+senf::Parse_List_Container<ElementParser,ListPolicy>::size()
+    const
+{
+    return ListPolicy::size(i(),state());
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ bool senf::Parse_List_Container<ElementParser,ListPolicy>::empty()
+    const
+{
+    return begin() == end();
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::iterator
+senf::Parse_List_Container<ElementParser,ListPolicy>::begin()
+    const
+{
+    return iterator(i(),state(),iterator::Begin);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::iterator
+senf::Parse_List_Container<ElementParser,ListPolicy>::end()
+    const
+{
+    return iterator(i(),state(),iterator::End);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::value_type
+senf::Parse_List_Container<ElementParser,ListPolicy>::front()
+    const
+{
+    BOOST_ASSERT( ! empty() );
+    return *begin();
+}
+
+// Mutators
+
+template <class ElementParser, class ListPolicy>
+template <class Value>
+prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::insert(iterator pos,
+                                                                          Value const & t)
+{
+    *shift(pos) = t;
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::erase(iterator f, iterator l)
+{
+    erase(f,std::distance(f,l));
+}
+
+template <class ElementParser, class ListPolicy>
+template <class Value>
+prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::push_back(Value value,
+                                                                             size_type n)
+{
+    insert(end(),n,value);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::push_back_space(size_type n)
+{
+    shift(end(),n);
+}
+
+template <class ElementParser, class ListPolicy>
+template <class Value>
+prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::push_front(Value value,
+                                                                              size_type n)
+{
+    insert(begin(),n,value);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::push_front_space(size_type n)
+{
+    shift(begin(),n);
+}
+
+// Parser interface
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::parser_type
+senf::Parse_List_Container<ElementParser,ListPolicy>::parser()
+    const
+{
+    return parser_type(i(),state());
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::data_iterator
+senf::Parse_List_Container<ElementParser,ListPolicy>::i()
+    const
+{
+    return boost::next(data().begin(),i_);
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::state_type
+senf::Parse_List_Container<ElementParser,ListPolicy>::state()
+    const
+{
+    return state_;
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ senf::PacketData & senf::Parse_List_Container<ElementParser,ListPolicy>::data()
+    const
+{
+    return *state_;
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::size_type
+senf::Parse_List_Container<ElementParser,ListPolicy>::bytes()
+    const
+{
+    return ListPolicy::bytes(i(),state());
+}
+
+template <class ElementParser, class ListPolicy>
+prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::init()
+    const
+{
+    parser().init();
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:
