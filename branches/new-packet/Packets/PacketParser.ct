@@ -19,52 +19,34 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /** \file
-    \brief SafePacketParser.test unit tests */
+    \brief PacketParser non-inline template implementation  */
 
-//#include "SafePacketParser.test.hh"
-//#include "SafePacketParser.test.ih"
+#include "PacketParser.ih"
 
 // Custom includes
-#include "SafePacketParser.hh"
-#include "ParseInt.hh"
-#include "PacketType.hh"
-#include "Packet.hh"
-
-#include <boost/test/auto_unit_test.hpp>
-#include <boost/test/test_tools.hpp>
 
 #define prefix_
-///////////////////////////////cc.p////////////////////////////////////////
+///////////////////////////////ct.p////////////////////////////////////////
 
-namespace {
-    struct VoidPacket_Type : public senf::PacketTypeBase
-    {};
-    typedef senf::ConcretePacket<VoidPacket_Type> VoidPacket;
-}
-
-BOOST_AUTO_UNIT_TEST(safePacketParser)
+template <class Parser>
+prefix_ typename boost::enable_if< 
+        boost::is_base_of<senf::PacketParserBase, Parser>,
+        Parser >::type senf::operator<<(Parser target, Parser source)
 {
-    VoidPacket vp (VoidPacket::create(senf::Parse_UInt16::fixed_bytes));
-    
-    senf::SafePacketParser<senf::Parse_UInt16> p;
-    
-    BOOST_CHECK( !p );
-
-    p =  senf::Parse_UInt16(vp.data().begin(),&vp.data());
-
-    BOOST_CHECK( p );
-    (*p) = 0x1234u;
-    
-    BOOST_CHECK_EQUAL( (*p), 0x1234u );
-    BOOST_CHECK_EQUAL( vp.data()[0], 0x12u );
-
-    vp.data().resize(1024u);
-    BOOST_CHECK_EQUAL( (*p), 0x1234u );
-    (*p) = 0x2345u;
-    BOOST_CHECK_EQUAL( vp.data()[0], 0x23u );
+    PacketParserBase::size_type target_sz (bytes(target));
+    PacketParserBase::size_type source_sz (bytes(source));
+    SafePacketParser<Parser> safe_target (target);
+    if (target_sz > source_sz)
+        target.data().erase(boost::next(target.i(),source_sz),boost::next(target.i(),target_sz));
+    else if (target_sz < source_sz)
+        target.data().insert(boost::next(target.i(),target_sz),source_sz-target_sz,0u);
+    Parser new_target (*safe_target);
+    std::copy( source.i(), boost::next(source.i(),source_sz),
+               PacketParserBase::data_iterator(new_target.i()) );
+    return new_target;
 }
 
-///////////////////////////////cc.e////////////////////////////////////////
+///////////////////////////////ct.e////////////////////////////////////////
 #undef prefix_
 
 

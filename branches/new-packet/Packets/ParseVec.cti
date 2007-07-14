@@ -280,7 +280,7 @@ template <class Value>
 prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::insert(iterator pos,
                                                                        Value const & t)
 {
-    *shift(pos) = t;
+    *shift(pos) << t;
 }
 
 template <class ElementParser, class Sizer>

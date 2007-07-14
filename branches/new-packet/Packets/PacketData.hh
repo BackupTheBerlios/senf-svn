@@ -27,6 +27,8 @@
 // Custom includes
 #include <boost/utility.hpp>
 #include <boost/type_traits.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include "Utils/SafeBool.hh"
 #include "PacketTypes.hh"
 
 //#include "PacketData.mpp"
@@ -113,12 +115,56 @@ namespace senf {
         friend class detail::PacketImpl;
     };
 
+    class PacketParserBase;
+
     struct TruncatedPacketException : public std::exception
     { virtual char const * what() const throw() { return "truncated packet"; } };
 
+    class safe_data_iterator
+        : public boost::iterator_facade< safe_data_iterator,
+                                         PacketData::value_type,
+                                         boost::random_access_traversal_tag >,
+          public ComparableSafeBool<safe_data_iterator>
+    {
+    public:
+        typedef PacketData::size_type size_type;
+
+        safe_data_iterator();
+        explicit safe_data_iterator(PacketData & data);
+        safe_data_iterator(PacketData & data, PacketData::iterator i);
+        explicit safe_data_iterator(PacketParserBase const & parser);
+
+        safe_data_iterator & operator=(PacketData::iterator i);
+        safe_data_iterator & operator=(PacketParserBase const & parser);
+        operator PacketData::iterator() const;
+
+        bool boolean_test() const;
+
+        PacketData & data() const;
+
+    private:
+        friend class boost::iterator_core_access;
+
+        // iterator_facade interface
+
+        value_type & dereference() const;
+        bool equal(safe_data_iterator const & other) const;
+        difference_type distance_to(safe_data_iterator const & other) const;
+        void increment();
+        void decrement();
+        void advance(difference_type n);
+
+        PacketData::iterator i() const;
+
+        PacketData * data_;
+        size_type i_;
+    };
 }
 
 ///////////////////////////////hh.e////////////////////////////////////////
+#endif
+#if !defined(HH_PacketData_DeclOnly) &&!defined(HH_PacketData_def)
+#define HH_PacketData_def
 #include "PacketData.cci"
 //#include "PacketData.ct"
 #include "PacketData.cti"

@@ -24,6 +24,7 @@
 #include "PacketParser.ih"
 
 // Custom includes
+#include "PacketData.hh"
 
 #define prefix_ inline
 ///////////////////////////////cti.p///////////////////////////////////////
@@ -58,6 +59,16 @@ prefix_ senf::PacketParserBase::size_type senf::bytes(Parser p)
     return detail::packetParserSize(p,0);
 }
 
+template <class Parser, class Value>
+prefix_ typename boost::enable_if_c < 
+        boost::is_base_of<senf::PacketParserBase, Parser>::value 
+            && ! boost::is_base_of<senf::PacketParserBase, Value>::value,
+        Parser >::type senf::operator<<(Parser target, Value const & value)
+{
+    target.value(value);
+    return target;
+}
+
 template <class Parser>
 prefix_ senf::PacketParserBase::size_type
 senf::detail::packetParserSize(Parser p, int, Parser_TakeNum<Parser::fixed_bytes> *)
@@ -69,6 +80,52 @@ template <class Parser>
 prefix_ senf::PacketParserBase::size_type senf::detail::packetParserSize(Parser p, ...)
 {
     return p.bytes();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::SafePacketParser<Parser>
+
+template <class Parser>
+prefix_ senf::SafePacketParser<Parser>::SafePacketParser()
+    : i_()
+{}
+
+template <class Parser>
+prefix_ senf::SafePacketParser<Parser>::SafePacketParser(Parser parser)
+    : parser_(parser), i_(parser)
+{}
+
+template <class Parser>
+prefix_ senf::SafePacketParser<Parser> & senf::SafePacketParser<Parser>::operator=(Parser parser)
+{
+    parser_ = parser;
+    i_ = parser;
+    return *this;
+}
+
+template <class Parser>
+prefix_ Parser senf::SafePacketParser<Parser>::operator*()
+    const
+{
+    BOOST_ASSERT( i_ );
+    parser_->i_ = PacketParserBase::data_iterator(i_);
+    return *parser_;
+}
+
+template <class Parser>
+prefix_ Parser const * senf::SafePacketParser<Parser>::operator->()
+    const
+{
+    BOOST_ASSERT( i_ );
+    parser_->i_ = PacketParserBase::data_iterator(i_);
+    return & (*parser_);
+}
+
+template <class Parser>
+prefix_ bool senf::SafePacketParser<Parser>::boolean_test()
+    const
+{
+    return i_;
 }
 
 ///////////////////////////////cti.e///////////////////////////////////////

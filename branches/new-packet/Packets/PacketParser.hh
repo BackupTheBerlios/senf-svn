@@ -44,8 +44,14 @@
 #define HH_PacketParser_ 1
 
 // Custom includes
+#include <boost/utility/enable_if.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/optional.hpp>
+#include "Utils/SafeBool.hh"
 #include "PacketTypes.hh"
+#define HH_PacketData_DeclOnly
 #include "PacketData.hh"
+#undef HH_PacketData_DeclOnly
 
 #include "PacketParser.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
@@ -103,9 +109,6 @@ namespace senf {
         In the same way, dont access \c init_bytes directly, always use the senf::init_bytes
         metafunction class which will correctly support fixed size parsers.
 
-        \fixme Implement generic assignment operator to allow assignment of one parser to another
-            one.
-
         \ingroup packetparser
       */
     class PacketParserBase
@@ -155,6 +158,8 @@ namespace senf {
 
         data_iterator i_;
         PacketData * data_;
+
+        template <class Parser> friend class SafePacketParser;
     };
 
     /** \brief Return raw size parsed by the given parser object
@@ -194,6 +199,19 @@ namespace senf {
     template <class Parser>
     struct init_bytes : public detail::ParserInitBytes<Parser>
     {};
+
+    template <class Parser>
+    typename boost::enable_if< 
+        boost::is_base_of<PacketParserBase, Parser>,
+        Parser >::type
+    operator<<(Parser target, Parser source);
+
+    template <class Parser, class Value>
+    typename boost::enable_if_c < 
+        boost::is_base_of<PacketParserBase, Parser>::value 
+            && ! boost::is_base_of<PacketParserBase, Value>::value,
+        Parser >::type
+    operator<<(Parser target, Value const & value);
 
     /** \defgroup packetparsermacros Helper macros for defining new packet parsers
         
@@ -353,11 +371,50 @@ namespace senf {
         SENF_PACKET_PARSER_INIT(VoidPacketParser);
     };
 
+    /** \brief
+      */
+    template <class Parser>
+    class SafePacketParser
+        : public SafeBool< SafePacketParser<Parser> >
+    {
+    public:
+        ///////////////////////////////////////////////////////////////////////////
+        // Types
+
+        ///////////////////////////////////////////////////////////////////////////
+        ///\name Structors and default members
+        ///@{
+
+        // default default constructor
+        // default copy constructor
+        // default copy assignment
+        // default destructor
+        SafePacketParser();
+
+        // conversion constructors
+        SafePacketParser(Parser parser);
+
+        SafePacketParser & operator=(Parser parser);
+
+        ///@}
+        ///////////////////////////////////////////////////////////////////////////
+
+        Parser operator*() const;
+        Parser const * operator->() const;
+        bool boolean_test() const;
+
+    protected:
+
+    private:
+        mutable boost::optional<Parser> parser_;
+        senf::safe_data_iterator i_;
+    };
+
 }
 
 ///////////////////////////////hh.e////////////////////////////////////////
 #include "PacketParser.cci"
-//#include "PacketParser.ct"
+#include "PacketParser.ct"
 #include "PacketParser.cti"
 #endif
 

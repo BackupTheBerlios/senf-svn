@@ -39,43 +39,103 @@
 namespace {
     struct VoidPacket : public senf::PacketTypeBase
     {};
+
+    typedef senf::Parse_VectorN<senf::Parse_UInt16,senf::Parse_UInt8>::parser ParseVec;
+    typedef senf::Parse_ListB<ParseVec,senf::Parse_UInt16>::parser ParseList;
 }
 
 BOOST_AUTO_UNIT_TEST(parseListB)
 {
-    typedef senf::Parse_VectorN<senf::Parse_UInt16,senf::Parse_UInt8>::parser ParseVec;
-    typedef senf::Parse_ListB<ParseVec,senf::Parse_UInt16>::parser ParseList;
+    senf::PacketInterpreterBase::ptr pi (senf::PacketInterpreter<VoidPacket>::create(
+                                             ParseList::init_bytes));
+    
+    ParseList p (pi->data().begin(),&pi->data());
+    p.init();
+    BOOST_CHECK_EQUAL( p.size(), 0u );
+    BOOST_CHECK_EQUAL( p.bytes(), 2u );
+    BOOST_CHECK( p.empty() );
+    BOOST_CHECK( p.begin() == p.end() );
 
+    // the mutators are really tested together with the container wrappers since they are based
+    // on the container wrapper. Here we only need one call to make the list larger ...
+
+    p.push_back_space();
+    p = ParseList(pi->data().begin(),&pi->data());
+    BOOST_CHECK_EQUAL( p.bytes(), 3u );
+    BOOST_CHECK_EQUAL( p.size(), 1u );
+    BOOST_CHECK( ! p.empty() );
+    BOOST_CHECK( p.begin() != p.end() );
+}
+
+BOOST_AUTO_UNIT_TEST(parseListB_container)
+{
     senf::PacketInterpreterBase::ptr pi (senf::PacketInterpreter<VoidPacket>::create(
                                              ParseList::init_bytes));
     
     {
-        ParseList p (pi->data().begin(),&pi->data());
-        p.init();
-        BOOST_CHECK_EQUAL( p.size(), 0u );
-        BOOST_CHECK_EQUAL( p.bytes(), 2u );
-        BOOST_CHECK( p.empty() );
-        BOOST_CHECK( p.begin() == p.end() );
-    }
+        ParseList::container c (ParseList(pi->data().begin(),&pi->data()));
+     
+        BOOST_CHECK_EQUAL( c.size(), 0u );
+        BOOST_CHECK_EQUAL( c.bytes(), 2u );
+        BOOST_CHECK( c.begin() == c.end() );
+        
+        c.shift(c.begin());
+        BOOST_CHECK_EQUAL( c.size(), 1u );
+        BOOST_CHECK_EQUAL( c.bytes(), 3u );
 
-    {
-#       define p ParseList(pi->data().begin(),&pi->data())
+        BOOST_CHECK_EQUAL( c.front().size(), 0u );
+        c.front().push_back(0x1234u);
+        BOOST_CHECK_EQUAL( c.bytes(), 5u );
 
-        p.push_back_space();
-        BOOST_CHECK_EQUAL( p.bytes(), 3u );
-        BOOST_CHECK_EQUAL( p.size(), 1u );
-        BOOST_CHECK_EQUAL( p.front().bytes(), 1u );
-        BOOST_CHECK_EQUAL( p.front().size(), 0u );
+        {
+            senf::PacketInterpreterBase::ptr pi2 (senf::PacketInterpreter<VoidPacket>::create(
+                                                      ParseList::init_bytes));
+            ParseList::container c2 (ParseList(pi2->data().begin(),&pi2->data()));
+            c2.push_back_space();
+            {
+                ParseVec::container c2v (c2.front());
+                c2v.push_back(0x2345u);
+                c2v.push_back(0x3456u);
+            }
 
-        // THIS FAILS ... need to find a solution here ...
-//         p.front().push_back(0x1234u);
-//         BOOST_CHECK_EQUAL( p.front().bytes(), 3u );
-//         BOOST_CHECK_EQUAL( p.front().size(), 1u );
-//         BOOST_CHECK_EQUAL( p.front()[0], 0x1234u );
-//         BOOST_CHECK_EQUAL( p.bytes(), 5u );
-//         BOOST_CHECK_EQUAL( p.size(), 1u );
+            BOOST_CHECK_EQUAL(c2.size(), 1u);
+            BOOST_CHECK_EQUAL(c2.bytes(), 7u);
+            
+            c.insert(c.end(),c2.back());
+            BOOST_CHECK_EQUAL( c.size(), 2u );
+            BOOST_CHECK_EQUAL( c.bytes(), 10u );
+            BOOST_CHECK_EQUAL( c.back()[0], 0x2345u );
+            BOOST_CHECK_EQUAL( c.back().bytes(), c2.back().bytes() );
 
-#       undef p
+            c2.back()[0] << 0x1357u;
+            c.insert(boost::next(c.begin()), 2u, c2.back());
+            BOOST_CHECK_EQUAL( c.size(), 4u );
+            BOOST_CHECK_EQUAL( c.bytes(), 20u );
+            BOOST_CHECK_EQUAL( (*boost::next(c.begin()))[0], 0x1357u ); 
+            BOOST_CHECK_EQUAL( (*boost::next(c.begin(),2))[0], 0x1357u );
+
+            c2.back()[0] << 0x2468u;
+            c.insert(c.begin(),c2.begin(),c2.end());
+            BOOST_CHECK_EQUAL( c.size(), 5u );
+            BOOST_CHECK_EQUAL( c.bytes(), 25u );
+            BOOST_CHECK_EQUAL( c.front()[0], 0x2468u );
+
+            c.erase(c.begin(),2);
+            BOOST_CHECK_EQUAL( c.size(), 3u );
+            BOOST_CHECK_EQUAL( c.bytes(), 17u );
+            BOOST_CHECK_EQUAL( c.front()[0],0x1357u );
+            BOOST_CHECK_EQUAL( c.back()[0], 0x2345u );
+            
+            c.erase((boost::next(c.begin(),2)),c.end());
+            BOOST_CHECK_EQUAL( c.size(), 2u );
+            BOOST_CHECK_EQUAL( c.bytes(), 12u );
+            BOOST_CHECK_EQUAL( c.front()[0],0x1357u );
+            BOOST_CHECK_EQUAL( c.back()[0], 0x1357u );
+
+            c.clear();
+            BOOST_CHECK_EQUAL( c.size(), 0u );
+            BOOST_CHECK_EQUAL( c.bytes(), 2u );
+       }
     }
 }
 

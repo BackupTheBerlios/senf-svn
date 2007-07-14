@@ -92,6 +92,41 @@ BOOST_AUTO_UNIT_TEST(packetData)
     BOOST_CHECK( d.empty() );
 }
 
+BOOST_AUTO_UNIT_TEST(safePacketIterator)
+{
+    // We cannot simply allocate a packetData instance .. we must go through PacketInterpreterBase
+    // and PacketImpl.
+
+    senf::PacketInterpreterBase::ptr pi (senf::PacketInterpreter<VoidPacket>::create());
+
+    senf::PacketData & d (pi->data());
+
+    senf::safe_data_iterator i;
+
+    BOOST_CHECK( ! i );
+    i = senf::safe_data_iterator(d);
+    BOOST_CHECK( i );
+    i = d.begin();
+    BOOST_CHECK( i == senf::safe_data_iterator(d,d.begin()) );
+    BOOST_CHECK( senf::PacketData::iterator(i) == d.begin() );
+
+    senf::PacketData::byte data[] = 
+        { 0xf0u, 0xf1u, 0xf2u, 0xf3u, 0xf4u, 0xf5u, 0xf6u, 0xf7u };
+    d.resize(sizeof(data)/sizeof(data[0]));
+    BOOST_CHECK( senf::PacketData::iterator(i) == d.begin() );
+    std::copy(data,data+sizeof(data)/sizeof(data[0]),i);
+
+    BOOST_CHECK_EQUAL( d.size(), sizeof(data)/sizeof(data[0]) );
+    BOOST_CHECK_EQUAL( *(i+sizeof(data)/sizeof(data[0])-1), 0xf7u );
+    BOOST_CHECK_EQUAL( std::distance(i,senf::safe_data_iterator(d,d.end())), 
+                       senf::PacketData::difference_type(d.size()) );
+    *(++i) = 0x01u;
+    BOOST_CHECK_EQUAL( d[1], 0x01u );
+    *(--i) = 0x02u;
+    BOOST_CHECK_EQUAL( d[0], 0x02u );
+    BOOST_CHECK( &d == &i.data() );
+}
+
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
 

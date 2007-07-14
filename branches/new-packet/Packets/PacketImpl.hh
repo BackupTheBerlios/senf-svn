@@ -85,8 +85,8 @@ namespace detail {
 
         void insert(PacketData * self, iterator pos, byte v);
         void insert(PacketData * self, iterator pos, size_type n, byte v);
-        template <class InputIterator>
-        void insert(PacketData * self, iterator pos, InputIterator f, InputIterator l);
+        template <class ForwardIterator>
+        void insert(PacketData * self, iterator pos, ForwardIterator f, ForwardIterator l);
 
         void erase(PacketData * self, iterator pos);
         void erase(PacketData * self, iterator first, iterator last);

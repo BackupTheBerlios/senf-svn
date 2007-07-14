@@ -45,7 +45,7 @@ namespace detail {
     template <class Parser>
     PacketParserBase::size_type packetParserSize(Parser p, ...);
 
-    template <unsigned n> struct ParserInitBytes_RV { long _[n]; };
+    template <unsigned n> struct ParserInitBytes_RV { char _[16][n]; };
 
     template <class Parser>
     ParserInitBytes_RV<1> ParserInitBytes_Choose_(Parser_TakeNum<Parser::init_bytes> *);

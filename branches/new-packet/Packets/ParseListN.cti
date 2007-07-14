@@ -33,7 +33,7 @@ prefix_ typename senf::detail::Parse_ListN_Policy<ElementParser,SizeParser>::siz
 senf::detail::Parse_ListN_Policy<ElementParser,SizeParser>::bytes(iterator i, state_type s)
     const
 {
-    return std::distance(i,list_type(i,s).end().raw());
+    return std::distance(i,parser_type(i,s).end().raw());
 }
 
 template <class ElementParser, class SizeParser>
@@ -67,6 +67,12 @@ prefix_ void senf::detail::Parse_ListN_Policy<ElementParser,SizeParser>::insert(
 {
     ++SizeParser(i,s);
 }
+
+template <class ElementParser, class SizeParser>
+prefix_ void senf::detail::Parse_ListN_Policy<ElementParser,SizeParser>::update(iterator i,
+                                                                                state_type s)
+    const
+{}
 
 template <class ElementParser, class SizeParser>
 prefix_ typename senf::detail::Parse_ListN_Policy<ElementParser,SizeParser>::iterator

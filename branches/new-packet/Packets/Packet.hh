@@ -191,7 +191,7 @@ namespace senf {
         static ConcretePacket createAfter(Packet packet, size_type size, NoInit_t);
         template <class ForwardReadableRange>
         static ConcretePacket createAfter(Packet packet, 
-                               ForwardReadableRange const & range);
+                                          ForwardReadableRange const & range);
 
         // Create packet as new packet (header) before a given packet
 

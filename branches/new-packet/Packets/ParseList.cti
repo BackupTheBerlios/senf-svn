@@ -29,22 +29,22 @@
 ///////////////////////////////cti.p///////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
-// senf::Parse_List<ElementParser,ListPolicy>
+// senf::Parse_List<ListPolicy>
 
-template <class ElementParser, class ListPolicy>
-prefix_ senf::Parse_List<ElementParser,ListPolicy>::Parse_List(data_iterator i, state_type s)
+template <class ListPolicy>
+prefix_ senf::Parse_List<ListPolicy>::Parse_List(data_iterator i, state_type s)
     : PacketParserBase(i,s), ListPolicy()
 {}
 
-template <class ElementParser, class ListPolicy>
-prefix_ senf::Parse_List<ElementParser,ListPolicy>::Parse_List(ListPolicy policy,
+template <class ListPolicy>
+prefix_ senf::Parse_List<ListPolicy>::Parse_List(ListPolicy policy,
                                                                data_iterator i, state_type s)
     : PacketParserBase(i,s), ListPolicy(policy)
 {}
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 prefix_ senf::PacketParserBase::size_type
-senf::Parse_List<ElementParser,ListPolicy>::bytes()
+senf::Parse_List<ListPolicy>::bytes()
     const
 {
     return ListPolicy::bytes(i(),state());
@@ -53,91 +53,91 @@ senf::Parse_List<ElementParser,ListPolicy>::bytes()
 ///////////////////////////////////////////////////////////////////////////
 // Container interface
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 prefix_ senf::PacketParserBase::size_type
-senf::Parse_List<ElementParser,ListPolicy>::size()
+senf::Parse_List<ListPolicy>::size()
     const
 {
     return ListPolicy::size(i(),state());
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ bool senf::Parse_List<ElementParser,ListPolicy>::empty()
+template <class ListPolicy>
+prefix_ bool senf::Parse_List<ListPolicy>::empty()
     const
 {
     return begin() == end();
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List<ElementParser,ListPolicy>::iterator
-senf::Parse_List<ElementParser,ListPolicy>::begin()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List<ListPolicy>::iterator
+senf::Parse_List<ListPolicy>::begin()
     const
 {
     return iterator(i(),state(),iterator::Begin);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List<ElementParser,ListPolicy>::iterator
-senf::Parse_List<ElementParser,ListPolicy>::end()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List<ListPolicy>::iterator
+senf::Parse_List<ListPolicy>::end()
     const
 {
     return iterator(i(),state(),iterator::End);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List<ElementParser,ListPolicy>::value_type
-senf::Parse_List<ElementParser,ListPolicy>::front()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List<ListPolicy>::value_type
+senf::Parse_List<ListPolicy>::front()
     const
 {
     BOOST_ASSERT( ! empty() );
     return *begin();
 }
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 template <class Value>
-prefix_ void senf::Parse_List<ElementParser,ListPolicy>::push_back(Value value, size_type n)
+prefix_ void senf::Parse_List<ListPolicy>::push_back(Value value, size_type n)
     const
 {
     container c(*this);
     c.push_back(value,n);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List<ElementParser,ListPolicy>::push_back_space(size_type n)
+template <class ListPolicy>
+prefix_ void senf::Parse_List<ListPolicy>::push_back_space(size_type n)
     const
 {
     container c(*this);
     c.push_back_space(n);
 }
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 template <class Value>
-prefix_ void senf::Parse_List<ElementParser,ListPolicy>::push_front(Value value, size_type n)
+prefix_ void senf::Parse_List<ListPolicy>::push_front(Value value, size_type n)
     const
 {
     container c(*this);
     c.push_front(value,n);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List<ElementParser,ListPolicy>::push_front_space(size_type n)
+template <class ListPolicy>
+prefix_ void senf::Parse_List<ListPolicy>::push_front_space(size_type n)
     const
 {
     container c(*this);
     c.push_front_space(n);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List<ElementParser,ListPolicy>::resize(size_type n)
+template <class ListPolicy>
+prefix_ void senf::Parse_List<ListPolicy>::resize(size_type n)
     const
 {
     container c(*this);
     c.resize(n);
 }
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 template <class Value>
-prefix_ void senf::Parse_List<ElementParser,ListPolicy>::resize(size_type n, Value value)
+prefix_ void senf::Parse_List<ListPolicy>::resize(size_type n, Value value)
     const
 {
     container c(*this);
@@ -203,52 +203,62 @@ prefix_ void senf::detail::Parse_List_Iterator<ElementParser,IteratorPolicy>::in
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// senf::Parse_List_Container<ElementParser,ListPolicy>
+// senf::Parse_List_Container<ListPolicy>
 
 // Structors and default members
 
-template <class ElementParser, class ListPolicy>
-prefix_ senf::Parse_List_Container<ElementParser,ListPolicy>::
+template <class ListPolicy>
+prefix_ senf::Parse_List_Container<ListPolicy>::
 Parse_List_Container(parser_type const & list)
     : ListPolicy(list), state_(list.state()), i_(std::distance(data().begin(),list.i()))
 {}
 
+template <class ListPolicy>
+prefix_ senf::Parse_List_Container<ListPolicy>::~Parse_List_Container()
+{
+    ListPolicy::update(i(),state());
+}
+
 // Accessors
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::size_type
-senf::Parse_List_Container<ElementParser,ListPolicy>::size()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ListPolicy>::size_type
+senf::Parse_List_Container<ListPolicy>::size()
     const
 {
+    ListPolicy::update(i(),state());
     return ListPolicy::size(i(),state());
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ bool senf::Parse_List_Container<ElementParser,ListPolicy>::empty()
+template <class ListPolicy>
+prefix_ bool senf::Parse_List_Container<ListPolicy>::empty()
     const
 {
+    ListPolicy::update(i(),state());
     return begin() == end();
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::iterator
-senf::Parse_List_Container<ElementParser,ListPolicy>::begin()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ListPolicy>::iterator
+senf::Parse_List_Container<ListPolicy>::begin()
     const
 {
+    ListPolicy::update(i(),state());
     return iterator(i(),state(),iterator::Begin);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::iterator
-senf::Parse_List_Container<ElementParser,ListPolicy>::end()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ListPolicy>::iterator
+senf::Parse_List_Container<ListPolicy>::end()
     const
 {
+    ListPolicy::update(i(),state());
     return iterator(i(),state(),iterator::End);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::value_type
-senf::Parse_List_Container<ElementParser,ListPolicy>::front()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ListPolicy>::value_type
+senf::Parse_List_Container<ListPolicy>::front()
     const
 {
     BOOST_ASSERT( ! empty() );
@@ -257,91 +267,93 @@ senf::Parse_List_Container<ElementParser,ListPolicy>::front()
 
 // Mutators
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 template <class Value>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::insert(iterator pos,
-                                                                          Value const & t)
+prefix_ void senf::Parse_List_Container<ListPolicy>::insert(iterator pos,
+                                                            Value const & t)
 {
-    *shift(pos) = t;
+    insert(pos,1,t);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::erase(iterator f, iterator l)
+template <class ListPolicy>
+prefix_ void senf::Parse_List_Container<ListPolicy>::erase(iterator f, iterator l)
 {
     erase(f,std::distance(f,l));
 }
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 template <class Value>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::push_back(Value value,
-                                                                             size_type n)
+prefix_ void senf::Parse_List_Container<ListPolicy>::push_back(Value value,
+                                                               size_type n)
 {
     insert(end(),n,value);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::push_back_space(size_type n)
+template <class ListPolicy>
+prefix_ void senf::Parse_List_Container<ListPolicy>::push_back_space(size_type n)
 {
     shift(end(),n);
 }
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 template <class Value>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::push_front(Value value,
-                                                                              size_type n)
+prefix_ void senf::Parse_List_Container<ListPolicy>::push_front(Value value,
+                                                                size_type n)
 {
     insert(begin(),n,value);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::push_front_space(size_type n)
+template <class ListPolicy>
+prefix_ void senf::Parse_List_Container<ListPolicy>::push_front_space(size_type n)
 {
     shift(begin(),n);
 }
 
 // Parser interface
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::parser_type
-senf::Parse_List_Container<ElementParser,ListPolicy>::parser()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ListPolicy>::parser_type
+senf::Parse_List_Container<ListPolicy>::parser()
     const
 {
+    ListPolicy::update(i(),state());
     return parser_type(i(),state());
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::data_iterator
-senf::Parse_List_Container<ElementParser,ListPolicy>::i()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ListPolicy>::data_iterator
+senf::Parse_List_Container<ListPolicy>::i()
     const
 {
     return boost::next(data().begin(),i_);
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::state_type
-senf::Parse_List_Container<ElementParser,ListPolicy>::state()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ListPolicy>::state_type
+senf::Parse_List_Container<ListPolicy>::state()
     const
 {
     return state_;
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ senf::PacketData & senf::Parse_List_Container<ElementParser,ListPolicy>::data()
+template <class ListPolicy>
+prefix_ senf::PacketData & senf::Parse_List_Container<ListPolicy>::data()
     const
 {
     return *state_;
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::size_type
-senf::Parse_List_Container<ElementParser,ListPolicy>::bytes()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ListPolicy>::size_type
+senf::Parse_List_Container<ListPolicy>::bytes()
     const
 {
+    ListPolicy::update(i(),state());
     return ListPolicy::bytes(i(),state());
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::init()
+template <class ListPolicy>
+prefix_ void senf::Parse_List_Container<ListPolicy>::init()
     const
 {
     parser().init();

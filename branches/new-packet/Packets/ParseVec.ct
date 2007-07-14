@@ -75,7 +75,7 @@ prefix_ void senf::Parse_Vector_Container<ElementParser,Sizer>::insert(iterator 
                                                                        Value const & t)
 {
     for (iterator j (shift(pos,n)); n; --n, ++j) 
-        *j = t;
+        *j << t;
 }
 
 template <class ElementParser, class Sizer>
@@ -85,7 +85,7 @@ insert(iterator pos, ForwardIterator f, ForwardIterator l,
        typename boost::disable_if< boost::is_convertible<ForwardIterator,size_type> >::type *)
 {
     for (iterator j (shift(pos,std::distance(f,l))); f!=l; ++f,++j)
-        *j = *f;
+        *j << *f;
 }
 
 template <class ElementParser, class Sizer>

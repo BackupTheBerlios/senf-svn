@@ -37,8 +37,7 @@ namespace senf {
 
     template <class ElementParser, class SizeParser>
     struct Parse_ListN {
-        typedef Parse_List< ElementParser,
-                            detail::Parse_ListN_Policy<ElementParser,SizeParser> > parser;
+        typedef Parse_List< detail::Parse_ListN_Policy<ElementParser,SizeParser> > parser;
     };
 
 }

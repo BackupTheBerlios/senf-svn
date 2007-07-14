@@ -37,7 +37,9 @@ namespace detail {
         typedef PacketParserBase::data_iterator iterator;
         typedef PacketParserBase::state_type state_type;
         typedef PacketParserBase::size_type size_type;
-        typedef typename Parse_ListN<ElementParser,SizeParser>::parser list_type;
+        typedef ElementParser element_type;
+        typedef Parse_List< Parse_ListN_Policy > parser_type;
+        typedef Parse_List_Container< Parse_ListN_Policy > container_type;
 
         static const size_type init_bytes = SizeParser::fixed_bytes;
 
@@ -46,6 +48,7 @@ namespace detail {
         void      init   (iterator i, state_type s) const;
         void      erase  (iterator i, state_type s, iterator p) const;
         void      insert (iterator i, state_type s, iterator p) const;
+        void      update (iterator i, state_type s) const;
 
         struct iterator_policy
         {

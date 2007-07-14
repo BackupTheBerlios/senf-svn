@@ -31,8 +31,8 @@
 ///////////////////////////////////////////////////////////////////////////
 // senf::Parse_List<ElementParser,ListPolicy>
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List<ElementParser,ListPolicy>::init()
+template <class ListPolicy>
+prefix_ void senf::Parse_List<ListPolicy>::init()
     const
 {
     ListPolicy::init(i(),state());
@@ -42,9 +42,9 @@ prefix_ void senf::Parse_List<ElementParser,ListPolicy>::init()
         i->init();
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List<ElementParser,ListPolicy>::value_type
-senf::Parse_List<ElementParser,ListPolicy>::back()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List<ListPolicy>::value_type
+senf::Parse_List<ListPolicy>::back()
     const
 {
     BOOST_ASSERT( ! empty() );
@@ -55,11 +55,11 @@ senf::Parse_List<ElementParser,ListPolicy>::back()
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// senf::Parse_List_Container<ElementParser,ListPolicy>
+// senf::Parse_List_Container<ListPolicy>
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::value_type
-senf::Parse_List_Container<ElementParser,ListPolicy>::back()
+template <class ListPolicy>
+prefix_ typename senf::Parse_List_Container<ListPolicy>::value_type
+senf::Parse_List_Container<ListPolicy>::back()
     const
 {
     BOOST_ASSERT( ! empty() );
@@ -69,71 +69,81 @@ senf::Parse_List_Container<ElementParser,ListPolicy>::back()
     return *j;
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ typename senf::Parse_List_Container<ElementParser,ListPolicy>::iterator
-senf::Parse_List_Container<ElementParser,ListPolicy>::shift(iterator pos, size_type n)
+template <class ListPolicy>
+prefix_ void senf::Parse_List_Container<ListPolicy>::shift(iterator pos, size_type n)
 {
-    data_iterator ii (i());
-    size_type ix (std::distance(data().begin(),ii));
-    data_iterator p (pos.raw());
-    size_type px (std::distance(data().begin(),p));
+    ListPolicy::update(i(),state());
+    safe_data_iterator sp (data(),pos.raw());
+    safe_data_iterator si (data(),i());
     for (; n>0; --n) {
-        data().insert(p,senf::init_bytes<ElementParser>::value,0);
-        p = boost::next(data().begin(),px);
-        ii = boost::next(data().begin(),ix);
-        ElementParser(p,state()).init();
-        ListPolicy::insert(ii,state(),p);
+        data().insert(sp,senf::init_bytes<value_type>::value,0);
+        value_type(sp,state()).init();
+        ListPolicy::insert(si,state(),sp);
     }
-    return iterator(ii,state(),p);
 }
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 template <class Value>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::insert(iterator pos,
-                                                                          size_type n,
-                                                                          Value const & t)
+prefix_ void senf::Parse_List_Container<ListPolicy>::insert(iterator pos,
+                                                            size_type n,
+                                                            Value const & t)
 {
-    for (iterator j (shift(pos,n)); n; --n, ++j)
-        *j = t;
+    ListPolicy::update(i(),state());
+    safe_data_iterator sp (data(),pos.raw());
+    safe_data_iterator si (data(),i());
+    for (; n>0; --n) {
+        data().insert(sp,senf::init_bytes<value_type>::value,0);
+        value_type(sp,state()).init();
+        value_type(sp,state()) << t;
+        ListPolicy::insert(si,state(),sp);
+    }
 }
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 template <class ForwardIterator>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::
+prefix_ void senf::Parse_List_Container<ListPolicy>::
 insert(iterator pos, ForwardIterator f, ForwardIterator l,
        typename boost::disable_if< boost::is_convertible<ForwardIterator,size_type> >::type *)
 {
-    for (iterator j (shift(pos,std::distance(f,l))); f!=l; ++f,++j)
-        *j = *f;
-}
-
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::erase(iterator pos,
-                                                                         size_type n)
-{
-    data_iterator p (pos.raw());
-    for (; n>0; --n) {
-        size_type ix (std::distance(data().begin(),p));
-        ListPolicy::erase(i(),state(),p);
-        data().erase(p,boost::next(p,senf::bytes(ElementParser(p,state()))));
-        p = boost::next(data().begin(),ix);
+    ListPolicy::update(i(),state());
+    safe_data_iterator sp (data(),pos.raw());
+    safe_data_iterator si (data(),i());
+    for (; f!=l; ++f) {
+        data().insert(sp,senf::init_bytes<value_type>::value,0);
+        value_type(sp,state()).init();
+        value_type(sp,state()) << *f;
+        ListPolicy::insert(si,state(),sp);
+        sp += senf::bytes(value_type(sp,state()));
     }
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::clear()
+template <class ListPolicy>
+prefix_ void senf::Parse_List_Container<ListPolicy>::erase(iterator pos,
+                                                           size_type n)
+{
+    ListPolicy::update(i(),state());
+    safe_data_iterator si (data(),i());
+    safe_data_iterator sp (data(),pos.raw());
+    for (; n>0; --n) {
+        ListPolicy::erase(si,state(),sp);
+        data().erase(sp,boost::next(sp,senf::bytes(value_type(sp,state()))));
+    }
+}
+
+template <class ListPolicy>
+prefix_ void senf::Parse_List_Container<ListPolicy>::clear()
 {
     size_type sz (bytes());
-    if (sz > ListPolicy::init_size)
-        data().erase(boost::next(i(),ListPolicy::init_size),boost::next(i(),sz));
+    if (sz > ListPolicy::init_bytes)
+        data().erase(boost::next(i(),ListPolicy::init_bytes),boost::next(i(),sz));
     else
-        data().insert(boost::next(i(),sz), ListPolicy::init_size-sz, 0u);
-    std::fill(i(),boost::next(i(),ListPolicy::init_size), 0u);
+        data().insert(boost::next(i(),sz), ListPolicy::init_bytes-sz, 0u);
+    std::fill(i(),boost::next(i(),ListPolicy::init_bytes), 0u);
     ListPolicy::init(i(),state());
 }
 
-template <class ElementParser, class ListPolicy>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::resize(size_type n)
+template <class ListPolicy>
+prefix_ void senf::Parse_List_Container<ListPolicy>::resize(size_type n)
 {
     size_type sz (size());
     if (sz>n)
@@ -142,10 +152,10 @@ prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::resize(size_t
         push_back_space(n-sz);
 }
 
-template <class ElementParser, class ListPolicy>
+template <class ListPolicy>
 template <class Value>
-prefix_ void senf::Parse_List_Container<ElementParser,ListPolicy>::resize(size_type n,
-                                                                          Value value)
+prefix_ void senf::Parse_List_Container<ListPolicy>::resize(size_type n,
+                                                            Value value)
 {
     size_type sz (size());
     if (sz>n)

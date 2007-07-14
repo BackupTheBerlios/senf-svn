@@ -33,12 +33,10 @@
 
 // Data container
 
-template <class InputIterator>
-prefix_ void senf::detail::PacketImpl::insert(PacketData * self, iterator pos, InputIterator f,
-                                              InputIterator l)
+template <class ForwardIterator>
+prefix_ void senf::detail::PacketImpl::insert(PacketData * self, iterator pos, ForwardIterator f,
+                                              ForwardIterator l)
 {
-    /// \fixme The std::distance call will invalidate f and l if they are only input iterators (not
-    /// forward iterators)
     data_.insert(pos,f,l);
     updateIterators(self,pos,std::distance(f,l));
 }
