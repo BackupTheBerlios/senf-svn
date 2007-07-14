@@ -59,8 +59,9 @@ namespace senf {
         // Container interface
 
         typedef typename ListPolicy::element_type value_type;
-        typedef detail::Parse_List_Iterator< value_type,
-                                             typename ListPolicy::iterator_policy > iterator;
+        typedef detail::Parse_List_Iterator< 
+            value_type, typename ListPolicy::iterator_policy > iterator;
+        typedef iterator const_iterator;
         typedef typename ListPolicy::container_type container;
 
         size_type size() const;
@@ -234,8 +235,9 @@ namespace senf {
         typedef PacketParserBase::size_type size_type;
         typedef PacketParserBase::difference_type difference_type;
         typedef typename ListPolicy::element_type value_type;
-        typedef detail::Parse_List_Iterator<value_type,
-                                            typename ListPolicy::iterator_policy> iterator;
+        typedef detail::Parse_List_Iterator<
+            value_type, typename ListPolicy::iterator_policy> iterator;
+        typedef iterator const_iterator;
         typedef PacketParserBase::state_type state_type;
         
         ///////////////////////////////////////////////////////////////////////////

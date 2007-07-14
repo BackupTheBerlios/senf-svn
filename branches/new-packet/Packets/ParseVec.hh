@@ -58,6 +58,7 @@ namespace senf {
 
         typedef ElementParser value_type;
         typedef detail::Parse_Array_iterator<value_type> iterator;
+        typedef iterator const_iterator;
         typedef Parse_Vector_Container<ElementParser,Sizer> container;
 
         size_type size() const;
@@ -115,6 +116,7 @@ namespace senf {
         typedef PacketParserBase::difference_type difference_type;
         typedef ElementParser value_type;
         typedef detail::Parse_Array_iterator<value_type> iterator;
+        typedef iterator const_iterator;
         typedef PacketParserBase::state_type state_type;
 
         ///////////////////////////////////////////////////////////////////////////

@@ -49,6 +49,7 @@ namespace senf {
 
         typedef ElementParser value_type;
         typedef detail::Parse_Array_iterator<value_type> iterator;
+        typedef iterator const_iterator;
 
         static size_type size();
 
