@@ -243,7 +243,7 @@ namespace senf {
         ///////////////////////////////////////////////////////////////////////////
 
         typedef bool value_type;
-        static size_type const fixed_bytes = 1;
+        static size_type const fixed_bytes = bit/8+1;
 
         value_type value() const { return i()[bit/8] & (1<<(7-(bit%8))); }
         void value(value_type v) {

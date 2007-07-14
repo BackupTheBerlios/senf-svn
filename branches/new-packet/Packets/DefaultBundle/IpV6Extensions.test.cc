@@ -27,7 +27,7 @@
 // Custom includes
 #include "IpV6Extensions.hh"
 #include "IpV6Packet.hh"
-//#include "UDPPacket.hh"
+#include "UDPPacket.hh"
 #include "Packets/DataPacket.hh"
 #include "Socket/INetAddressing.hh"
 
@@ -36,24 +36,6 @@
 
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
-
-#if 0
-
-using namespace senf;
-
-BOOST_AUTO_UNIT_TEST(ipv6Extension_Fragment_parser)
-{
-    unsigned char data[] = { 59, 0, 0x10, 0x20,
-                             0x01, 0x02, 0x03, 0x04 };
-
-    typedef unsigned char * iterator;
-    Parse_IpV6Extension_Fragment<iterator> p (data);
-
-    BOOST_CHECK_EQUAL( unsigned(p.nextHeader()), 59u );
-    BOOST_CHECK_EQUAL( unsigned(p.fragmentOffset()), 0x1020u >> 3 );
-    BOOST_CHECK ( ! p.moreFragments() );
-    BOOST_CHECK_EQUAL( unsigned(p.id()), 0x01020304u );
-}
 
 BOOST_AUTO_UNIT_TEST(ipv6Extension_Fragment_packet)
 {
@@ -83,34 +65,34 @@ BOOST_AUTO_UNIT_TEST(ipv6Extension_Fragment_packet)
         0x11, 0x12, 0x13, 0x14
     };
 
-    IpV6Packet::ptr p (Packet::create<IpV6Packet>(data, data + sizeof(data)));
+    senf::IpV6Packet p (senf::IpV6Packet::create(data));
 
     BOOST_CHECK_EQUAL( p->version(), 6u );
     BOOST_CHECK_EQUAL( p->length(), 20u );
     BOOST_CHECK_EQUAL( p->nextHeader(), 44u );
-    BOOST_CHECK_EQUAL( INet6Address(p->source().range()), "2001::1" );
-    BOOST_CHECK_EQUAL( INet6Address(p->destination().range()), "2001::2" );
-    BOOST_CHECK( p->next()->is<IpV6Extension_Fragment>() );
+    BOOST_CHECK_EQUAL( senf::INet6Address(p->source()), "2001::1" );
+    BOOST_CHECK_EQUAL( senf::INet6Address(p->destination()), "2001::2" );
+    BOOST_CHECK( p.next().is<senf::IpV6Extension_Fragment>() );
 
-    IpV6Extension_Fragment::ptr f (p->next()->as<IpV6Extension_Fragment>());
+    senf::IpV6Extension_Fragment f (p.next().as<senf::IpV6Extension_Fragment>());
 
     BOOST_CHECK_EQUAL( f->nextHeader(), 17u );
     BOOST_CHECK_EQUAL( f->fragmentOffset(), 160u );
     BOOST_CHECK_EQUAL( f->id(), 0x01020304u );
-    BOOST_CHECK( f->next()->is<UDPPacket>() );
+    BOOST_CHECK( f.next().is<senf::UDPPacket>() );
 
-    UDPPacket::ptr u (f->next()->as<UDPPacket>());
+    senf::UDPPacket u (f.next().as<senf::UDPPacket>());
 
     BOOST_CHECK_EQUAL( u->source(), 0x1000u );
     BOOST_CHECK_EQUAL( u->destination(), 0x2000u );
     BOOST_CHECK_EQUAL( u->length(), 12u );
-    BOOST_CHECK( u->next()->is<DataPacket>() );
+    BOOST_CHECK( u.next().is<senf::DataPacket>() );
 
-    Packet::iterator i (u->next()->begin());
-    BOOST_CHECK_EQUAL( Parse_UInt32<Packet::iterator>(i).value(), 0x11121314u );
+    senf::DataPacket d (u.next().as<senf::DataPacket>());
+    senf::Packet::iterator i (u.next().data().begin());
+    BOOST_CHECK_EQUAL( d.size(), 4u );
+    BOOST_CHECK_EQUAL( d.data()[0], 0x11 );
 }
-
-#endif
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
