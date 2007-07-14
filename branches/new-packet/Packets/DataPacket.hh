@@ -19,56 +19,39 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /** \file
-    \brief Packet non-inline non-template implementation */
+    \brief DataPacket public header */
 
-#include "PacketInterpreter.hh"
-#include "Packet.hh"
-//#include "Packet.ih"
+#ifndef HH_DataPacket_
+#define HH_DataPacket_ 1
 
 // Custom includes
-#include "DataPacket.hh"
+#include "PacketType.hh"
+#include "Packet.hh"
 
-//#include "Packet.mpp"
-#define prefix_
-///////////////////////////////cc.p////////////////////////////////////////
+//#include "DataPacket.mpp"
+///////////////////////////////hh.p////////////////////////////////////////
 
-prefix_ senf::Packet senf::Packet::checkNext()
-    const
-{
-    PacketInterpreterBase::optional_range r (ptr()->nextPacketRange());
-    if (r && ! r->empty()) {
-        factory_t factory (ptr()->nextPacketType());
-        if (factory)
-            return parseNextAs(factory);
-        else
-            return parseNextAs<DataPacket>();
-    }
-    return Packet();
+namespace senf {
+    
+    struct DataPacketType : public PacketTypeBase
+    {};
+
+    typedef ConcretePacket<DataPacketType> DataPacket;
 }
 
-prefix_ senf::Packet senf::Packet::checkLast()
-    const
-{
-    Packet p (*this);
-    Packet n (p.next());
-    while (n) {
-        p = n;
-        n = p.next();
-    }
-    return p;
-}
-
-///////////////////////////////cc.e////////////////////////////////////////
-#undef prefix_
-//#include "Packet.mpp"
+///////////////////////////////hh.e////////////////////////////////////////
+//#include "DataPacket.cci"
+//#include "DataPacket.ct"
+//#include "DataPacket.cti"
+#endif
 
 
 // Local Variables:
 // mode: c++
 // fill-column: 100
+// comment-column: 40
 // c-file-style: "senf"
 // indent-tabs-mode: nil
 // ispell-local-dictionary: "american"
 // compile-command: "scons -u test"
-// comment-column: 40
 // End:

@@ -1,4 +1,4 @@
-// $Id$
+// $id: EthernetPacket.hh 299 2007-07-10 21:23:49Z g0dil $
 //
 // Copyright (C) 2006
 // Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
@@ -25,6 +25,7 @@
 
 // Custom includes
 #include <algorithm>
+#include <boost/array.hpp>
 #include "Packets/PacketType.hh"
 #include "Packets/ParseInt.hh"
 #include "Packets/PacketRegistry.hh"
@@ -36,15 +37,14 @@
 namespace senf {
 
     struct MACAddress
+        : boost::array<PacketParserBase::byte,6>
     {
-        MACAddress() { std::fill(address,address+6,0u); }
-        template <class ForwardIterator>
-        MACAddress(ForwardIterator i) { std::copy(i,boost::next(i,6),address); }
+        MACAddress(std::string addr);
+        template <class InputIterator>
+        MACAddress(InputIterator i);
 
-        PacketInterpreterBase::byte operator[](unsigned i) const { return address[i]; }
-        PacketInterpreterBase::byte & operator[](unsigned i) { return address[i]; }
-
-        PacketInterpreterBase::byte address[6];
+        struct SyntaxException : public std::exception
+        { virtual char const * what() const throw() { return "invalid mac address syntax"; } };
     };
 
     struct Parse_MAC : public PacketParserBase
@@ -57,9 +57,11 @@ namespace senf {
         static const size_type fixed_bytes = 6u;
 
         value_type value() const { return MACAddress(i()); }
-        void value(value_type v) { std::copy(v.address, v.address+6, i()); }
+        void value(value_type const & v) { std::copy(v.begin(), v.end(), i()); }
         operator value_type () { return value(); }
-        Parse_MAC const & operator= (value_type other) { value(other); return *this; }
+        byte & operator[](size_type index) { return *boost::next(i(),index);  }
+
+        Parse_MAC const & operator= (value_type const & other) { value(other); return *this; }
     };
 
     struct Parse_Ethernet : public PacketParserBase
@@ -149,7 +151,7 @@ namespace senf {
 
 ///////////////////////////////hh.e////////////////////////////////////////
 //#include "EthernetPacket.cci"
-//#include "EthernetPacket.ct"
+#include "EthernetPacket.ct"
 //#include "EthernetPacket.cti"
 #endif
 
