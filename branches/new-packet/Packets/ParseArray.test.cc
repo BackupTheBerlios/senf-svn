@@ -92,9 +92,7 @@ BOOST_AUTO_UNIT_TEST(parseArray_test)
     {
         SomeOtherParser v (p->data().begin(),&p->data());
 
-        BOOST_CHECK_EQUAL( senf::bytes(v), 8u );
-        BOOST_CHECK_EQUAL( v.fields()[0].array()[1], 0x030405u );
-        BOOST_CHECK_THROW( v.fields()[0].index(), senf::TruncatedPacketException );
+        BOOST_CHECK_THROW( v.fields(), senf::TruncatedPacketException );
     }
 }
 

@@ -112,6 +112,7 @@ prefix_ void senf::Packet::finalize()
 prefix_ void senf::Packet::dump(std::ostream & os)
     const
 {
+    last(); // Make sure the packet is complete
     ptr()->dump(os);
 }
 

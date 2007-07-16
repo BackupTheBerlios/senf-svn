@@ -41,7 +41,7 @@
 
 template <unsigned elements, class ElementParser>
 prefix_ senf::Parse_Array<elements,ElementParser>::Parse_Array(data_iterator i, state_type s)
-    : PacketParserBase(i,s)
+    : PacketParserBase(i,s,fixed_bytes)
 {}
 
 // Container interface

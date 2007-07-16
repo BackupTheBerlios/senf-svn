@@ -31,6 +31,7 @@
 #include "Packet.hh"
 #include "ParseInt.hh"
 #include "PacketParser.hh"
+#include "DataPacket.hh"
 
 #include <boost/test/auto_unit_test.hpp>
 #include <boost/test/test_tools.hpp>
@@ -141,7 +142,8 @@ BOOST_AUTO_UNIT_TEST(packet)
     BOOST_REQUIRE( p2 );
     packet.next().append( p2 );
     BOOST_REQUIRE( packet.next().next() );
-    BOOST_CHECK( ! packet.next().next().next() );
+    BOOST_CHECK( packet.next().next().next() );
+    BOOST_CHECK( packet.next().next().next().is<senf::DataPacket>() );
     BOOST_CHECK_EQUAL( packet.size(), 16u );
 
     // This calls and checks typeId()
@@ -172,8 +174,8 @@ BOOST_AUTO_UNIT_TEST(packet)
     BOOST_CHECK_EQUAL( packet.last<BarPacket>()->type(), 1u );
     BOOST_CHECK_EQUAL( packet.next().size(), 11u );
     BOOST_REQUIRE( packet.next().next() );
-    BOOST_CHECK( ! packet.next().next().next() );
     BOOST_CHECK( packet.next().next().is<FooPacket>() );
+    BOOST_CHECK( ! packet.next().next().next() );
     BOOST_CHECK_EQUAL( packet.next().next().data()[0], 0x81u );
 
     BOOST_CHECK( packet.first<FooPacket>() == packet );
