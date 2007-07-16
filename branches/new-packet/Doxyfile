@@ -1,9 +1,0 @@
-@INCLUDE = "$(TOPDIR)/doclib/Doxyfile.global"
-
-PROJECT_NAME      = Overview
-PROJECT_NUMBER    = "(Revision $(REVISION), generated $(TODAY))"
-
-HTML_HEADER       = doclib/doxy-header-overview.html
-GENERATE_XML      = NO
-
-GENERATE_TAGFILE  = doc/overview.tag
