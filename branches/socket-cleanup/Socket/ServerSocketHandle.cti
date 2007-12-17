@@ -1,0 +1,173 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ServerSocketHandle inline template implementation
+ */
+
+// Definition of inline template functions
+
+//#include "ServerSocketHandle.ih"
+
+// Custom includes
+#include <typeinfo>
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+template <class Policy>
+prefix_ senf::ServerSocketHandle<Policy>::ServerSocketHandle()
+{}
+
+template <class SocketPolicy>
+template <class OtherPolicy>
+prefix_ senf::ServerSocketHandle<SocketPolicy>::
+ServerSocketHandle(ServerSocketHandle<OtherPolicy> other,
+                   typename SocketHandle<SocketPolicy>::template IsCompatible<OtherPolicy>::type *)
+    : SocketHandle<SocketPolicy>(other,true)
+{}
+
+template <class SocketPolicy>
+prefix_  senf::ServerSocketHandle<SocketPolicy>::
+ServerSocketHandle(std::auto_ptr<SocketProtocol> protocol)
+    : SocketHandle<SocketPolicy>(protocol,true)
+{}
+
+template <class SocketPolicy>
+template <class OtherPolicy>
+prefix_ typename senf::SocketHandle<SocketPolicy>::template IsCompatible<OtherPolicy>::type const &
+senf::ServerSocketHandle<SocketPolicy>::operator=(ServerSocketHandle<OtherPolicy> other)
+{
+    assign(other);
+    return *this;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// Server socket interface
+
+template <class Policy>
+prefix_ void senf::ServerSocketHandle<Policy>::bind(AddressParam addr)
+{
+    Policy::AddressingPolicy::bind(*this,addr);
+}
+
+template <class Policy>
+prefix_ void senf::ServerSocketHandle<Policy>::listen(unsigned backlog)
+{
+    Policy::CommunicationPolicy::listen(*this,backlog);
+}
+
+template <class Policy>
+prefix_ typename senf::ServerSocketHandle<Policy>::Address
+senf::ServerSocketHandle<Policy>::local()
+{
+    typename Policy::AddressingPolicy::Address addr;
+    this->local(addr);
+    return addr;
+}
+
+template <class Policy>
+prefix_ void senf::ServerSocketHandle<Policy>::local(Address & addr)
+{
+    Policy::AddressingPolicy::local(*this,addr);
+}
+
+template <class Policy>
+prefix_ typename senf::ServerSocketHandle<Policy>::ClientSocketHandle
+senf::ServerSocketHandle<Policy>::accept()
+{
+    return ClientSocketHandle(this->protocol().clone(),
+                              Policy::CommunicationPolicy::accept(*this));
+}
+
+template <class Policy>
+prefix_ std::pair<typename senf::ServerSocketHandle<Policy>::ClientSocketHandle,
+                  typename senf::ServerSocketHandle<Policy>::Address>
+senf::ServerSocketHandle<Policy>::acceptfrom()
+{
+
+    Address address;
+    ClientSocketHandle handle = acceptfrom(address);
+    return std::make_pair(handle,address);
+}
+
+template <class Policy>
+prefix_ typename senf::ServerSocketHandle<Policy>::ClientSocketHandle
+senf::ServerSocketHandle<Policy>::acceptfrom(Address & addr)
+{
+    return ClientSocketHandle(this->protocol().clone(),
+                              Policy::CommunicationPolicy::accept(*this,addr));
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+template <class Policy>
+prefix_ senf::ServerSocketHandle<Policy>::ServerSocketHandle(FileHandle other,
+                                                                    bool isChecked)
+    : SocketHandle<Policy>(other, isChecked)
+{}
+
+template <class Policy>
+prefix_ senf::ServerSocketHandle<Policy>
+senf::ServerSocketHandle<Policy>::cast_static(FileHandle handle)
+{
+    return ServerSocketHandle(handle,true);
+}
+
+template <class Policy>
+prefix_ senf::ServerSocketHandle<Policy>
+senf::ServerSocketHandle<Policy>::cast_dynamic(FileHandle handle)
+{
+    SocketHandle<Policy> h (SocketHandle<Policy>::cast_dynamic(handle));
+    if (! static_cast<SocketBody&>(FileHandle::body(handle)).isServer())
+        throw std::bad_cast();
+    return cast_static(handle);
+}
+
+template <class Policy>
+prefix_ void senf::ServerSocketHandle<Policy>::state(SocketStateMap & map, unsigned lod)
+{
+    map["handle"] = prettyName(typeid(*this));
+    this->body().state(map,lod);
+}
+
+template <class Policy>
+prefix_ std::string senf::ServerSocketHandle<Policy>::dumpState(unsigned lod)
+{
+    SocketStateMap map;
+    state(map,lod);
+    return detail::dumpState(map);
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

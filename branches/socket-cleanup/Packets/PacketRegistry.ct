@@ -1,0 +1,122 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief PacketRegistry non-inline template implementation */
+
+#include "PacketRegistry.ih"
+
+// Custom includes
+#include <iostream>
+
+#define prefix_
+///////////////////////////////ct.p////////////////////////////////////////
+
+template <class PacketType>
+prefix_ senf::PacketInterpreterBase::factory_t senf::detail::PkReg_EntryImpl<PacketType>::factory()
+    const
+{
+    return PacketType::factory();
+}
+
+template <class KeyType>
+template <class PacketType>
+prefix_ void senf::detail::PacketRegistryImpl<KeyType>::registerPacket(key_t key)
+{
+#ifdef NDEBUG
+    registry_.insert(std::make_pair(key, Entry_ptr(new detail::PkReg_EntryImpl<PacketType>())));
+    reverseRegistry_.insert(std::make_pair(senf::typeIdValue<PacketType>(), key));
+#else
+    bool isUnique (
+        registry_.insert(
+            std::make_pair(key, Entry_ptr(new detail::PkReg_EntryImpl<PacketType>()))).second);
+    // If this assertion fails, a Packet was registered with an already known key
+    BOOST_ASSERT( isUnique );
+    bool isNew (
+        reverseRegistry_.insert(
+            std::make_pair(senf::typeIdValue<PacketType>(), key)).second);
+    // If this assertion fails, the same Packet was registered with two different keys
+    BOOST_ASSERT( isNew );
+#endif
+}
+
+template <class KeyType>
+prefix_ typename senf::detail::PacketRegistryImpl<KeyType>::key_t
+senf::detail::PacketRegistryImpl<KeyType>::key(senf::TypeIdValue const & type)
+{
+    typename ReversePacketMap::iterator i (reverseRegistry_.find(type));
+    if (i==reverseRegistry_.end())
+        throw PacketTypeNotRegisteredException();
+    return i->second;
+}
+
+template <class KeyType>
+prefix_ boost::optional<typename senf::detail::PacketRegistryImpl<KeyType>::key_t>
+senf::detail::PacketRegistryImpl<KeyType>::key(senf::TypeIdValue const & type, bool)
+{
+    typename ReversePacketMap::iterator i (reverseRegistry_.find(type));
+    if (i==reverseRegistry_.end())
+        return boost::optional<key_t>();
+    return i->second;
+}
+
+template <class KeyType>
+prefix_ typename senf::detail::PacketRegistryImpl<KeyType>::Entry const &
+senf::detail::PacketRegistryImpl<KeyType>::lookup(key_t key)
+{
+    typename PacketMap::iterator i (registry_.find(key));
+    if (i==registry_.end())
+        throw PacketTypeNotRegisteredException();
+    return *(i->second);
+}
+
+template <class KeyType>
+prefix_ typename senf::detail::PacketRegistryImpl<KeyType>::Entry const *
+senf::detail::PacketRegistryImpl<KeyType>::lookup(key_t key, bool)
+{
+    typename PacketMap::iterator i (registry_.find(key));
+    if (i==registry_.end())
+        return 0;
+    return i->second.get();
+}
+
+template <class Tag>
+prefix_ typename senf::PacketRegistry<Tag>::Registry &
+senf::PacketRegistry<Tag>::registry()
+{
+    static Registry registry;
+    return registry;
+}
+
+///////////////////////////////ct.e////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

@@ -1,0 +1,9 @@
+@INCLUDE = "$(TOPDIR)/doclib/Doxyfile.global"
+
+PROJECT_NAME = libPackets
+GENERATE_TAGFILE = doc/Packets.tag
+INPUT = .
+EXAMPLE_PATH = . DefaultBundle
+
+TAGFILES = \
+	"$(TOPDIR)/Utils/doc/Utils.tag"

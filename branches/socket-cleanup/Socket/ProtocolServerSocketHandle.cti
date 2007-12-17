@@ -1,0 +1,123 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ProtocolServerSocketHandle inline template implementation
+ */
+
+// Definition of inline template functions
+
+//#include "ProtocolServerSocketHandle.ih"
+
+// Custom includes
+#include "ProtocolClientSocketHandle.hh"
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+template <class SocketProtocol>
+prefix_ senf::ProtocolServerSocketHandle<SocketProtocol>::
+ProtocolServerSocketHandle(UninitializedType)
+{}
+
+template <class SocketProtocol>
+prefix_ senf::ProtocolServerSocketHandle<SocketProtocol>::ProtocolServerSocketHandle()
+    : ServerSocketHandle<typename SocketProtocol::Policy>(
+        std::auto_ptr<senf::SocketProtocol>(new SocketProtocol()))
+{}
+
+#define BOOST_PP_ITERATION_PARAMS_1 (4, (1, 9, SENF_ABSOLUTE_INCLUDE_PATH(Socket/ProtocolServerSocketHandle.mpp), 2))
+#include BOOST_PP_ITERATE()
+
+template <class SocketProtocol>
+prefix_ SocketProtocol const &
+senf::ProtocolServerSocketHandle<SocketProtocol>::protocol()
+{
+    BOOST_ASSERT( dynamic_cast<SocketProtocol const *>(&this->body().protocol()) );
+    // Need dynamic_cast here, since senf::SocketProtocol is a
+    // virtual base
+    return dynamic_cast<SocketProtocol const &>(this->body().protocol());
+}
+
+template <class SocketProtocol>
+prefix_ senf::ProtocolClientSocketHandle<SocketProtocol>
+senf::ProtocolServerSocketHandle<SocketProtocol>::accept()
+{
+    return ProtocolClientSocketHandle<SocketProtocol>(
+        FileHandle(this->ServerSocketHandle<typename SocketProtocol::Policy>::accept()),true);
+}
+
+template <class SocketProtocol>
+prefix_ senf::ProtocolServerSocketHandle<SocketProtocol>
+senf::ProtocolServerSocketHandle<SocketProtocol>::cast_static(FileHandle handle)
+{
+    return ProtocolServerSocketHandle(handle,true);
+}
+
+template <class SocketProtocol>
+prefix_ senf::ProtocolServerSocketHandle<SocketProtocol>
+senf::ProtocolServerSocketHandle<SocketProtocol>::cast_dynamic(FileHandle handle)
+{
+    ServerSocketHandle<typename SocketProtocol::Policy> h(
+        ServerSocketHandle<typename SocketProtocol::Policy>::cast_dynamic(handle));
+    // throw std::bad_cast if the protocol is invalid
+    dynamic_cast<SocketProtocol const &>(static_cast<SocketBody&>(FileHandle::body(h)).protocol());
+    return cast_static(handle);
+}
+
+template <class SocketProtocol>
+prefix_ void
+senf::ProtocolServerSocketHandle<SocketProtocol>::state(SocketStateMap & map,
+                                                               unsigned lod)
+{
+    map["handle"] = prettyName(typeid(*this));
+    this->body().state(map,lod);
+}
+
+template <class SocketProtocol>
+prefix_ std::string
+senf::ProtocolServerSocketHandle<SocketProtocol>::dumpState(unsigned lod)
+{
+    SocketStateMap map;
+    state(map,lod);
+    return detail::dumpState(map);
+}
+
+template <class SocketProtocol>
+prefix_ senf::ProtocolServerSocketHandle<SocketProtocol>::
+ProtocolServerSocketHandle(FileHandle other, bool isChecked)
+    : ServerSocketHandle<typename SocketProtocol::Policy>(other,isChecked)
+{}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

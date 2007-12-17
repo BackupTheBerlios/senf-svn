@@ -1,0 +1,25 @@
+/** \mainpage Examples
+    
+    \htmlonly
+    <dl>
+   
+    <dt><a href="../../Sniffer/doc/html/index.html">Sniffer</a></dt><dd>Simple packet sniffer
+    reading packets from a packet socket and dumping packet parse to stdout</dd>
+
+    <dt><a href="../../RateStuffer/doc/html/index.html">RateStuffer</a></dt><dd>Example application
+    showing of the PPI infrastructure</dd>
+
+    </dl>
+    \endhtmlonly
+*/
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// mode: flyspell
+// mode: auto-fill
+// End:

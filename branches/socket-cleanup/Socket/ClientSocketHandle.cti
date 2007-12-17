@@ -1,0 +1,432 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <stefan.bund@fokus.fraunhofer.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ClientSocketHandle inline template implementation
+ */
+
+#include "ClientSocketHandle.ih"
+
+// Custom includes
+#include <typeinfo>
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::detail::ReadRange<Policy,ForwardWritableRange,true>
+
+template <class Handle, class ForwardWritableRange>
+prefix_ typename boost::range_iterator<ForwardWritableRange>::type
+senf::detail::ReadRange<Handle,ForwardWritableRange,true>::read(Handle & handle,
+                                                                ForwardWritableRange & range)
+{
+    typename boost::range_iterator<ForwardWritableRange>::type const i (boost::begin(range));
+    char * const ic (reinterpret_cast<char*>(storage_iterator(i)));
+    return i + (handle.read( ic, 
+                             reinterpret_cast<char*>(storage_iterator(boost::end(range))) )
+                - ic);
+}
+
+template <class Handle, class ForwardWritableRange>
+prefix_ typename boost::range_iterator<ForwardWritableRange>::type
+senf::detail::ReadRange<Handle,ForwardWritableRange,true>::
+readfrom(Handle & handle, ForwardWritableRange & range, typename Handle::Address & addr)
+{
+    typename boost::range_iterator<ForwardWritableRange>::type const i (boost::begin(range));
+    char * const ic (reinterpret_cast<char*>(storage_iterator(i)));
+    return i + (handle.readfrom( ic, 
+                                 reinterpret_cast<char*>(storage_iterator(boost::end(range))),
+                                 addr )
+                - ic);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::detail::WriteRange<Handle, ForwardReadableRange, true>
+
+template <class Handle, class ForwardReadableRange>
+prefix_ typename boost::range_const_iterator<ForwardReadableRange>::type
+senf::detail::WriteRange<Handle, ForwardReadableRange, true>::
+write(Handle & handle, ForwardReadableRange & range)
+{
+    typename boost::range_const_iterator<ForwardReadableRange>::type i 
+        (boost::const_begin(range));
+    char const * const ic (reinterpret_cast<char const *>(storage_iterator(i)));
+    std::advance(i, handle.write(ic,
+                                 reinterpret_cast<char const *>(
+                                     storage_iterator(boost::const_end(range)))) - ic);
+    return i;
+}
+
+template <class Handle, class ForwardReadableRange>
+prefix_ typename boost::range_const_iterator<ForwardReadableRange>::type
+senf::detail::WriteRange<Handle, ForwardReadableRange, true>::
+writeto(Handle & handle, ForwardReadableRange & range, typename Handle::Address const & addr)
+{
+    typename boost::range_const_iterator<ForwardReadableRange>::type i 
+        (boost::const_begin(range));
+    char const * const ic (reinterpret_cast<char const *>(storage_iterator(i)));
+    std::advance(i, handle.writeto(addr, ic,
+                                   reinterpret_cast<char const *>(
+                                       storage_iterator(boost::const_end(range)))) - ic);
+    return i;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::ClientSocketHandle<Policy>
+
+////////////////////////////////////////
+// structors
+
+template <class Policy>
+prefix_ senf::ClientSocketHandle<Policy>::ClientSocketHandle()
+{}
+
+#ifndef DOXYGEN
+template <class Policy>
+template <class OtherPolicy>
+prefix_ senf::ClientSocketHandle<Policy>::
+ClientSocketHandle(ClientSocketHandle<OtherPolicy> other,
+                   typename SocketHandle<Policy>::template IsCompatible<OtherPolicy>::type *)
+    : SocketHandle<Policy>(other,true) 
+{}
+#else
+template <class Policy>
+template <class OtherPolicy>
+prefix_ senf::ClientSocketHandle<Policy>::
+ClientSocketHandle(ClientSocketHandle<OtherPolicy> other)
+{}
+#endif
+
+template <class Policy>
+prefix_ senf::ClientSocketHandle<Policy>::ClientSocketHandle(FileHandle other, bool isChecked)
+    : SocketHandle<Policy>(other, isChecked) 
+{}
+
+template <class Policy>
+prefix_
+senf::ClientSocketHandle<Policy>::ClientSocketHandle(std::auto_ptr<SocketProtocol> protocol,
+                                                     int fd)
+    : SocketHandle<Policy>(protocol,false) 
+{
+    this->body().fd(fd);
+}
+
+#ifndef DOXYGEN
+template <class Policy>
+template <class OtherPolicy>
+prefix_ typename senf::SocketHandle<Policy>::template IsCompatible<OtherPolicy>::type const &
+senf::ClientSocketHandle<Policy>::operator=(ClientSocketHandle<OtherPolicy> other)
+{
+    assign(other);
+    return *this;
+}
+#else 
+template <class Policy>
+template <class OtherPolicy>
+prefix_ OtherPolicy const &
+senf::ClientSocketHandle<Policy>::operator=(ClientSocketHandle<OtherPolicy> other)
+{}
+#endif
+
+////////////////////////////////////////
+// reading and writing
+
+// senf::ClientSocketHandle<Policy>::read
+
+#ifndef DOXYGEN
+template <class Policy>
+template <class ForwardWritableRange>
+prefix_ typename boost::range_iterator<ForwardWritableRange>::type
+senf::ClientSocketHandle<Policy>::
+read(ForwardWritableRange const & range,
+     typename boost::disable_if< boost::is_convertible<ForwardWritableRange,unsigned> >::type *)
+{
+    return detail::ReadRange< 
+        ClientSocketHandle<Policy>, 
+        ForwardWritableRange const, 
+        contiguous_storage_iterator<
+            typename boost::range_iterator<ForwardWritableRange>::type
+        >::value && sizeof(typename boost::range_value<ForwardWritableRange>::type)==sizeof(char)
+        >::read(*this, range);
+}
+#else
+template <class Policy>
+template <class ForwardWritableRange>
+prefix_ typename boost::range_iterator<ForwardWritableRange>::type
+senf::ClientSocketHandle<Policy>::
+read(ForwardWritableRange const & range)
+{}
+#endif
+
+#ifndef DOXYGEN
+template <class Policy>
+template <class ForwardWritableRange>
+prefix_ typename boost::range_iterator<ForwardWritableRange>::type
+senf::ClientSocketHandle<Policy>::
+read(ForwardWritableRange & range,
+     typename boost::disable_if< boost::is_convertible<ForwardWritableRange,unsigned> >::type *)
+{
+    return detail::ReadRange< 
+        ClientSocketHandle<Policy>, 
+        ForwardWritableRange, 
+        contiguous_storage_iterator<
+            typename boost::range_iterator<ForwardWritableRange>::type
+        >::value && sizeof(typename boost::range_value<ForwardWritableRange>::type)==sizeof(char)
+        >::read(*this, range);
+}
+#else
+template <class Policy>
+template <class ForwardWritableRange>
+prefix_ typename boost::range_iterator<ForwardWritableRange>::type
+senf::ClientSocketHandle<Policy>::
+read(ForwardWritableRange & range)
+{}
+#endif
+
+template <class Policy>
+prefix_ char * senf::ClientSocketHandle<Policy>::read(char * start, char * end)
+{
+    return start + Policy::ReadPolicy::read(*this, start, end-start);
+}
+
+// senf::ClientSocketHandle<Policy>::readfrom
+
+template <class Policy>
+template <class ForwardWritableRange>
+prefix_ typename boost::range_iterator<ForwardWritableRange const>::type
+senf::ClientSocketHandle<Policy>::readfrom(ForwardWritableRange const & range, Address & from)
+{
+    return detail::ReadRange< 
+        ClientSocketHandle<Policy>, 
+        ForwardWritableRange const, 
+        contiguous_storage_iterator<
+            typename boost::range_iterator<ForwardWritableRange>::type
+        >::value && sizeof(typename boost::range_value<ForwardWritableRange>::type)==sizeof(char)
+        >::readfrom(*this, range, from);
+}
+
+template <class Policy>
+template <class ForwardWritableRange>
+prefix_ typename boost::range_iterator<ForwardWritableRange>::type
+senf::ClientSocketHandle<Policy>::readfrom(ForwardWritableRange & range, Address & from)
+{
+    return detail::ReadRange< 
+        ClientSocketHandle<Policy>, 
+        ForwardWritableRange, 
+        contiguous_storage_iterator<
+            typename boost::range_iterator<ForwardWritableRange>::type
+        >::value && sizeof(typename boost::range_value<ForwardWritableRange>::type)==sizeof(char)
+        >::readfrom(*this, range, from);
+}
+
+template <class Policy>
+prefix_ char * senf::ClientSocketHandle<Policy>::readfrom(char * start, char * end,
+                                                          Address & from)
+{
+    return start + Policy::ReadPolicy::readfrom(*this, start, end-start, from);
+}
+
+// senf::ClientSocketHandle<Policy>::write
+
+template <class Policy>
+template <class ForwardReadableRange>
+prefix_ typename boost::range_const_iterator<ForwardReadableRange const>::type
+senf::ClientSocketHandle<Policy>::write(ForwardReadableRange const & range)
+{
+    return detail::WriteRange<
+        ClientSocketHandle<Policy>,
+        ForwardReadableRange const,
+        contiguous_storage_iterator<
+            typename boost::range_iterator<ForwardReadableRange>::type
+        >::value && sizeof(typename boost::range_value<ForwardReadableRange>::type)==sizeof(char)
+        >::write(*this, range);
+}
+
+template <class Policy>
+prefix_ char const * senf::ClientSocketHandle<Policy>::write(char const * start, char const * end)
+{
+    return start + Policy::WritePolicy::write(*this, start, end-start);
+}
+
+// senf::ClientSocketHandle<Policy>::writeto
+
+template <class Policy>
+template <class ForwardReadableRange>
+prefix_ typename boost::range_const_iterator<ForwardReadableRange const>::type
+senf::ClientSocketHandle<Policy>::writeto(AddressParam addr, ForwardReadableRange const & range)
+{
+    return detail::WriteRange<
+        ClientSocketHandle<Policy>,
+        ForwardReadableRange const,
+        contiguous_storage_iterator<
+            typename boost::range_iterator<ForwardReadableRange>::type
+        >::value && sizeof(typename boost::range_value<ForwardReadableRange>::type)==sizeof(char)
+        >::writeto(*this, range, addr);
+}
+
+template <class Policy>
+prefix_ char const * senf::ClientSocketHandle<Policy>::writeto(AddressParam addr,
+                                                               char const * start,
+                                                               char const * end)
+{
+    return start + Policy::WritePolicy::writeto(*this, addr, start, end-start);
+}
+
+////////////////////////////////////////
+// addressing
+
+// senf::ClientSocketHandle<Policy>::peer
+
+template <class Policy>
+prefix_ typename Policy::AddressingPolicy::Address
+senf::ClientSocketHandle<Policy>::peer()
+{
+    typename Policy::AddressingPolicy::Address addr;
+    this->peer(addr);
+    return addr;
+}
+
+template <class Policy>
+prefix_ void senf::ClientSocketHandle<Policy>::
+peer(typename Policy::AddressingPolicy::Address & addr)
+{
+    Policy::AddressingPolicy::peer(*this,addr);
+}
+
+// senf::ClientSocketHandle<Policy>::local
+
+template <class Policy>
+prefix_ typename Policy::AddressingPolicy::Address
+senf::ClientSocketHandle<Policy>::local()
+{
+    typename Policy::AddressingPolicy::Address addr;
+    this->local(addr);
+    return addr;
+}
+
+template <class Policy>
+prefix_ void senf::ClientSocketHandle<Policy>::
+local(typename Policy::AddressingPolicy::Address & addr)
+{
+    Policy::AddressingPolicy::local(*this,addr);
+}
+
+// senf::ClientSocketHandle<Policy>::connect
+
+template <class Policy>
+prefix_ void senf::ClientSocketHandle<Policy>::connect(AddressParam addr)
+{
+    Policy::AddressingPolicy::connect(*this,addr);
+}
+
+// senf::ClientSocketHandle<Policy>::bind
+
+template <class Policy>
+prefix_ void senf::ClientSocketHandle<Policy>::
+bind(typename boost::call_traits<typename Policy::AddressingPolicy::Address>::param_type addr)
+{
+    Policy::AddressingPolicy::bind(*this,addr);
+}
+
+////////////////////////////////////////
+// Buffering
+
+// senf::ClientSocketHandle<Policy>::rcvbuf
+
+template <class Policy>
+prefix_ unsigned senf::ClientSocketHandle<Policy>::rcvbuf()
+{
+    return Policy::BufferingPolicy::rcvbuf(*this);
+}
+
+template <class Policy>
+prefix_ void senf::ClientSocketHandle<Policy>::rcvbuf(unsigned size)
+{
+    Policy::BufferingPolicy::rcvbuf(*this,size);
+}
+
+// senf::ClientSocketHandle<Policy>::sndbuf
+
+template <class Policy>
+prefix_ unsigned senf::ClientSocketHandle<Policy>::sndbuf()
+{
+    return Policy::BufferingPolicy::sndbuf(*this);
+}
+
+template <class Policy>
+prefix_ void senf::ClientSocketHandle<Policy>::sndbuf(unsigned size)
+{
+    Policy::BufferingPolicy::sndbuf(*this,size);
+}
+
+////////////////////////////////////////
+// Casting
+
+template <class Policy>
+prefix_ senf::ClientSocketHandle<Policy>
+senf::ClientSocketHandle<Policy>::cast_static(FileHandle handle)
+{
+    return ClientSocketHandle(handle, true);
+}
+
+template <class Policy>
+prefix_ senf::ClientSocketHandle<Policy>
+senf::ClientSocketHandle<Policy>::cast_dynamic(FileHandle handle)
+{
+    SocketHandle<Policy> h (SocketHandle<Policy>::cast_dynamic(handle));
+    if (static_cast<SocketBody&>(FileHandle::body(h)).isServer())
+        throw std::bad_cast();
+    return cast_static(handle);
+}
+
+////////////////////////////////////////
+// State information
+
+template <class Policy>
+prefix_ void senf::ClientSocketHandle<Policy>::state(SocketStateMap & map, unsigned lod)
+{
+    map["handle"] = prettyName(typeid(*this));
+    this->body().state(map,lod);
+}
+
+template <class Policy>
+prefix_ std::string senf::ClientSocketHandle<Policy>::dumpState(unsigned lod)
+{
+    SocketStateMap map;
+    state(map,lod);
+    return detail::dumpState(map);
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

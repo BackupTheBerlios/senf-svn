@@ -1,0 +1,149 @@
+// $Id$
+//
+// Copyright (C) 2007 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Target inline non-template implementation */
+
+#include "Target.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::log::Target
+
+prefix_ senf::log::Target::iterator senf::log::Target::begin()
+    const
+{
+    return rib_.begin();
+}
+
+prefix_ senf::log::Target::iterator senf::log::Target::end()
+    const
+{
+    return rib_.end();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::log::Target::RoutingEntry
+
+prefix_ senf::log::Target::RoutingEntry::RoutingEntry(detail::StreamBase const * stream,
+                                                      detail::AreaBase const * area,
+                                                      unsigned level, action_t action)
+    : stream_(stream), area_(area), level_(level), action_(action) 
+{}
+
+prefix_ senf::log::Target::RoutingEntry::RoutingEntry()
+    : stream_(0), area_(0), level_(0), action_(ACCEPT) 
+{}
+
+prefix_ bool senf::log::Target::RoutingEntry::operator==(RoutingEntry const & other)
+{ 
+    return 
+        stream_ == other.stream_ && 
+        area_ == other.area_ && 
+        level_ == other.level_ &&
+        action_ == other.action_; 
+}
+
+prefix_ std::string senf::log::Target::RoutingEntry::stream()
+    const
+{
+    return stream_ ? stream_->v_name() : "";
+}
+
+prefix_ std::string senf::log::Target::RoutingEntry::area()
+    const
+{
+    return area_ ? area_->v_name() : "";
+}
+
+prefix_ unsigned senf::log::Target::RoutingEntry::level()
+    const
+{
+    return level_;
+}
+
+prefix_ senf::log::Target::action_t senf::log::Target::RoutingEntry::action()
+    const
+{
+    return action_;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::log::detail::TargetRegistry
+
+prefix_ void senf::log::detail::TargetRegistry::timeSource(std::auto_ptr<TimeSource> source)
+{
+    timeSource_.reset(source.release());
+}
+
+prefix_ void senf::log::detail::TargetRegistry::routed()
+{
+    fallbackRouting_ = false;
+}
+
+prefix_ bool senf::log::detail::TargetRegistry::fallbackRouting()
+{
+    return fallbackRouting_;
+}
+
+////////////////////////////////////////
+// private members
+
+prefix_ senf::log::detail::TargetRegistry::TargetRegistry()
+    : timeSource_(new SystemTimeSource()), fallbackRouting_(true)
+{}
+
+prefix_ void senf::log::detail::TargetRegistry::registerTarget(Target * target)
+{
+    targets_.insert(target);
+}
+
+prefix_ void senf::log::detail::TargetRegistry::unregisterTarget(Target * target)
+{
+    targets_.erase(target);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// namespace senf::log members
+
+prefix_ void senf::log::timeSource(std::auto_ptr<TimeSource> source)
+{
+    detail::TargetRegistry::instance().timeSource(source);
+}
+
+/////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

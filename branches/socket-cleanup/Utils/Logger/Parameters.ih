@@ -1,0 +1,178 @@
+// $Id$
+//
+// Copyright (C) 2007 
+// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
+// Kompetenzzentrum fuer Satelitenkommunikation (SatCom)
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Parameters internal header */
+
+#ifndef IH_Parameters_
+#define IH_Parameters_ 1
+
+// Custom includes
+#include <iostream>
+#include <boost/preprocessor/seq/for_each_i.hpp>
+#include <boost/preprocessor/facilities/apply.hpp>
+#include <boost/preprocessor/punctuation/comma_if.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/utility.hpp>
+#include <boost/type_traits/is_convertible.hpp>
+#include "../mpl.hh"
+#include "Config.hh"
+#include "Target.hh"
+
+///////////////////////////////ih.p////////////////////////////////////////
+
+namespace senf {
+namespace log {
+    
+    class DefaultArea;
+    class Debug;
+    class NONE;
+
+namespace detail {
+
+    class StreamBase;
+    class AreaBase;
+    class LevelBase;
+    class AliasBase;
+
+    /// Internal: Parameter extractor
+    template <class Base, class Param, unsigned N>
+    struct Parameters_ {};
+
+#ifndef DOXYGEN
+
+    senf::mpl::rv<1> Parameters_select_(StreamBase *);
+    template <class Base, class Param>
+    struct Parameters_<Base,Param,1> : public Base
+    { typedef Param stream; };
+
+    senf::mpl::rv<2> Parameters_select_(AreaBase *);
+    template <class Base, class Param>
+    struct Parameters_<Base,Param,2> : public Base
+    { typedef Param area; typedef Param area_base; };
+
+    senf::mpl::rv<3> Parameters_select_(LevelBase *);
+    template <class Base, class Param>
+    struct Parameters_<Base,Param,3> : public Base
+    { typedef Param level; };
+
+    senf::mpl::rv<4> Parameters_select_(void *);
+    template <class Base>
+    struct Parameters_<Base,void,4> : public Base
+    {};
+
+    senf::mpl::rv<5> Parameters_select_(AliasBase *);
+    template <class Base, class Param>
+    struct Parameters_<Base,Param,5> 
+        : public Param::template apply<Base>::type
+    {};
+
+    // This trick makes any class with a SENFLogArea typedef member usable as area. A typedef of
+    // this name is created by SENF_LOG_CLASS_AREA()
+    template <class T>
+    senf::mpl::rv<6> Parameters_select_(
+        T *, 
+        typename boost::disable_if< boost::is_convertible<T*,StreamBase*> >::type * = 0,
+        typename boost::disable_if< boost::is_convertible<T*,AreaBase*> >::type * = 0,
+        typename boost::disable_if< boost::is_convertible<T*,LevelBase*> >::type * = 0,
+        typename boost::disable_if< boost::is_convertible<T*,AliasBase*> >::type * = 0);
+    template <class Base, class Param>
+    struct Parameters_<Base,Param,6> : public Base
+    { typedef typename Param::SENFLogArea area; typedef Param area_base; };
+
+#endif
+
+    /// Internal: Log message parameter collection
+    template <class Base>
+    struct Parameters : public Base
+    {
+        typedef typename boost::mpl::if_c< Base::level::value == NONE::value, 
+                                           typename Base::stream::defaultLevel, 
+                                           typename Base::level >::type level;
+
+        static bool const compileEnabled = senf::log::Enabled<
+            typename Base::stream, 
+            typename Base::area_base, 
+            level>::value;
+
+        static bool enabled() { 
+            return compileEnabled
+                && ( senf::log::detail::TargetRegistry::instance().fallbackRouting() ||
+                     Base::area::instance().limit(Base::stream::instance()) <= level::value );
+        }
+    };
+
+    /// Internal: Empty base class
+    struct empty {};
+
+    /// Internal: Merge log message parameter list
+    struct Parameters_Merge
+    {
+        /// Internal: Embedded mpl template meta-function
+        template <class Base, class Param>
+        struct apply {
+            typedef Parameters_<
+                Base, 
+                Param, 
+                SENF_MPL_RV(Parameters_select_(static_cast<Param*>(0)))> type;
+        };
+    };
+
+}}}
+
+typedef senf::log::Debug       SENFLogDefaultStream;
+typedef senf::log::DefaultArea SENFLogDefaultArea;
+typedef senf::log::NONE        SENFLogDefaultLevel;
+
+#define SENF_LOG_MERGE_ARG(r, data, i, elem) BOOST_PP_COMMA_IF(i) elem
+
+#define SENF_LOG_MERGE_PARAMETERS_I(base, args)                                                   \
+    boost::mpl::fold<                                                                             \
+        boost::mpl::vector< BOOST_PP_SEQ_FOR_EACH_I(SENF_LOG_MERGE_ARG, _, args) >,               \
+        base,                                                                                     \
+        senf::log::detail::Parameters_Merge >::type
+
+#define SENF_LOG_MERGE_PARAMETERS(args)                                                           \
+    senf::log::detail::Parameters< SENF_LOG_MERGE_PARAMETERS_I(                                   \
+        senf::log::detail::empty,                                                                 \
+        (SENFLogDefaultStream)(SENFLogDefaultArea)(SENFLogDefaultLevel)args) >
+
+#define SENF_LOG_MERGE_PARAMETERS_TPL(args)                                                       \
+    senf::log::detail::Parameters< typename SENF_LOG_MERGE_PARAMETERS_I(                          \
+        senf::log::detail::empty,                                                                 \
+        (SENFLogDefaultStream)(SENFLogDefaultArea)(SENFLogDefaultLevel)args) >
+
+///////////////////////////////ih.e////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:
