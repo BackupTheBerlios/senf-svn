@@ -38,7 +38,7 @@ prefix_ typename boost::enable_if<
 {
     PacketParserBase::size_type target_sz (bytes(target));
     PacketParserBase::size_type source_sz (bytes(source));
-    SafePacketParser<Parser> safe_target (target);
+    SafePacketParserWrapper<Parser> safe_target (target);
     if (target_sz > source_sz)
         target.data().erase(boost::next(target.i(),source_sz),boost::next(target.i(),target_sz));
     else if (target_sz < source_sz)
