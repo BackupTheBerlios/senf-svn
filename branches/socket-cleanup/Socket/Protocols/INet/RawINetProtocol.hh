@@ -41,7 +41,7 @@ namespace senf {
         which are available on a PF_INET[6]/RAW socket.
         
      */
-    class RawInetProtocol
+    class RawINetProtocol
         : public virtual SocketProtocol
     {
     public:

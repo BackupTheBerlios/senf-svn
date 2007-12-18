@@ -57,15 +57,6 @@ prefix_ void senf::BSDSocketProtocol::linger(bool enable, unsigned timeout)
         throwErrno();
 }
 
-prefix_ struct timeval senf::BSDSocketProtocol::timestamp()
-    const
-{
-    struct timeval tv;
-    if (::ioctl(fd(), SIOCGSTAMP, &tv) < 0)
-        throwErrno();
-    return tv;
-}
-
 ///////////////////////////////////////////////////////////////////////////
 
 prefix_ bool senf::AddressableBSDSocketProtocol::reuseaddr()

@@ -27,7 +27,6 @@
 #define HH_BSDSocketProtocol_ 1
 
 // Custom includes
-#include <sys/time.h>
 #include "../../Socket/SocketProtocol.hh"
 
 //#include "BSDSocketProtocol.mpp"
@@ -60,13 +59,6 @@ namespace senf {
                                              \param[in] enable \c true to activate linger
                                              \param[in] timeout linger timeout in seconds */
 
-        struct timeval timestamp() const; ///< Return packet timestamp of last packet
-                                        /**< The returned timestamp represents the time, at which
-                                             the last network packet passed to the user has been
-                                             received from the network. This allows precise network
-                                             timing.
-                                             \returns timestamp when packet was received 
-                                             \todo Move this to DatagramSocketProtocol class */
     };
 
     /** \brief Protocol facet providing basic connection oriented BSD socket functions

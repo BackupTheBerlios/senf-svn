@@ -18,13 +18,12 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#ifndef RAWINETSOCKETHANDLE_HH_
-#define RAWINETSOCKETHANDLE_HH_
-
+#ifndef CONNECTEDRAWINETSOCKETHANDLE_HH_
+#define CONNECTEDRAWINETSOCKETHANDLE_HH_
 
 // Custom includes
 #include "INetProtocol.hh"
-#include "RawInetProtocol.hh"
+#include "RawINetProtocol.hh"
 #include "../../../Socket/Protocols/BSDSocketProtocol.hh"
 #include "../../../Socket/FramingPolicy.hh"
 #include "../../../Socket/CommunicationPolicy.hh"
@@ -43,26 +42,26 @@ namespace senf {
     typedef MakeSocketPolicy<
         INet4AddressingPolicy,
         DatagramFramingPolicy,
-        UnconnectedCommunicationPolicy,
+        ConnectedCommunicationPolicy,
         ReadablePolicy,
         WriteablePolicy,
         SocketBufferingPolicy
-        >::policy RawV4Socket_Policy;   ///< Socket Policy of the RawV4 Protocol
+        >::policy ConnectedRawV4Socket_Policy;   ///< Socket Policy of the Connected RawV4 Protocol
 
-    /** \brief IPv4 RAW Socket Protocol
+    /** \brief IPv4 RAW Socket Protocol, connected
 
         \par Socket Handle typedefs:
-            \ref RawV4ClientSocketHandle (ProtocolClientSocketHandle)
+            \ref ConnectedRawV4ClientSocketHandle (ProtocolClientSocketHandle)
 
         \par Policy Interface:
-            ClientSocketHandle::read(), ClientSocketHandle::readfrom(),
-            ClientSocketHandle::writeto(), ClientSocketHandle::bind(), ClientSocketHandle::local(),
+            ClientSocketHandle::read(), ClientSocketHandle::write(), ClientSocketHandle::bind(),
+            ClientSocketHandle::local(), ClientSocketHandle::connect(), ClientSocketHandle::peer(),
             ClientSocketHandle::rcvbuf(), ClientSocketHandle::sndbuf()
 
         \par Address Type:
             INet4Address
 
-        RawV4SocketProtocol provides an internet protocol raw socket based on IPv4 addressing.
+        ConnectedRawV4SocketProtocol provides an internet protocol raw socket based on IPv4 addressing.
         This socket will put data written to it onto the IPv4 layer: if you call writeto don't inlude the header!
         On the other hand `read` will return the packet data including the IP header. 
         This behaviour is strange and differs from the behaviour of IPv6 RAW sockets and should be changed in the future. 
@@ -70,12 +69,14 @@ namespace senf {
         This class is utilized as the protocol class of the ProtocolClientSocketHandle
         via the Socket Handle typedefs above.
 
+        \see ConnectedRawV6SocketProtocol
+        \see RawV4SocketProtocol
         \see RawV6SocketProtocol
      */
-    class RawV4SocketProtocol
-        : public ConcreteSocketProtocol<RawV4Socket_Policy>,
+    class ConnectedRawV4SocketProtocol
+        : public ConcreteSocketProtocol<ConnectedRawV4Socket_Policy>,
           public IPv4Protocol,
-          public RawInetProtocol,
+          public RawINetProtocol,
           public BSDSocketProtocol,
           public AddressableBSDSocketProtocol//,
 //          public senf::pool_alloc_mixin<RawV4Socket_Policy>
@@ -94,11 +95,11 @@ namespace senf {
         void init_client(int const & protocol) const;       ///< Create unconnected client socket for protocol
         
         void init_client(int const & protocol, INet4SocketAddress const & address) const;
-                                        ///< Create client socket and bind
-                                        /**< Creates a new client socket for the given protocol and binds to the given
+                                        ///< Create client socket and connect
+                                        /**< Creates a new client socket for the given protocol and connects to the given
                                              address.
                                              \param[in] protocol Layer 4 protocol to filter for / to send 
-                                             \param[in] address local address to bind to */
+                                             \param[in] address local address to connect to */
 
         ///@}
         ///\name Abstract Interface Implementation
@@ -108,7 +109,7 @@ namespace senf {
         ///@}
     };
 
-    typedef ProtocolClientSocketHandle<RawV4SocketProtocol> RawV4ClientSocketHandle;
+    typedef ProtocolClientSocketHandle<ConnectedRawV4SocketProtocol> ConnectedRawV4ClientSocketHandle;
 
 
 
@@ -117,26 +118,26 @@ namespace senf {
     typedef MakeSocketPolicy<
         INet6AddressingPolicy,
         DatagramFramingPolicy,
-        UnconnectedCommunicationPolicy,
+        ConnectedCommunicationPolicy,
         ReadablePolicy,
         WriteablePolicy,
         SocketBufferingPolicy
-        >::policy RawV6Socket_Policy;   ///< Socket Policy of the RawV6 Protocol
+        >::policy ConnectedRawV6Socket_Policy;   ///< Socket Policy of the RawV6 Protocol
 
-    /** \brief IPv6 RAW Socket Protocol
+    /** \brief IPv6 RAW Socket Protocol, connected
 
         \par Socket Handle typedefs:
-        \ref RawV6ClientSocketHandle (ProtocolClientSocketHandle)
+        \ref ConnectedRawV6ClientSocketHandle (ProtocolClientSocketHandle)
 
         \par Policy Interface: 
-            ClientSocketHandle::read(), ClientSocketHandle::readfrom(),
-            ClientSocketHandle::writeto(), ClientSocketHandle::bind(), ClientSocketHandle::local(),
+            ClientSocketHandle::read(), ClientSocketHandle::write(), ClientSocketHandle::bind(),
+            ClientSocketHandle::local(), ClientSocketHandle::connect(), ClientSocketHandle::peer(),
             ClientSocketHandle::rcvbuf(), ClientSocketHandle::sndbuf()
 
         \par Address Type:
             INet6Address
 
-        RawV6SocketProtocol provides an internet protocol raw socket based on IPv6 addressing.
+        ConnectedRawV6SocketProtocol provides an internet protocol raw socket based on IPv6 addressing which is connected to certain peer.
         This socket will put data written to it onto the IPv6 layer: if you call writeto don't inlude the header!
         On the other hand `read` will return the packet data on top of the IPv6 layer, excluding the IP header. 
         Note: This behaviour is differs from the behaviour of IPv4 RAW sockets. 
@@ -144,12 +145,14 @@ namespace senf {
         This class is utilized as the protocol class of the ProtocolClientSocketHandle
         via the Socket Handle typedefs above.
 
+        \see ConnectedRawV4SocketProtocol
         \see RawV4SocketProtocol
+        \see RawV6SocketProtocol
      */
-    class RawV6SocketProtocol
-        : public ConcreteSocketProtocol<RawV6Socket_Policy>,
+    class ConnectedRawV6SocketProtocol
+        : public ConcreteSocketProtocol<ConnectedRawV6Socket_Policy>,
           public IPv6Protocol,
-          public RawInetProtocol,
+          public RawINetProtocol,
           public BSDSocketProtocol,
           public AddressableBSDSocketProtocol//,
 //          public senf::pool_alloc_mixin<RawV6SocketProtocol>
@@ -169,14 +172,14 @@ namespace senf {
         void init_client(int const & protocol) const;       ///< Create unconnected client socket for protocol
 
         void init_client(int const & protocol, INet6SocketAddress const & address) const;
-                                        ///< Create client socket and bind
-                                        /**< Creates a new client socket for the given protocol and binds to the given
+                                        ///< Create client socket and connect
+                                        /**< Creates a new client socket for the given protocol and connects to the given
                                              address.
                                              \param[in] protocol Layer 4 protocol to filter for / to send 
-                                             \param[in] address local address to bind to */
+                                             \param[in] address local address to connect to */
                                         /**< \note This member is implicitly called from the
                                              ProtocolClientSocketHandle::ProtocolClientSocketHandle()
-                                             constructor */
+                                             constructor (??) */
 
         ///@}
         ///\name Abstract Interface Implementation
@@ -186,10 +189,10 @@ namespace senf {
         ///@}
     };
 
-    typedef ProtocolClientSocketHandle<RawV6SocketProtocol> RawV6ClientSocketHandle;
+    typedef ProtocolClientSocketHandle<ConnectedRawV6SocketProtocol> ConnectedRawV6ClientSocketHandle;
 
     /// @}
 
 }
 
-#endif /*RAWINETSOCKETHANDLE_HH_*/
+#endif /*CONNECTEDRAWINETSOCKETHANDLE_HH_*/

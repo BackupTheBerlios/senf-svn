@@ -125,6 +125,7 @@ namespace senf {
         void mcDrop(std::string const & interface, MACAddress const & address) const;
                                         ///< Disable reception of a multicast group
                                         /**< \see \ref mcAdd() */
+
         ///@}
 
         ///\name Abstract Interface Implementation

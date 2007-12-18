@@ -19,7 +19,7 @@
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
-#include "RawInetProtocol.hh"
+#include "RawINetProtocol.hh"
 
 // Custom includes
 #include <sys/socket.h>
@@ -33,7 +33,7 @@
 #define prefix_
 ///////////////////////////////cc.p////////////////////////////////////////
 
-prefix_ unsigned senf::RawInetProtocol::available()
+prefix_ unsigned senf::RawINetProtocol::available()
     const
 {
     int n;
@@ -42,7 +42,7 @@ prefix_ unsigned senf::RawInetProtocol::available()
     return n;
 }
 
-prefix_ bool senf::RawInetProtocol::eof()
+prefix_ bool senf::RawINetProtocol::eof()
     const
 {
     return false;

@@ -18,7 +18,7 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#include "ConnectedRawInetSocketHandle.hh"
+#include "RawINetSocketHandle.hh"
 
 // Custom includes
 #include <sys/types.h>
@@ -32,16 +32,16 @@
 ///////////////////////////////cc.p////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////
-// senf::ConnectedRawV4SocketProtocol
+// senf::RawV4SocketProtocol
 
-prefix_ void senf::ConnectedRawV4SocketProtocol::init_client()
+prefix_ void senf::RawV4SocketProtocol::init_client()
     const
 {
     init_client(IPPROTO_RAW);
 }
 
 prefix_ void
-senf::ConnectedRawV4SocketProtocol::init_client(int const & protocol)
+senf::RawV4SocketProtocol::init_client(int const & protocol)
     const
 {
     int sock = ::socket(PF_INET, SOCK_RAW, protocol);
@@ -51,29 +51,29 @@ senf::ConnectedRawV4SocketProtocol::init_client(int const & protocol)
 }
 
 prefix_ void
-senf::ConnectedRawV4SocketProtocol::init_client(int const & protocol, INet4SocketAddress const & address)
+senf::RawV4SocketProtocol::init_client(int const & protocol, INet4SocketAddress const & address)
     const
 {
     init_client(protocol);
-    connect(address);
+    bind(address);
 }
 
-prefix_ std::auto_ptr<senf::SocketProtocol> senf::ConnectedRawV4SocketProtocol::clone()
+prefix_ std::auto_ptr<senf::SocketProtocol> senf::RawV4SocketProtocol::clone()
     const
 {
-    return std::auto_ptr<SocketProtocol>(new ConnectedRawV4SocketProtocol());
+    return std::auto_ptr<SocketProtocol>(new RawV4SocketProtocol());
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// senf::UDPv6SocketProtocol::
+// senf::RawV6SocketProtocol::
 
-prefix_ void senf::ConnectedRawV6SocketProtocol::init_client()
+prefix_ void senf::RawV6SocketProtocol::init_client()
     const
 {
     init_client(IPPROTO_RAW);
 }
 
-prefix_ void senf::ConnectedRawV6SocketProtocol::init_client(int const & protocol)
+prefix_ void senf::RawV6SocketProtocol::init_client(int const & protocol)
     const
 {
     int sock = ::socket(PF_INET6,SOCK_RAW,protocol);
@@ -83,22 +83,22 @@ prefix_ void senf::ConnectedRawV6SocketProtocol::init_client(int const & protoco
 }
 
 prefix_ void
-senf::ConnectedRawV6SocketProtocol::init_client(int const & protocol, INet6SocketAddress const & address)
+senf::RawV6SocketProtocol::init_client(int const & protocol, INet6SocketAddress const & address)
     const
 {
     init_client(protocol);
-    connect(address);
+    bind(address);
 }
 
-prefix_ std::auto_ptr<senf::SocketProtocol> senf::ConnectedRawV6SocketProtocol::clone()
+prefix_ std::auto_ptr<senf::SocketProtocol> senf::RawV6SocketProtocol::clone()
     const
 {
-    return std::auto_ptr<SocketProtocol>(new ConnectedRawV6SocketProtocol());
+    return std::auto_ptr<SocketProtocol>(new RawV6SocketProtocol());
 }
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
-//#include "ConnectedRawInetSocketHandle.mpp"
+//#include "RawINetSocketHandle.mpp"
 
 
 // Local Variables:

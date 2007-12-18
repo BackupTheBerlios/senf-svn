@@ -34,6 +34,7 @@
 #include "INetProtocol.hh"
 #include "UDPProtocol.hh"
 #include "../../../Socket/Protocols/BSDSocketProtocol.hh"
+#include "../../../Socket/Protocols/DatagramSocketProtocol.hh"
 #include "../../../Socket/FramingPolicy.hh"
 #include "../../../Socket/CommunicationPolicy.hh"
 #include "../../../Socket/ReadWritePolicy.hh"
@@ -83,6 +84,7 @@ namespace senf {
           public IPv4Protocol,
           public UDPProtocol,
           public BSDSocketProtocol,
+          public DatagramSocketProtocol,
           public AddressableBSDSocketProtocol,
           public senf::pool_alloc_mixin<UDPv4SocketProtocol>
     {
@@ -147,6 +149,7 @@ namespace senf {
           public IPv6Protocol,
           public UDPProtocol,
           public BSDSocketProtocol,
+          public DatagramSocketProtocol,
           public AddressableBSDSocketProtocol,
           public senf::pool_alloc_mixin<UDPv6SocketProtocol>
     {

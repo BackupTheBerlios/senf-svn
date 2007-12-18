@@ -18,7 +18,7 @@
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 /** \file
-    \brief RawInetSocketHandle.test unit tests */
+    \brief RawINetSocketHandle.test unit tests */
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
@@ -26,7 +26,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include "RawInetSocketHandle.hh"
+#include "RawINetSocketHandle.hh"
 #include <iostream>
 
 #include "../../../Utils/auto_unit_test.hh"
