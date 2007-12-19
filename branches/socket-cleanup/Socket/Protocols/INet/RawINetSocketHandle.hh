@@ -25,6 +25,7 @@
 // Custom includes
 #include "INetProtocol.hh"
 #include "RawINetProtocol.hh"
+#include "MulticastProtocol.hh"
 #include "../../../Socket/Protocols/BSDSocketProtocol.hh"
 #include "../../../Socket/FramingPolicy.hh"
 #include "../../../Socket/CommunicationPolicy.hh"
@@ -77,8 +78,10 @@ namespace senf {
           public IPv4Protocol,
           public RawINetProtocol,
           public BSDSocketProtocol,
-          public AddressableBSDSocketProtocol//,
-//          public senf::pool_alloc_mixin<RawV4Socket_Policy>
+          public AddressableBSDSocketProtocol,
+	  public MulticastProtocol,
+	  public INet4MulticastProtocol,
+	  public senf::pool_alloc_mixin<RawV4SocketProtocol>
     {
     public:
         ///////////////////////////////////////////////////////////////////////////
@@ -151,8 +154,10 @@ namespace senf {
           public IPv6Protocol,
           public RawINetProtocol,
           public BSDSocketProtocol,
-          public AddressableBSDSocketProtocol//,
-//          public senf::pool_alloc_mixin<RawV6SocketProtocol>
+          public AddressableBSDSocketProtocol,
+	  public MulticastProtocol,
+	  public INet4MulticastProtocol,
+	  public senf::pool_alloc_mixin<RawV6SocketProtocol>
     {
     public:
         ///////////////////////////////////////////////////////////////////////////

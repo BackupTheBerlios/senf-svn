@@ -159,8 +159,6 @@ BOOST_AUTO_UNIT_TEST(tcpv4ClientSocketHandle)
 
         BOOST_CHECK_THROW( sock.connect(senf::INet4SocketAddress("127.0.0.1:12345")), 
                            senf::SystemException );
-        BOOST_CHECK_THROW( sock.protocol().connect(senf::INet4SocketAddress("127.0.0.1:12345")),
-                           senf::SystemException );
     }
 
     try {

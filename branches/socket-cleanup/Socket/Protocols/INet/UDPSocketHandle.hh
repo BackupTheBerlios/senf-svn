@@ -33,6 +33,7 @@
 // Custom includes
 #include "INetProtocol.hh"
 #include "UDPProtocol.hh"
+#include "MulticastProtocol.hh"
 #include "../../../Socket/Protocols/BSDSocketProtocol.hh"
 #include "../../../Socket/Protocols/DatagramSocketProtocol.hh"
 #include "../../../Socket/FramingPolicy.hh"
@@ -83,6 +84,8 @@ namespace senf {
         : public ConcreteSocketProtocol<UDPv4Socket_Policy>,
           public IPv4Protocol,
           public UDPProtocol,
+          public MulticastProtocol,
+          public INet4MulticastProtocol,
           public BSDSocketProtocol,
           public DatagramSocketProtocol,
           public AddressableBSDSocketProtocol,
@@ -114,6 +117,7 @@ namespace senf {
         std::auto_ptr<SocketProtocol> clone() const;
 
         ///@}
+
     };
 
     typedef ProtocolClientSocketHandle<UDPv4SocketProtocol> UDPv4ClientSocketHandle;
@@ -148,6 +152,8 @@ namespace senf {
         : public ConcreteSocketProtocol<UDPv6Socket_Policy>,
           public IPv6Protocol,
           public UDPProtocol,
+          public MulticastProtocol,
+          public INet6MulticastProtocol,
           public BSDSocketProtocol,
           public DatagramSocketProtocol,
           public AddressableBSDSocketProtocol,

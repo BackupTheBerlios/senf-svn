@@ -77,6 +77,24 @@ prefix_ void senf::AddressableBSDSocketProtocol::reuseaddr(bool value)
         throwErrno();
 }
 
+prefix_ boost::uint8_t senf::AddressableBSDSocketProtocol::priority()
+    const
+{
+    int value;
+    socklen_t len (sizeof(value));
+    if (::getsockopt(fd(),SOL_SOCKET,SO_PRIORITY,&value,&len) < 0)
+        throwErrno();
+    return value;
+}
+
+prefix_ void senf::AddressableBSDSocketProtocol::priority(boost::uint8_t value)
+    const
+{
+    int ivalue (value);
+    if (::setsockopt(fd(),SOL_SOCKET,SO_PRIORITY,&ivalue,sizeof(ivalue)) < 0)
+        throwErrno();
+}
+
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
 //#include "BSDSocketProtocol.mpp"

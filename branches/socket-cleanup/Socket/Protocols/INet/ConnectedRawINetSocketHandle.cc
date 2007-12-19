@@ -55,7 +55,7 @@ senf::ConnectedRawV4SocketProtocol::init_client(int const & protocol, INet4Socke
     const
 {
     init_client(protocol);
-    connect(address);
+    clientHandle().connect(address);
 }
 
 prefix_ std::auto_ptr<senf::SocketProtocol> senf::ConnectedRawV4SocketProtocol::clone()
@@ -87,7 +87,7 @@ senf::ConnectedRawV6SocketProtocol::init_client(int const & protocol, INet6Socke
     const
 {
     init_client(protocol);
-    connect(address);
+    clientHandle().connect(address);
 }
 
 prefix_ std::auto_ptr<senf::SocketProtocol> senf::ConnectedRawV6SocketProtocol::clone()

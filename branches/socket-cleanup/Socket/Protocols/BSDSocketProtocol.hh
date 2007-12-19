@@ -28,6 +28,7 @@
 
 // Custom includes
 #include "../../Socket/SocketProtocol.hh"
+#include <boost/cstdint.hpp>
 
 //#include "BSDSocketProtocol.mpp"
 ///////////////////////////////hh.p////////////////////////////////////////
@@ -77,6 +78,18 @@ namespace senf {
                                         /**< A \c true value enables \c SO_REUSEADDR, \c false will
                                              disable it.
                                              \param[in] value new \c SO_REUSEADDR state */
+
+        boost::uint8_t priority() const;  ///< Get packet priority assigned to outgoing packets
+                                        /**< This call will return the priority value assigned to
+                                             packets sent via this socket. Depending on the
+                                             protocol, this value may also be placed inside the
+                                             packet headers (for IPv4, this is the TOS value).
+                                             \returns current socket priority */
+        void priority(boost::uint8_t value) const; ///< Set packet priority (e.g. TOS)
+                                        /**< Changes the packet queueing priority. Additionally may
+                                             set protocol specific options. For IPv4 sockets, it
+                                             sets the TOS field.
+                                             \param[in] v new socket priority */
     };
 
     /// @}
