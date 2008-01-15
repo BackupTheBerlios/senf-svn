@@ -1,7 +1,9 @@
+// $Id$
+//
 // Copyright (C) 2007 
-// Fraunhofer Institut fuer offene Kommunikationssysteme (FOKUS)
-// Kompetenzzentrum NETwork research (NET)
-//     David Wagner <david.wagner@fokus.fraunhofer.de>
+// Fraunhofer Institute for Open Communication Systems (FOKUS) 
+// Competence Center NETwork research (NET), St. Augustin, GERMANY 
+//     David Wagner <dw6@berlios.de>
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,6 +19,7 @@
 // along with this program; if not, write to the
 // Free Software Foundation, Inc.,
 // 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
 #ifndef RAWINETPROTOCOL_HH_
 #define RAWINETPROTOCOL_HH_
 
