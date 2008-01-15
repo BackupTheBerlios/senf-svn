@@ -39,7 +39,6 @@
 #include "../../../Socket/FramingPolicy.hh"
 #include "../../../Socket/CommunicationPolicy.hh"
 #include "../../../Socket/ReadWritePolicy.hh"
-#include "../../../Socket/BufferingPolicy.hh"
 #include "../../../Socket/ProtocolClientSocketHandle.hh"
 
 //#include "UDPSocketHandle.mpp"
@@ -55,8 +54,7 @@ namespace senf {
         DatagramFramingPolicy,
         UnconnectedCommunicationPolicy,
         ReadablePolicy,
-        WriteablePolicy,
-        SocketBufferingPolicy
+        WriteablePolicy
         >::policy UDPv4Socket_Policy;   ///< Socket Policy of the UDPv4 Protocol
 
     /** \brief IPv4 UDP Socket Protocol

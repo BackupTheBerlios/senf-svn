@@ -36,7 +36,6 @@
 #include "../../../Socket/FramingPolicy.hh"
 #include "../../../Socket/CommunicationPolicy.hh"
 #include "../../../Socket/ReadWritePolicy.hh"
-#include "../../../Socket/BufferingPolicy.hh"
 #include "../../../Socket/Protocols/BSDSocketProtocol.hh"
 #include "LLAddressing.hh"
 
@@ -54,8 +53,7 @@ namespace senf {
         DatagramFramingPolicy,
         UnconnectedCommunicationPolicy,
         ReadablePolicy,
-        WriteablePolicy,
-        SocketBufferingPolicy
+        WriteablePolicy
         >::policy Packet_Policy;        ///< Policy of PacketProtocol
 
     /** \brief Raw Packet-Socket access (Linux)

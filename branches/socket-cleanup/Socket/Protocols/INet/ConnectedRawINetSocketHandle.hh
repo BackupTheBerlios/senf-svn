@@ -30,7 +30,6 @@
 #include "../../../Socket/FramingPolicy.hh"
 #include "../../../Socket/CommunicationPolicy.hh"
 #include "../../../Socket/ReadWritePolicy.hh"
-#include "../../../Socket/BufferingPolicy.hh"
 #include "../../../Socket/ProtocolClientSocketHandle.hh"
 
 
@@ -46,8 +45,7 @@ namespace senf {
         DatagramFramingPolicy,
         ConnectedCommunicationPolicy,
         ReadablePolicy,
-        WriteablePolicy,
-        SocketBufferingPolicy
+        WriteablePolicy
         >::policy ConnectedRawV4Socket_Policy;   ///< Socket Policy of the Connected RawV4 Protocol
 
     /** \brief IPv4 RAW Socket Protocol, connected
@@ -122,8 +120,7 @@ namespace senf {
         DatagramFramingPolicy,
         ConnectedCommunicationPolicy,
         ReadablePolicy,
-        WriteablePolicy,
-        SocketBufferingPolicy
+        WriteablePolicy
         >::policy ConnectedRawV6Socket_Policy;   ///< Socket Policy of the RawV6 Protocol
 
     /** \brief IPv6 RAW Socket Protocol, connected

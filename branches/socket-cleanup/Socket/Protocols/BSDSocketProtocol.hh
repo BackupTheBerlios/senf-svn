@@ -90,6 +90,21 @@ namespace senf {
                                              set protocol specific options. For IPv4 sockets, it
                                              sets the TOS field.
                                              \param[in] v new socket priority */
+
+        unsigned rcvbuf() const;        ///< Check receive buffer size
+                                        /**< \param[in] handle socket handle to check
+                                             \returns size of receive buffer in bytes */
+        void rcvbuf(unsigned size) const; ///< Change receive buffer size
+                                        /**< \param[in] handle socket handle
+                                             \param[in] size new receive buffer size */
+
+        unsigned sndbuf() const;        ///< Check send buffer size
+                                        /**< \param[in] handle socket handle to check
+                                             \returns size of send buffer in bytes */
+        void sndbuf(unsigned size) const; ///< Change size of send buffer
+                                        /**< \param[in] handle socket handle
+                                             \param[in] size new send buffer size */
+        
     };
 
     /// @}
