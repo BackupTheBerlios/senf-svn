@@ -1,0 +1,103 @@
+// $Id$
+//
+// Copyright (C) 2007 
+// Fraunhofer Institute for Open Communication Systems (FOKUS) 
+// Competence Center NETwork research (NET), St. Augustin, GERMANY 
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief PacketParser internal header */
+
+#ifndef IH_PacketParser_
+#define IH_PacketParser_ 1
+
+// Custom includes
+#include "../Utils/mpl.hh"
+
+///////////////////////////////ih.p////////////////////////////////////////
+
+namespace senf {
+namespace detail {
+
+    // PLEASE don't add this to doxygen ... it just looks to weird and does not help ...
+
+#   ifndef DOXYGEN
+
+    // Use SFINAE to check, if Parser has an integer-valued fixed_bytes member. If not,
+    // 'Parser_TakeNum<Parser::fixed_bytes>' fails and the overload is removed from the overload
+    // set. 
+    template <class Parser>
+    PacketParserBase::size_type packetParserSize(
+        Parser p, int, senf::mpl::take_uint<Parser::fixed_bytes> * = 0);
+
+    // An ellipsis is always the worst match. A call 'packetParserSize(p,0) will prefer above
+    // overload if that is not disabled by SFINAE.
+    template <class Parser>
+    PacketParserBase::size_type packetParserSize(Parser p, ...);
+
+    // Same as above: This overload is only enabled, if Parser has an integer values 'init_bytes'
+    // member.
+    template <class Parser>
+    senf::mpl::rv<0> ParserInitBytes_Choose_(senf::mpl::take_uint<Parser::init_bytes> *);
+
+    template <class Parser>
+    senf::mpl::rv<1> ParserInitBytes_Choose_(...);
+
+    // This version of ParserInitBytes_Choose uses 'Parser::init_bytes' to provide 'value' (via
+    // 'boost::integral_constant')
+    template <class Parser, unsigned _>
+    struct ParserInitBytes_Choose 
+        : public boost::integral_constant<PacketParserBase::size_type, Parser::init_bytes> {};
+    // ^^-- g++ error signaled here:
+    //    error: 'fixed_bytes' is not a member of 'some-class-name'
+    //
+    // The 'some-class-name' class (as given in the error message) does not seem to be a parser at
+    // all (it has neither a 'fixed_bytes' nor an 'init_bytes' member).
+    //
+    // Either 'some-class-name' is not the class you wanted to use (it really is no parser) or you
+    // left out either 'init_bytes' or 'fixed_bytes' when defining the parser. This will also
+    // happen, if you forget to call 'SENF_PARSER_FINALIZE()' when defining a composite parser.
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    // If Parser::init_bytes is not defined, this specialization is chosen which instead uses
+    // 'Parser::fixed_bytes'
+    template <class Parser>
+    struct ParserInitBytes_Choose<Parser, 1>
+        : public boost::integral_constant<PacketParserBase::size_type, Parser::fixed_bytes> {};
+
+    template <class Parser>
+    struct ParserInitBytes
+        : public ParserInitBytes_Choose<Parser,SENF_MPL_RV(ParserInitBytes_Choose_<Parser>(0))> {};
+
+#   endif
+
+}}
+
+///////////////////////////////ih.e////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

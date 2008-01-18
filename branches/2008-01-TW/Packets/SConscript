@@ -1,0 +1,22 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons, glob
+
+###########################################################################
+
+SENFSCons.AllIncludesHH(env, [ f for f in glob.glob("*.hh")
+                               if 'defined(HH_Packets__decls_)' in file(f).read() ])
+
+SENFSCons.StandardTargets(env)
+SENFSCons.Lib(env,
+              library = 'Packets',
+              sources = SENFSCons.GlobSources(),
+              LIBS = [ 'Utils' ])
+SENFSCons.Doxygen(env, extra_sources = [
+    env.Dia2Png("structure.dia")
+])
+
+SConscript(glob.glob("*/SConscript"))
+
+SENFSCons.InstallIncludeFiles(env, [ 'parse_fixed_setup.hh' , 'parse_setup.hh' ])

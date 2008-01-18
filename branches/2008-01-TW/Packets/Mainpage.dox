@@ -1,0 +1,184 @@
+// $Id$
+//
+// Copyright (C) 2007 
+// Fraunhofer Institute for Open Communication Systems (FOKUS) 
+// Competence Center NETwork research (NET), St. Augustin, GERMANY 
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \mainpage The SENF Packet Library
+
+    \section arch Overall Architecture
+
+    The Packet library consists of several components:
+    
+    \li The \ref packet_module manages the packet data and provides the framework for handling the
+        chain of packet headers. The visible interface is provided by the Packet class.
+    \li \ref packetparser provides the framework for interpreting packet data. It handles
+        parsing the packet information into meaningful values.
+    \li The \ref protocolbundles provide concrete implementations for interpreting packets of
+        some protocol. The Protocol Bundles are built on top of the basic packet library.
+
+    All these components work together to provide a hopefully simple and intuitive interface to
+    packet parsing and creation.
+
+    \section intro Introduction
+
+    Whenever using the library, you will probably need to \c \#include it's header:
+
+    \code
+    #include "Packets/Packets.hh"
+    \endcode
+
+    \warning Never include any other Packets library header directly, always include \c
+    Packets/Packets.hh.
+
+    Additionally you will have to include the header files for the packet types you use, e.g. \c
+    Packets/DefaultBundle/EthernetPacket.hh etc.
+    
+    Most every use of the packet library starts with some concrete packet typedef. Some fundamental
+    packet types are provided by \ref protocolbundle_default. Building on those packet types, this
+    example will build a complex packet: This will be an Ethernet packet containing an IPv4 UDP
+    packet. We begin by building the raw packet skeleton:
+
+    \code
+    senf::EthernetPacket eth      (senf::EthernetPacket::create());
+    senf::IPv4Packet     ip       (senf::IPv4Packet    ::createAfter(eth));
+    senf::UDPPacket      udp      (senf::UDPPacket     ::createAfter(ip));
+    senf::DataPacket     payload  (senf::DataPacket    ::createAfter(udp, 
+                                                                     std::string("Hello, world!")));
+    \endcode
+
+    These commands create what is called an interpreter chain. This chain consists of four
+    interpreters. All interpreters reference the same data storage. This data storage is a random
+    access sequence which contains the data bytes of the packet.
+
+    \note The data structures allocated are automatically managed using reference counting. In this
+        example we have four packet references each referencing the same underlying data
+        structure. This data structure will be freed when the last reference to it goes out of
+        scope.
+
+    The packet created above already has the correct payload however all protocol fields are
+    empty. We need to set those protocol fields:
+
+    \code
+    udp->source()      = 2000u;
+    udp->destination() = 2001u;
+    ip->ttl()          = 255u;
+    ip->source()       = senf::INet4Address::from_string("192.168.0.1");
+    ip->destination()  = senf::INet4Address::from_string("192.168.0.2");
+    eth->source()      = senf::MACAddress::from_string("00:11:22:33:44:55");
+    eth->destination() = senf::MACAddress::from_string("00:11:22:33:44:66");
+    
+    eth.finalize();
+    \endcode
+
+    As seen above, packet fields are accessed using the <tt>-></tt> operator whereas other packet
+    facilities (like \c finalize()) are directly accessed using the member operator. The field
+    values are simple set using appropriately named accessors. As a last step, the \c finalize()
+    call will update all calculated fields (fields like next-protocol, header or payload length,
+    checksums etc). Now the packet is ready. We may now send it out using a packet socket
+
+    \code
+    senf::PacketSocketHandle sock ("eth0");
+    sock.write(eth.data());
+    \endcode
+
+    The packet library also provides lot's of facilities to navigate the packet chain:
+
+    \code
+    eth.next() == ip;                   // true
+    eth.next().is<IPv4Packet>();        // true
+    eth.next().next() == udp;           // true
+    eth.next().is<UDPPacket>();         // false
+    eth.next<UDPPacket>() == udp;       // true
+
+    udp.next<UDPPacket>();              // throws InvalidPacketChainException
+    udp.next<UDPPacket>(senf::nothrow); // a senf::Packet testing as false
+    udp.findNext<UDPPacket()> == udp;   // true
+    udp.first<IPv4Packet>() == ip;      // true
+
+    udp.prev() == ip;                   // true
+    udp.prev<EthernetPacket>() == eth   // true
+    \endcode
+
+    ... and so on. It is therefore not necessary to stash away a reference for every interpreter (as
+    each of the sub-packets are called) as long as at least one reference is available.
+
+    These chain navigation functions are also used to parse a packet. Let's read an Ethernet packet
+    from a packet socket handle:
+    
+    \code
+    senf::PacketSocketHandle sock ("eth0");
+    senf::EthernetPacket packet (senf::EthernetPacket::create(senf::Packet::noinit));
+    sock.read(packet.data(),0u);
+    \endcode
+
+    This first creates an uninitialized Ethernet packet and then reads into this packet. We can now
+    parse this packet. Let's find out, whether this is a UDP packet destined to port 2001:
+
+    \code
+    try {
+        senf::UDPPacket udp (packet.findNext<UDPPacket>(senf::nothrow));
+        if (udp && udp->destination() == 2001u) {
+            // Voila ...
+        }
+    } catch (senf::TruncatedPacketException const &) {
+        std::cerr << "Ooops !! Broken packet received ...\n"
+    }
+    \endcode
+
+    TruncatedPacketException is thrown by <tt>udp->destination()</tt> if that field cannot be
+    accessed. More generally, whenever a field cannot be accessed because it would be out of bounds
+    of the data read, this exception is generated.
+
+    This is only a very short introduction to the library to give a feel for the implementation. For
+    a detailed discussion see the respective reference documentation.
+ */
+
+/** \defgroup protocolbundles Protocol Bundles
+
+    Each protocol bundle provides a collection of related concrete packet classes for a group of
+    related protocols:
+
+    \li <a href="../../DefaultBundle/doc/html/index.html">DefaultBundle</a>: Some basic
+        default protocols: Ethernet, Ip, TCP, UDP
+    \li <a href="../../MPEGDVBBundle/doc/html/index.html">MPEGDVBBundle</a>: MPEG and DVB
+        protocols
+
+    There are two ways to link with a bundle
+    
+    \li If you only work with known packets which you explicitly reference you may just link with
+        the corresponding library.
+    \li If you need to parse unknown packets and want those to be parsed as complete as possible
+        without explicitly referencing the packet type, you will need to link against the combined
+        object file built for every bundle. This way, all packets defined in the bundle will be
+        included whether they are explicitly referenced or not (and they will all automatically be
+        registered).
+ */
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// mode: auto-fill
+// compile-command: "scons -u doc"
+// End:
+
