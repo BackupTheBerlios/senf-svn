@@ -1,0 +1,76 @@
+// $Id$
+//
+// Copyright (C) 2007 
+// Fraunhofer Institute for Open Communication Systems (FOKUS) 
+// Competence Center NETwork research (NET), St. Augustin, GERMANY 
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief safe_bool inline template implementation */
+
+//#include "safe_bool.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+template <typename T>
+prefix_ senf::comparable_safe_bool<T>::operator bool_type()
+    const
+{
+    return (static_cast<const T*>(this))->boolean_test()
+        ? &safe_bool_base::this_type_does_not_support_comparisons : 0;
+}
+
+template <typename T>
+prefix_ bool senf::comparable_safe_bool<T>::operator!()
+    const
+{
+    return ! (static_cast<const T*>(this))->boolean_test();
+}
+
+template <typename T>
+prefix_ senf::comparable_safe_bool<T>::~comparable_safe_bool()
+{}
+
+template <typename T, typename U>
+prefix_ void senf::operator==(const safe_bool<T>& lhs, const safe_bool<U>& rhs)
+{
+    lhs.this_type_does_not_support_comparisons();
+}
+
+template <typename T, typename U>
+prefix_ void senf::operator!=(const safe_bool<T>& lhs, const safe_bool<U>& rhs)
+{
+    lhs.this_type_does_not_support_comparisons();
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

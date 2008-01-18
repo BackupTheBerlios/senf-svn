@@ -1,0 +1,285 @@
+// $Id$
+//
+// Copyright (C) 2007 
+// Fraunhofer Institute for Open Communication Systems (FOKUS) 
+// Competence Center NETwork research (NET), St. Augustin, GERMANY 
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Packet inline template implementation */
+
+//#include "Packet.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::Packet
+
+// conversion constructors
+
+template <class PacketType>
+prefix_ senf::Packet::Packet(ConcretePacket<PacketType> packet)
+    : packet_(packet.ptr())
+{}
+
+// interpreter chain access
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::parseNextAs()
+    const
+{
+    return OtherPacket(ptr()->parseNextAs<typename OtherPacket::type>());
+}
+
+template <class OtherPacket>
+prefix_ bool senf::Packet::is()
+    const
+{
+    return ptr()->is<typename OtherPacket::type>();
+}
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::as()
+    const
+{
+    if (!is<OtherPacket>())
+        throw std::bad_cast();
+    return OtherPacket(ptr()->as<typename OtherPacket::type>());
+}
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::next()
+    const
+{
+    return next().as<OtherPacket>();
+}
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::next(NoThrow_t)
+    const
+{
+    Packet p (next(nothrow));
+    return p && p.is<OtherPacket>() ? p.as<OtherPacket>() : OtherPacket();
+}
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::find()
+    const
+{
+    OtherPacket p (find<OtherPacket>(nothrow));
+    if (!p) throw InvalidPacketChainException();
+    return p;
+}
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::prev()
+    const
+{
+    return prev().as<OtherPacket>();
+}
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::prev(NoThrow_t)
+    const
+{
+    Packet p (prev(nothrow));
+    return p && p.is<OtherPacket>() ? p.as<OtherPacket>() : OtherPacket();
+}
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::rfind()
+    const
+{
+    OtherPacket p (rfind<OtherPacket>(nothrow));
+    if (!p) throw InvalidPacketChainException();
+    return p;
+}
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::last()
+    const
+{
+    return last().as<OtherPacket>();
+}
+
+template <class OtherPacket>
+prefix_ OtherPacket senf::Packet::first()
+    const
+{
+    return first().as<OtherPacket>();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::ConcretePacket<PacketType>
+
+// structors and default members
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>::ConcretePacket()
+{}
+
+template <class PacketType>
+prefix_ typename senf::ConcretePacket<PacketType>::factory_t
+senf::ConcretePacket<PacketType>::factory()
+{
+    return interpreter::factory();
+}
+
+// Create completely new packet
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::create()
+{
+    return ConcretePacket(interpreter::create());
+}
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::create(NoInit_t)
+{
+    return ConcretePacket(interpreter::create(interpreter::noinit));
+}
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::create(size_type size)
+{
+    return ConcretePacket(interpreter::create(size));
+}
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::create(size_type size, NoInit_t)
+{
+    return ConcretePacket(interpreter::create(size,interpreter::noinit));
+}
+
+template <class PacketType>
+template <class ForwardReadableRange>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::create(ForwardReadableRange const & range)
+{
+    return ConcretePacket(interpreter::create(range));
+}
+
+// Create packet as new packet after a given packet
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::createAfter(Packet packet)
+{
+    return ConcretePacket(interpreter::createAfter(packet.ptr()));
+}
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::createAfter(Packet packet, NoInit_t)
+{
+    return ConcretePacket(interpreter::createAfter(packet.ptr(),interpreter::noinit));
+}
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::createAfter(Packet packet, size_type size)
+{
+    return ConcretePacket(interpreter::createAfter(packet.ptr(), size));
+}
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::createAfter(Packet packet, size_type size, NoInit_t)
+{
+    return ConcretePacket(interpreter::createAfter(packet.ptr(), size, interpreter::noinit));
+}
+
+template <class PacketType>
+template <class ForwardReadableRange>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::createAfter(Packet packet, ForwardReadableRange const & range)
+{
+    return ConcretePacket(interpreter::createAfter(packet.ptr(), range));
+}
+
+// Create packet as new packet (header) before a given packet
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::createBefore(Packet packet)
+{
+    return ConcretePacket(interpreter::createBefore(packet.ptr()));
+}
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::createBefore(Packet packet, NoInit_t)
+{
+    return ConcretePacket(interpreter::createBefore(packet.ptr(), interpreter::noinit));
+}
+
+// Create a clone of the current packet
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>
+senf::ConcretePacket<PacketType>::clone()
+    const
+{
+    return ConcretePacket(ptr()->clone());
+}
+
+// Field access
+
+template <class PacketType>
+prefix_ typename senf::ConcretePacket<PacketType>::type::parser *
+senf::ConcretePacket<PacketType>::operator->()
+    const
+{
+    return ptr()->fields_p();
+}
+
+// private members
+
+template <class PacketType>
+prefix_ senf::ConcretePacket<PacketType>::ConcretePacket(typename interpreter::ptr packet_)
+    : Packet(packet_)
+{}
+
+template <class PacketType>
+prefix_ typename senf::ConcretePacket<PacketType>::interpreter::ptr
+senf::ConcretePacket<PacketType>::ptr()
+    const
+{
+    return boost::static_pointer_cast< PacketInterpreter<PacketType> >(Packet::ptr());
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:
