@@ -1,0 +1,97 @@
+// $Id$
+//
+// Copyright (C) 2006 Stefan Bund <g0dil@senf.berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Exception inline non-template implementation */
+
+// Custom includes
+#include <errno.h>
+#include <cstring>
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::Exception
+prefix_ senf::Exception::Exception(std::string const & description)
+    : message_(description)
+{}
+
+///////////////////////////////////////////////////////////////////////////
+
+prefix_ senf::SystemException::SystemException(std::string const & where)
+{
+    init(where, errno);
+}
+
+prefix_ senf::SystemException::SystemException(int code)
+{
+    init("", code);
+}
+
+prefix_ senf::SystemException::SystemException(std::string const & where, int code)
+{
+    init(where, code);
+}
+
+prefix_ int senf::SystemException::errorNumber()
+    const
+{
+    return code_;
+}
+
+prefix_ char const * senf::SystemException::description()
+    const
+{
+    return std::strerror(code_);
+}
+
+prefix_ bool senf::SystemException::anyOf(int c0, int c1, int c2, int c3, int c4, int c5,
+                                          int c6, int c7, int c8, int c9)
+{
+    return 
+        (c0 && code_ == c0) ||
+        (c1 && code_ == c1) ||
+        (c2 && code_ == c2) ||
+        (c3 && code_ == c3) ||
+        (c4 && code_ == c4) ||
+        (c5 && code_ == c5) ||
+        (c6 && code_ == c6) ||
+        (c7 && code_ == c7) ||
+        (c8 && code_ == c8) ||
+        (c9 && code_ == c9);
+}
+
+prefix_  senf::SystemException::~SystemException()
+    throw()
+{}
+
+///////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

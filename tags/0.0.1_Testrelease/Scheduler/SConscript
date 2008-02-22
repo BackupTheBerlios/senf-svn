@@ -1,0 +1,14 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons
+
+###########################################################################
+
+sources = SENFSCons.GlobSources()
+SENFSCons.StandardTargets(env)
+SENFSCons.Lib(env,
+             library = 'Scheduler',
+             sources = sources,
+             LIBS = [ 'Socket', 'Utils' ])
+SENFSCons.Doxygen(env)

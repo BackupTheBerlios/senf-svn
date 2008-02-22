@@ -1,0 +1,11 @@
+Import('env')
+import SENFSCons
+
+###########################################################################
+
+SENFSCons.Binary( env, 'ratestuffer', SENFSCons.GlobSources(),
+                  LIBS = [ 'PPI', 'Scheduler', 'Packets', 'Socket', 'Utils' ] );
+
+SENFSCons.Doxygen(env, extra_sources=[
+    env.Dia2Png('ratestuffer.dia')
+])

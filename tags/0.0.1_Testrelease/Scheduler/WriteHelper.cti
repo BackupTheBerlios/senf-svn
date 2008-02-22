@@ -1,0 +1,81 @@
+// $Id$
+//
+// Copyright (C) 2006 Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Copyright (C) 2006
+
+/** \file
+    \brief WriteHelper inline template implementation */
+
+//#include "WriteHelper.ih"
+
+// Custom includes
+#include "../Utils/Exception.hh"
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+template <class Handle>
+prefix_ typename senf::WriteHelper<Handle>::ptr
+senf::WriteHelper<Handle>::dispatch(Handle handle, std::string const & data, Callback callback)
+{
+    return ptr(new WriteHelper(handle, data, callback));
+}
+
+template <class Handle>
+prefix_ Handle senf::WriteHelper<Handle>::handle()
+    const
+{
+    return handle_;
+}
+
+template <class Handle>
+prefix_ bool senf::WriteHelper<Handle>::complete()
+    const
+{
+    return data_.empty();
+}
+
+template <class Handle>
+prefix_ bool senf::WriteHelper<Handle>::error()
+    const
+{
+    return errno_ != 0;
+}
+
+template <class Handle>
+prefix_ void senf::WriteHelper<Handle>::throw_error()
+    const
+{
+    if (errno_ != 0)
+        throw SystemException(errno_);
+}
+
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

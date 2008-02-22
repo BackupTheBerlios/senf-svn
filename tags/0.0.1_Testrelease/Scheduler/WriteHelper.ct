@@ -1,0 +1,117 @@
+// $Id$
+//
+// Copyright (C) 2006 Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Copyright (C) 2006
+
+/** \file
+    \brief WriteHelper non-inline template implementation */
+
+//#include "WriteHelper.ih"
+
+// Custom includes
+#include <errno.h>
+#include "../Utils/Exception.hh"
+#include "Scheduler.hh"
+
+#define prefix_
+///////////////////////////////ct.p////////////////////////////////////////
+
+template <class Handle>
+prefix_ senf::WriteHelper<Handle>::WriteHelper(Handle handle, std::string const & data,
+                                                      Callback callback)
+    : handle_(handle), data_(data), callback_(callback),
+      offset_(data_.begin()), errno_(0)
+{
+    senf::Scheduler::instance()
+        .add(handle_, boost::bind(&WriteHelper::dispatchProcess, ptr(this), _1, _2),
+             senf::Scheduler::EV_WRITE);
+}
+
+template <class Handle>
+prefix_ std::string const & senf::WriteHelper<Handle>::data()
+    const
+{
+    if (offset_ > data_.begin()) {
+        data_.erase(data_.begin(),offset_);
+        offset_ = data_.begin();
+    }
+    return data_;
+}
+
+template <class Handle>
+prefix_ void senf::WriteHelper<Handle>::revoke()
+{
+    ptr guard (this); // To ensure, 'this' is deleted only after this method terminates ...
+    senf::Scheduler::instance()
+        .remove(handle_, senf::Scheduler::EV_WRITE);
+}
+
+template <class Handle>
+prefix_ void
+senf::WriteHelper<Handle>::dispatchProcess(ptr helper, Handle handle,
+                                                  senf::Scheduler::EventId event)
+{
+    // since we have a 'ptr' argument, the instance cannot be deleted
+    // before this method returns
+    return helper->process(handle,event);
+}
+
+template <class Handle>
+prefix_ void senf::WriteHelper<Handle>::process(Handle handle,
+                                                       senf::Scheduler::EventId event)
+{
+    bool complete_ (false);
+    try {
+        if (event != senf::Scheduler::EV_WRITE)
+            throw SystemException(EPIPE);
+        offset_ = handle.write(std::make_pair(offset_,data_.end()));
+        if (offset_ == data_.end()) {
+            data_.erase();
+            offset_ = data_.begin();
+            complete_ = true;
+        }
+    }
+    catch (senf::SystemException const & ex) {
+        errno_ = ex.errorNumber();
+        done();
+        return;
+    }
+    if (complete_)
+        done();
+}
+
+template <class Handle>
+prefix_ void senf::WriteHelper<Handle>::done()
+{
+    revoke();
+    callback_(ptr(this));
+}
+
+///////////////////////////////ct.e////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:
