@@ -1,0 +1,231 @@
+// $Id$
+//
+// Copyright (C) 2008 
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Server inline non-template implementation */
+
+#include "Server.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::detail::ServerManager
+
+prefix_ void senf::console::detail::ServerManager::add(ptr server)
+{
+    instance().servers_.insert(server);
+}
+
+prefix_ void senf::console::detail::ServerManager::remove(ptr server)
+{
+    instance().servers_.erase(instance().servers_.find(server));
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::detail::NonblockingSocketSink
+
+prefix_ senf::console::detail::NonblockingSocketSink::NonblockingSocketSink(Client & client)
+    : client_ (client)
+{}
+
+prefix_ senf::console::Client & senf::console::detail::NonblockingSocketSink::client()
+    const
+{
+    return client_;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::Server
+
+prefix_ senf::console::Server & senf::console::Server::name(std::string const & name)
+{
+    name_ = name;
+    return *this;
+}
+
+prefix_ std::string const & senf::console::Server::name()
+    const
+{
+    return name_;
+}
+
+prefix_ senf::console::DirectoryNode & senf::console::Server::root()
+    const
+{
+    return *root_;
+}
+
+prefix_ senf::console::Server & senf::console::Server::root(DirectoryNode & root)
+{
+    root_ = root.thisptr();
+    return *this;
+}
+
+prefix_ senf::console::Server & senf::console::Server::mode(Mode m)
+{
+    mode_ = m;
+    return *this;
+}
+
+prefix_ senf::console::Server::Mode senf::console::Server::mode()
+    const
+{
+    return mode_;
+}
+
+prefix_ void senf::console::Server::stop()
+{
+    // commit suicide
+    detail::ServerManager::remove(boost::intrusive_ptr<Server>(this));
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::Client
+
+prefix_ senf::console::Client::~Client()
+{
+    stream() << std::flush;
+}
+
+prefix_ void senf::console::Client::stop()
+{
+    // THIS COMMITS SUICIDE. THE INSTANCE IS GONE AFTER removeClient RETURNS
+    server_.removeClient(*this);
+}
+
+prefix_ std::string const & senf::console::Client::name()
+    const
+{
+    return name_;
+}
+
+prefix_ std::string senf::console::Client::promptString()
+    const
+{
+    return name_ + ":" + executor_.cwdPath() + "$ ";
+}
+
+prefix_ senf::console::DirectoryNode & senf::console::Client::root()
+    const
+{
+    return server_.root();
+}
+
+prefix_ senf::console::Server::Mode senf::console::Client::mode()
+    const
+{
+    return mode_;
+}
+
+prefix_ senf::console::Client & senf::console::Client::get(std::ostream & os)
+{
+    return dynamic_cast<detail::NonblockingSocketOStream&>(os)->client();
+}
+
+prefix_ senf::console::Client::ClientHandle senf::console::Client::handle()
+    const
+{
+    return handle_;
+}
+
+prefix_ std::ostream & senf::console::Client::stream()
+{
+    return out_t::member;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::detail::ClientReader
+
+prefix_ senf::console::detail::ClientReader::~ClientReader()
+{}
+
+prefix_ senf::console::Client & senf::console::detail::ClientReader::client()
+    const
+{
+    return client_;
+}
+
+prefix_ std::string senf::console::detail::ClientReader::promptString()
+    const
+{
+    return client().promptString();
+}
+
+prefix_ senf::console::detail::ClientReader::ClientHandle senf::console::detail::ClientReader::handle()
+    const
+{
+    return client().handle();
+}
+
+prefix_ std::ostream & senf::console::detail::ClientReader::stream()
+    const
+{
+    return client().stream();
+}
+
+prefix_ void senf::console::detail::ClientReader::stopClient()
+{
+    client().stop();
+}
+
+prefix_ std::string::size_type
+senf::console::detail::ClientReader::handleInput(std::string const & input, bool incremental)
+    const
+{
+    return client().handleInput(input, incremental);
+}
+
+prefix_ void senf::console::detail::ClientReader::disablePrompt()
+{
+    v_disablePrompt();
+}
+
+prefix_ void senf::console::detail::ClientReader::enablePrompt()
+{
+    v_enablePrompt();
+}
+
+prefix_ void senf::console::detail::ClientReader::translate(std::string & data)
+{
+    v_translate(data);
+}
+
+prefix_ senf::console::detail::ClientReader::ClientReader(Client & client)
+    : client_ (client)
+{}
+
+///////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

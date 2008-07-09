@@ -1,0 +1,130 @@
+// $Id$
+//
+// Copyright (C) 2008 
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ScopedDirectory inline template implementation */
+
+//#include "ScopedDirectory.ih"
+
+// Custom includes
+#include <boost/bind.hpp>
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::OwnerNodeCreateTraits<Owner,Object>::Creator
+
+template <class Owner, class Object>
+prefix_ typename senf::console::OwnerNodeCreateTraits<Owner,Object>::result_type
+senf::console::OwnerNodeCreateTraits<Owner,Object>::Creator::create(DirectoryNode & node,
+                                                                    Owner & owner,
+                                                                    std::string const & name,
+                                                                    Object & ob)
+{
+    return senf_console_add_node(node, owner, name, ob, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::ScopedDirectory<Owner>
+
+template <class Owner>
+prefix_ senf::console::ScopedDirectory<Owner>::ScopedDirectory(Owner * owner)
+    : owner_ (owner)
+{
+    SENF_ASSERT(owner_);
+}
+
+template <class Owner>
+template <class Object>
+prefix_ typename senf::console::OwnerNodeCreateTraits<Owner, Object>::result_type
+senf::console::ScopedDirectory<Owner>::add(std::string const & name, Object const & ob)
+{
+    return OwnerNodeCreateTraits<Owner, Object const>::Creator::create(node(), *owner_, name, ob);
+}
+
+template <class Owner>
+template <class Object>
+prefix_ typename senf::console::OwnerNodeCreateTraits<Owner, Object>::result_type
+senf::console::ScopedDirectory<Owner>::add(std::string const & name, Object & ob)
+{
+    return OwnerNodeCreateTraits<Owner, Object>::Creator::create(node(), *owner_, name, ob);
+}
+
+#ifndef DOXYGEN
+
+template <class Owner, class Function>
+prefix_ senf::console::SimpleCommandNode & senf::console::
+senf_console_add_node(DirectoryNode & node, Owner & , std::string const & name,
+                      Function const & fn, ...)
+{
+    return node.add(name,fn);
+}
+
+template <class Owner>
+prefix_ senf::console::SimpleCommandNode & senf::console::
+senf_console_add_node(DirectoryNode & node, Owner & owner, std::string const & name,
+                      void (Owner::*fn)(std::ostream &, ParseCommandInfo const &), int)
+{
+    return node.add(name, boost::bind(fn,boost::ref(owner),_1,_2));
+}
+
+template <class Node>
+prefix_ senf::console::DirectoryNode & senf::console::
+senf_console_add_node(DirectoryNode & dir, std::string const & name, Node const & node, int,
+                      typename boost::enable_if< boost::is_convertible<Node*, ScopedDirectoryBase*> >::type *)
+{
+    return dir.add(name, node.node().thisptr());
+}
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::ScopedDirectory<void>
+
+template <class Object>
+prefix_ typename senf::console::NodeCreateTraits<Object>::result_type
+senf::console::ScopedDirectory<void>::add(std::string const & name, Object const & ob)
+{
+    return node().add(name, ob);
+}
+
+template <class Object>
+prefix_ typename senf::console::NodeCreateTraits<Object>::result_type
+senf::console::ScopedDirectory<void>::add(std::string const & name, Object & ob)
+{
+    return node().add(name, ob);
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

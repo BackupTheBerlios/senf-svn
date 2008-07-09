@@ -1,0 +1,502 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \mainpage libPPI : The Packet Processing Infrastructure
+
+    The PPI provides an infrastructure to create packet oriented network processing applications. A
+    PPI application is built by combining processing modules in a very flexible manner.
+
+    \image html scenario.png Target Scenario
+
+    The PPI concept is built around some key concepts
+
+    \li The PPI is based on processing \ref ppi_packets. It does not handle stream oriented
+        channels.
+    \li The PPI is built around reusable \ref ppi_modules. Each module is completely independent.
+    \li Each module has an arbitrary number of \ref ppi_connectors, inputs and outputs.
+    \li The modules are connected to each other using flexible \ref ppi_connections.
+    \li Data flow throughout the network is governed via flexible automatic or manual \ref
+        ppi_throttling (throttle notifications).
+    \li Modules may register additional external \ref ppi_events (file descriptor events or timers).
+
+    The PPI thereby builds on the facilities provided by the other components of the SENF
+    framework. The target scenario above depicts a diffserv capable UDLR/ULE router including
+    performance optimizations for TCP traffic (PEP). This router is built by combining several
+    modules.
+
+    \see \ref ppi_overview \n
+        <a href="../../../Examples/RateStuffer/doc/html/index.html">PPI Example Application:
+        RateStuffer</a> \n
+        \ref senf::ppi::module "Modules" \n
+        \ref senf::ppi::connector "Connectors" \n
+        \ref event_group
+ */
+
+/** \page ppi_overview PPI Overview and Concepts
+
+    \autotoc
+
+    \section ppi_design Design considerations
+
+    The PPI interface is designed to be as simple as possible. It provides sane defaults for all
+    configurable parameters to simplify getting started. It also automates all resource
+    management. The throttling infrastructure handles blocking conditions (like input exhaustion)
+    automatically.
+
+    \section ppi_packets Packets
+
+    The PPI processes packets and uses the <a href="@TOPDIR@/Packets/doc/html/index.html">Packet
+    library</a> to handle them. All packets are internally passed around as generic \ref
+    senf::Packet references, however connectors may optionally be defined as sending or receiving
+    packets of a specific type only.
+
+    \section ppi_modules Modules
+
+    A module is represented by a class derived from senf::ppi::module::Module. Each module has
+    several components:
+
+    \li It may have any number of \ref ppi_connectors (inputs and outputs)
+    \li Each module declares flow information which details the route packets take within the
+        module. This information does not define how the information is processed, it only tells,
+        where data arriving on some input will be directed at (\ref
+        senf::ppi::module::Module::route())
+    \li The module might take additional parameters.
+    \li The module might also register additional \ref ppi_events.
+
+    Generally, modules are divided into several categories:
+
+    \li \ref io_modules receive external data or forward packets out of the PPI
+    \li \ref routing_modules forward packets within the network
+    \li \ref adapter_modules are used to connect incompatible connectors to each other
+    \li Application modules are modules implemented to perform an applications function
+
+    Of these modules, normally only the application modules need to be implemented since the library
+    provides an extensive set of reusable modules.
+
+    The following example module declares three \ref ppi_connectors "Connectors": \c payload,
+    \c stuffing and \c output. These connectors are defined as \e public data members so they
+    can be accessed from the outside. This is important as we will see below.
+
+    \code
+      class RateStuffer
+          : public senf::ppi::module::Module
+      {
+          SENF_PPI_MODULE(RateStuffer);
+
+          senf::ppi::IntervalTimer timer_;
+
+      public:
+          senf::ppi::connector::ActiveInput<> payload;
+          senf::ppi::connector::ActiveInput<> stuffing;
+          senf::ppi::connector::ActiveOutput<> output;
+
+          RateStuffer(unsigned packetsPerSecond)
+              : timer_(1000u, packetsPerSecond)
+          {
+              route(payload, output);
+              route(stuffing, output);
+
+              registerEvent( timer_, &RateStuffer::tick );
+          }
+
+      private:
+          void tick()
+          {
+              if (payload)
+                  output(payload());
+              else
+                  output(stuffing());
+          }
+      };
+    \endcode
+
+    The constructor will declare flow information using senf::ppi::module::Module::route(). Then the
+    module registers an interval timer which will fire <tt>packetsPerSecond</tt> times every
+    <tt>1000</tt> milliseconds.
+
+    The module processing is very simple: Whenever a timer tick arrives a packet is sent. If the \c
+    payload input is ready (see \ref ppi_throttling), a payload packet is sent, otherwise a stuffing
+    packet is sent. The module will therefore provide a constant stream of packets at a fixed rate
+    on \c output (see the
+    <a href="@TOPDIR@/Examples/RateStuffer/doc/html/index.html">RateStuffer</a> example application
+    for a slightly different approach)
+
+    An example module to generate the stuffing packets could be
+
+    \code
+      class CopyPacketGenerator
+          : public senf::ppi::module::Module
+      {
+          SENF_PPI_MODULE(CopyPacketGenerator);
+      public:
+          senf::ppi::connector::PassiveOutput<>  output;
+
+          CopyPacketGenerator(Packet template)
+              : template_ (template)
+          {
+              noroute(output);
+              output.onRequest(&CopyPacketGenerator::makePacket);
+          }
+
+      private:
+          Packet template_;
+
+          void makePacket()
+          {
+              output(template_.clone());
+          }
+      };
+    \endcode
+
+    This module just produces a copy of a given packet whenever output is requested.
+
+    \see senf::ppi::module::Module
+
+    \section ppi_connectors Connectors
+
+    The input and output attachment points of a module are called connectors. Each connector may be
+    active or passive. This gives us 4 types of connectors:
+
+    \li senf::ppi::connector::ActiveInput
+    \li senf::ppi::connector::ActiveOutput
+    \li senf::ppi::connector::PassiveInput
+    \li senf::ppi::connector::PassiveOutput
+
+    An \e active connector (input or output) is <em>activated by the module</em> to send data or to
+    poll for available packets. This means, the modules processing routine will call the connector
+    without being signaled by the framework to read the connector. It just actively fetches a
+    Packet.
+
+    A \e passive connector is <em>signaled by the framework</em> to fetch data from the module or to
+    pass data into the module. The module must register a callback which will be called, whenever a
+    packet is requested from the module or whenever a new packet is made available for the module to
+    process.
+
+    To send or receive a packet (either actively or passively) the module just calls the
+    connector. It is permissible to generate or process multiple packets in one iteration. However,
+    you must ensure yourself that enough packets are available to be read if more than one packet
+    shall be read. It is also permissible to not handle a packet at all even if signaled to do
+    so. The packet will automatically be queued.
+
+    To provide this flexibility, all input connectors incorporate a packet queue. This queue is
+    exposed to the module and allows the module to optionally process packets in batches.
+
+    Connectors take an optional template argument which allows to specify the type of packet this
+    connector sends or received. This template arguments defaults to \ref senf::Packet.
+
+    \see \ref senf::ppi::connector
+
+    \section ppi_connections Connections
+
+    \image html ratestuffer.png Simple RateStuffer
+
+    To make use of the modules, they have to be instantiated and connections have to be created
+    between its connectors. It is possible to connect any pair of input/output connectors as long as
+    one of them is active and the other is passive.
+
+    It is possible to connect two active or passive connectors with each other using a special
+    adaptor module (senf::ppi::module::PassiveQueue or senf::ppi::module::ActiveFeeder
+    respectively).
+    
+    Additionally, the connectors must be type-compatible: Either one (or both) of the connectors
+    must be untyped (they accept arbitrary senf::Packet's, the optional tempalte argument is empty),
+    or they both accept the same type of packet. This check is performed at runtime. 
+
+    To complete our simplified example: Lets connet senf::ppi::module::ActiveSocketReader and
+    senf::ppi::module::PassiveSocketWriter to our example module:
+
+    \code
+      RateStuffer rateStuffer (10);
+
+      senf::Packet stuffingPacket = senf::DataPacket::create(...);
+      CopyPacketGenerator generator (stuffingPacket);
+
+      senf::UDPv4ClientSocketHandle inputSocket (1111);
+      senf::ppi::module::ActiveSocketSource<> udpInput (inputSocket);
+
+      senf::UDPv4ClientSocketHandle outputSocket ("2.3.4.5:2222");
+      senf::ppi::module::PassiveSocketSink<> udpOutput (outputSocket);
+
+      senf::ppi::module::PassiveQueue adaptor;
+
+      senf::ppi::connect(udpInput, adaptor);
+      senf::ppi::connect(adaptor, rateStuffer.payload);
+      adaptor.qdisc(ThresholdQueueing(10,5));
+      senf::ppi::connect(generator, rateStuffer.stuffing);
+      senf::ppi::connect(rateStuffer, udpOutput);
+
+      senf::ppi::run();
+    \endcode
+
+    This application will read udp-packets coming in on port 1111 and will forward
+    them to port 2222 on host 2.3.4.5 with a fixed rate of 10 packets / second.
+
+    We start out by instantiating the necessary modules. Then the connections between these modules
+    are set up by successively connecting each output connector to an input connector. As can be
+    seen, the name of the connector can be left of if it is named \c output or \c input
+    respectively.
+
+    The buffering on the udpInput <-> rateStuffer adaptor is changed so the queue will begin to
+    throttle only if more than 10 packets are in the queue. The connection will be unthrottled as
+    soon as there are no more than 5 packets left in the queue (see \ref ppi_throttling).
+
+    \section ppi_throttling Throttling
+
+    Throttling and throttle notifications at it's base is about handling blocking conditions. The
+    most straight forward blocking condition is that of a file descriptor not being available for
+    reading resp. writing. Other blocking conditions can arise for example when a queue fills up or
+    if a module for some application specific reason does not want to handle packets for a period of
+    time.
+
+    All this is handled using throttle notifications. We need throttle notifications so a passive
+    connector can tell it's connected peer that it cannot service further requests until an
+    unthrottle notification is sent. This tells us, that from the view of someone implementing a
+    module, throttle notifications will always be received on active connectors and be sent on
+    passive connectors.
+
+    This tells us, that the direction of control flow (the throttle notifications) is from passive
+    to active connectors and does \e not depend on the direction of data flow (which flows from
+    output to input connector). Thinking about this, this makes sense: The module with the active
+    connector is the one initiating the data processing (after all, it is the \e active part) and
+    needs to be told not to request or send packets on it's connector since the connected passive
+    peer cannot handle the request.
+
+    So if a passive connector cannot handle requests, the connector must be \e throttled. Throttling
+    the connector will forward a throttle notification to its peer. The peer then handles the
+    throttling notification.
+
+    There are two ways, throttle notifications can be handled: By automatic throttling or by
+    registering callbacks. The default is <em>automatic throttling</em>.
+
+    <em>Automatic throttling</em> is based on the routing information available to the module. Every
+    notification received is forwarded within the module along all known routes from active to
+    passive connectors (routes which connect to active or passive connectors are absolutely valid,
+    they just are not \e forwarding routes, they are ignored by the throttle
+    notifications). Together with automatic event throttling (see \ref ppi_events), this is all that
+    is normally needed to handle throttle notifications: By forwarding the notifications we ensure,
+    that a module's passive connectors will only be signaled when it's corresponding active
+    connectors are not throttled (as defined by the routing information). The module is therefore
+    not called until the connector(s) are untrhottled.
+
+    <em>Throttle callbacks</em> can optionaly be registerd (with automatic throttling enabled or
+    disabled, see \ref senf::ppi::connector::ActiveConnector) to be called when a throttle
+    notification is received. The callback may then handle the notification however it sees fit, for
+    example by manually throttling some passive connector (see \ref
+    senf::ppi::connector::PassiveConnector).
+
+    To enable/disable automatic throttling, the \ref senf::ppi::module::Module::route() command
+    returns a reference to a \ref senf::ppi::Route instance. If this route is \e forwarding route,
+    (that is, of the connectors is passive and the other is active), the return value will be
+    derived from \ref senf::ppi::ForwardingRoute which provides members to control the throttle
+    notification forwarding.
+
+    \see
+        senf::ppi::module::Module \n
+        senf::ppi::Route
+
+    \section ppi_events Events
+
+    Modules may register additional events. These external events are very important since they
+    drive the PPI framework. Events are like external calls into the module network which are sent
+    whenever some event happens. Some possible events are
+    \li timer events (senf::ppi::IntervalTimer)
+    \li read or write events on some file descriptor (senf::ppi::IOEvent)
+    \li internal events (senf::ppi::IdleEvent)
+
+    The PPI really is not concerned, how the events are called and what information is needed to
+    perform the call. This is handled by the <a
+    href="@TOPDIR@/Scheduler/doc/html/index.html">Scheduler</a>, which is wrapped by the event
+    classes.
+
+    All events are derived from senf::ppi::EventDescriptor. The base class allows to enable and
+    disable the event. Each type of event will take descriptor specific constructor arguments to
+    describe the event to be generated. Events are declared as (private) data members of the
+    module and are then registered using senf::ppi::module::Module::registerEvent().
+
+    Each event when signaled is described by an instance of the descriptor specific \e
+    descriptorType \c ::Event class. This instance will hold the event specific information (like
+    scheduled time of the event, file handle state and so on). This information is passed to the
+    callback.
+
+    Additionaly, events are valid routing targets. This feature allows events to be disabled and
+    enabled by throtling notifications. For the sake of routing, an event may be used like an active
+    input or output. Iit is \e active from the PPI's point of view since it is signaled from the
+    outside and not by some module. It may be either input or output depending on the operation the
+    event controls.
+
+    If we take into account event routing, we can extend the \c RateStuffer constructor accordingly:
+
+    \code
+          RateStuffer(unsigned packetsPerSecond)
+              : timer_(1000u, packetsPerSecond)
+          {
+              route(payload, output);
+              route(stuffing, output);
+              route(timer_, output);   // (*)
+
+              registerEvent( timer_, &RateStuffer::tick );
+          }
+    \endcode
+
+    We have added the marked route call. This way, the \c timer_ will receive throttling
+    notifications from the output: Whenever the output is throttled, the event will be disabled
+    until the output is unthrottled again.
+
+    \see senf::ppi::EventDescriptor
+
+    \section ppi_run Running the network
+
+    After the network has been set up, senf::ppi::run() is called to execute it. This call will only
+    return after all data has been processed. The PPI knows this, when no events are enabled any
+    more. Without events, nothing will happen any more since it is the events which drive the
+    PPI. Therefore the PPI surmises, that all data has been processed and returns from
+    senf::ppi::run().
+
+    This works very well with automatic throttling. When no data is available to be processed any
+    more and no more data can be expected to arrive (for Example since data has been read from a
+    file which is now exhausted) all events will be disabled automatically via trhottle
+    notifications and so signal that any processing should stop.
+
+    \section ppi_flows Information Flow
+
+    The above description conceptually introduces three different flow levels:
+
+    \li The <em>data flow</em> is, where the packets are flowing. This flow always goes from output
+        to input connector.
+    \li The <em>execution flow</em> describes the flow of execution from one module to another. This
+        flow always proceeds from active to passive connector.
+    \li The <em>control flow</em> is the flow of throttling notifications. This flow always proceeds
+        \e opposite to the execution flow, from passive to active connector.
+
+    This is the outside view, from without any module. These flows are set up using
+    senf::ppi::connect() statements.
+
+    Within a module, the different flow levels are defined differently depending on the type of
+    flow:
+
+    \li The <em>data flow</em> is defined by how data is processed. The different event and
+        connector callbacks will pass packets around and thereby define the data flow
+    \li Likewise, the <em>execution flow</em> is defined parallel to the data flow (however possible
+        in opposite direction) by how the handler of one connector calls other connectors.
+    \li The <em>control flow</em> is set up using senf::ppi::Module::route statements (as long as
+        automatic throttling is used. Manual throttling defines the control flow within the
+        respective callbacks).
+
+    In nearly all cases, these flows will be parallel. Therefore it makes sense to define the \c
+    route statement as defining the 'conceptual data flow' since this is also how control messages
+    should flow (sans the direction, which is defined by the connectors active/passive property).
+
+    \see \ref ppi_implementation
+ */
+
+/** \page ppi_implementation Implementation Notes
+
+    \section processing Data Processing
+
+    The processing in the PPI is driven by events. Without events <em>nothing will happen</em>. When
+    an event is generated, the called module will probably call one of it's active connectors.
+
+    Calling an active connector will directly call the handler registered at the connected passive
+    connector. This way the call and data are handed across the connections until an I/O module will
+    finally handle the request (by not calling any other connectors).
+
+    Throttling is handled in the same way: Throttling a passive connector will call a corresponding
+    (internal) method of the connected active connector. This method will call registered handlers
+    and will analyze the routing information of the module for other (passive) connectors to call
+    and throttle. This will again create a call chain which terminates at the I/O modules. An event
+    which is called to be throttled will disable the event temporarily. Unthrottling works in the
+    same way.
+
+    This simple structure is complicated by the existence of the input queues. This affects both
+    data forwarding and throttling:
+    \li A data request will only be forwarded, if no data is available in the queue
+    \li The connection will only be throttled when the queue is empty
+    \li Handlers of passive input connectors must be called repeatedly until either the queue is
+        empty or the handler does not take any packets from the queue
+
+
+    \section ppi_logistics Managing the Data Structures
+
+    The PPI itself is a singleton. This simplifies many of the interfaces (We do not need to pass
+    the PPI instance). Should it be necessary to have several PPI systems working in parallel
+    (either by registering all events with the same event handler or by utilizing multiple threads),
+    we can still extend the API by adding an optional PPI instance argument.
+
+    Every module manages a collection of all it's connectors and every connector has a reference to
+    it's containing module. In addition, every connector maintains a collection of all it's routing
+    targets.
+
+    All this data is initialized via the routing statements. This is, why \e every connector must
+    appear in at least one routing statement: These statements will as a side effect initialize the
+    connector with it's containing module.
+
+    Since all access to the PPI via the module is via it's base class, unbound member function
+    pointers can be provided as handler arguments: They will automatically be bound to the current
+    instance. This simplifies the PPI usage considerably. The same is true for the connectors: Since
+    they know the containing module, they can explicitly bind unbound member function pointers to
+    the instance.
+
+    \section ppi_random_notes Random implementation notes
+
+    Generation of throttle notifications: Backward throttling notifications are automatically
+    generated (if this is not disabled) whenever the input queue is non-empty \e after the event
+    handler has finished processing. Forward throttling notifications are not generated
+    automatically within the connector. However, the Passive-Passive adaptor will generate
+    Forward-throttling notifications whenever the input queue is empty.
+
+    \section ppi_classdiagram Class Diagram
+
+    <div class="diamap" name="classes">
+    <span coords="652,428,796,455">\ref senf::ppi::connector::PassiveConnector</span>
+    <span coords="198,381,316,408">\ref senf::ppi::EventManager</span>
+    <span coords="462,543,571,570">\ref senf::ppi::connector::ActiveOutput</span>
+    <span coords="468,494,564,521">\ref senf::ppi::connector::ActiveInput</span>
+    <span coords="414,36,505,63">\ref senf::ppi::RouteBase</span>
+    <span coords="432,325,529,379">\ref senf::ppi::Route</span>
+    <span coords="194,154,319,181">\ref (some module)</span>
+    <span coords="19,293,252,333">\ref senf::ppi::EventImplementation</span>
+    <span coords="225,36,289,63">\ref senf::ppi::module::Module</span>
+    <span coords="309,331,397,358">\ref senf::ppi::connector::Connector</span>
+    <span coords="597,543,717,570">\ref senf::ppi::connector::PassiveOutput</span>
+    <span coords="66,432,210,459">\ref senf::ppi::detail::EventBindingBase</span>
+    <span coords="378,428,505,455">\ref senf::ppi::connector::InputConnector</span>
+    <span coords="491,124,694,210">\ref senf::ppi::detail::RouteImplementation</span>
+    <span coords="283,464,423,491">\ref senf::ppi::connector::OutputConnector</span>
+    <span coords="512,428,645,455">\ref senf::ppi::connector::ActiveConnector</span>
+    <span coords="85,487,259,527">\ref senf::ppi::detail::EventBinding</span>
+    <span coords="39,216,170,243">\ref senf::ppi::EventDescriptor</span>
+    <span coords="604,494,710,521">\ref senf::ppi::connector::PassiveInput</span>
+    </div>
+    \htmlonly <img src="classes.png" border="0" alt="classes" usemap="#classes"> \endhtmlonly
+ */
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// mode: flyspell
+// mode: auto-fill
+// End:
+
