@@ -1,0 +1,143 @@
+// $Id$
+//
+// Copyright (C) 2008 
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \page console_testserver Test Server
+
+    \dontinclude testServer.cc
+
+    You can find this code in the \c testServer.cc source file.
+
+    \skip Custom
+    \skip #include
+    \until namespace
+
+    Here we see the necessary include files. For console support only <tt>senf/Console.hh</tt> needs
+    to be included. This will pull in all necessary definitions.
+
+    We declare an alias for the senf::console::kw namespace which we will use further down for the
+    keyword arguments.
+
+    \until echo
+    \until }
+    \until }
+
+    The first callback \c echo utilizes \link console_manualparse manual argument
+    parsing\endlink. You should always refer to the iterator types as shown here since this will be
+    safe from future changes.
+
+    The following \c struct \c TestObject is used to show how member functions and objects are used
+    in the console.
+
+    \until dir
+
+    Important is the definition of the <b>public</b> senf::console::ScopedDirectory member called \c
+    dir. This member can be used later to add the class to the node tree. Here we just register a
+    single function \c vat (with \link console_autoparse automatic argument parsing\endlink) and
+    set some command attributes.
+
+    \until };
+
+    The \c shutdownServer callback terminates the server.
+
+    \until }
+
+    This happens in two steps: First the \c terminate() call tells the scheduler to leave it's
+    main-loop after shutdownServer returns (which is ultimately called via the console server from
+    the scheduler). Throwing a senf::console::Executor::ExitException is like entering the \c exit
+    built-in command at the console.
+
+    The next callback accesses the client instance directly to manipulate the logging:
+    
+    \until }
+
+    The senf::console::Client instance can be accessed using the senf::console::Client::get() helper
+    via the output stream. Since every Client is a senf::log::Target, we can route arbitrary log
+    messages to the console instance.
+
+    We now define \c main() which initializes the node tree and starts the console server
+    
+    \until route
+    
+    Here we just setup more verbose logging and set \c SIGPIPE signals to be ignored. \c SIGPIPE's
+    are a pain and really should be disabled.
+    
+    \until settings
+
+    This shows, how to set the top-level documentation and create a new subdirectory.
+
+    \until doc
+
+    Here we create another new directory and save a reference so we can later access the node
+    directly. All the add commands return such a node reference of the correct type (this is a lie,
+    but it works like this anyways and it's an implementation detail that must not concern you
+    here).
+    
+    Instead of creating a new directory directly and later sotring a reference, it is better to use
+    \c senf::console::ScopedDirectory<> like this:
+
+    \until functions
+    
+    This will automatically remove the node from the tree when the \c senf::console::ScopedDirectory
+    instance is destroyed. It also protects against the problem of dangling references: When using a
+    plain reference, removing the directory from the tree will destroy the node. The reference
+    however will still reference the (now nonexistent) directory and any access via the reference
+    will crash the program. 
+
+    The next statements add commands to the various directories declared so far
+    
+    \until Example
+
+    We now continue by creating an instance of our test class \c TestObject
+    
+    \until Example
+
+    We add that objects directory to the \c test dir. We now have created a directory structure like
+    tis:
+    <pre>
+    /
+      console/
+        showlog
+      server/
+        shutdown
+      test/
+        echo
+        testob/
+          vat
+    </pre>
+
+    We now start the server (giving it a nice descriptive name) and run the scheduler.
+
+    \until }
+ */
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -U doc"
+// mode: flyspell
+// mode: auto-fill
+// End:

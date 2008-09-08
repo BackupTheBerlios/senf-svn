@@ -1,0 +1,122 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief LLSocketAddress and LLAddressingPolicy  inline non-template implementation
+ */
+
+// Custom includes
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+prefix_ void senf::LLSocketAddress::address(MACAddress const & addr)
+{
+    std::copy(addr.begin(), addr.end(),&addr_.sll_addr[0]);
+}
+
+prefix_ senf::LLSocketAddress::LLSocketAddress()
+    : BSDSocketAddress (sizeof(sockaddr_ll), AF_PACKET)
+{}
+
+prefix_ void senf::LLSocketAddress::protocol(unsigned prot)
+{
+    addr_.sll_protocol = htons(prot);
+}
+
+prefix_ senf::LLSocketAddress::LLSocketAddress(unsigned prot, std::string const & iface)
+    : BSDSocketAddress (sizeof(sockaddr_ll), AF_PACKET)
+{
+    protocol(prot);
+    interface(iface);
+}
+
+prefix_ senf::LLSocketAddress::LLSocketAddress(std::string const &iface)
+    : BSDSocketAddress (sizeof(sockaddr_ll), AF_PACKET)
+{
+    interface(iface);
+}
+
+prefix_ senf::LLSocketAddress::LLSocketAddress(MACAddress const & addr,
+                                               std::string const & iface)
+    : BSDSocketAddress (sizeof(sockaddr_ll), AF_PACKET)
+{
+    address(addr);
+    interface(iface);
+}
+
+prefix_ senf::LLSocketAddress::LLSocketAddress(const LLSocketAddress& other)
+    : BSDSocketAddress (other)
+{}
+
+prefix_ senf::LLSocketAddress& senf::LLSocketAddress::operator=(const LLSocketAddress& other)
+{
+    BSDSocketAddress::operator=(other);
+    return *this;
+}
+
+prefix_ unsigned senf::LLSocketAddress::protocol()
+    const
+{
+    return ntohs(addr_.sll_protocol);
+}
+
+prefix_ unsigned senf::LLSocketAddress::arptype()
+    const
+{
+    return ntohs(addr_.sll_hatype);
+}
+
+prefix_ senf::LLSocketAddress::PktType senf::LLSocketAddress::pkttype()
+    const
+{
+    return PktType(ntohs(addr_.sll_pkttype));
+}
+
+prefix_ senf::MACAddress senf::LLSocketAddress::address()
+    const
+{
+    return MACAddress::from_data(&addr_.sll_addr[0]);
+}
+
+prefix_ std::ostream & senf::operator<<(std::ostream & os, LLSocketAddress const & llAddr)
+{
+    // TODO: expose more bytes from sockaddr_ll addr_
+    os << "[some LLSocketAddress]";
+    return os;
+}
+
+///////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:
