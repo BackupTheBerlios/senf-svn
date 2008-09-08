@@ -1,4 +1,0 @@
-@INCLUDE = "$(TOPDIR)/doclib/Doxyfile.global"
-
-INPUT = .
-PROJECT_NAME = "HowTos"
