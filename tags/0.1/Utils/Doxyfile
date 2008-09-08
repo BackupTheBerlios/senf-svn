@@ -1,0 +1,5 @@
+@INCLUDE = "$(TOPDIR)/doclib/Doxyfile.global"
+
+PROJECT_NAME = libUtils
+GENERATE_TAGFILE = doc/Utils.tag
+ALPHABETICAL_INDEX = NO

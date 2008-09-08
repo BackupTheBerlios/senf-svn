@@ -1,0 +1,20 @@
+import sys, glob
+sys.path.append('senfscons')
+import SENFSCons
+
+###########################################################################
+
+SENFSCons.UseBoost();
+SENFSCons.UseSTLPort();
+env = SENFSCons.MakeEnvironment();
+
+env.Append(
+   CPPPATH = [ '#' ]
+)
+
+Export('env')
+
+SConscript(glob.glob("*/SConscript"))
+
+SENFSCons.StandardTargets(env)
+SENFSCons.GlobalTargets(env)

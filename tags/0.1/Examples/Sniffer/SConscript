@@ -1,0 +1,10 @@
+Import('env')
+import SENFSCons
+
+###########################################################################
+
+SENFSCons.Binary(env, 'sniffer', SENFSCons.GlobSources(), LIBS = [
+     'Packets_DefaultBundle', 'Packets_MPEGDVBBundle', 
+     'Scheduler', 'Packets', 'Socket', 'Utils' ])
+
+SENFSCons.Doxygen(env)
