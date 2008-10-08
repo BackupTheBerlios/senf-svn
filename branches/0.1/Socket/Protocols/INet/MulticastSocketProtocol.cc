@@ -334,11 +334,7 @@ void mc6SSMSourceRequest(int operation, int fd, senf::INet6Address const & group
         throw senf::SystemException("::if_nametoindex()", ENOENT SENF_EXC_DEBUGINFO);
     mc6SSMSourceRequest(operation, fd, group, source, ifacei);
     }
-void mc6SSMSourceRequest(int operation, int fd, senf::INet6Address const & group,
-                         senf::INet6Address const & source)
-{
-    mc6SSMSourceRequest(operation, fd, group, source, 0);
-}
+
 }
 
 prefix_ void senf::INet6MulticastSocketProtocol::mcJoinSSMSource(INet6Address const & group,
@@ -349,6 +345,20 @@ prefix_ void senf::INet6MulticastSocketProtocol::mcJoinSSMSource(INet6Address co
     mc6SSMSourceRequest(MCAST_JOIN_SOURCE_GROUP, fd(), group, source, iface);
 }
 
+prefix_ void senf::INet6MulticastSocketProtocol::mcJoinSSMSource(INet6Address const & group,
+                                                                 INet6Address const & source,
+                                                                 int ifacei)
+    const
+{
+    mc6SSMSourceRequest(MCAST_JOIN_SOURCE_GROUP, fd(), group, source, ifacei);
+}
+prefix_ void senf::INet6MulticastSocketProtocol::mcJoinSSMSource(INet6Address const & group,
+                                                                 INet6Address const & source)
+    const
+{
+    mc6SSMSourceRequest(MCAST_JOIN_SOURCE_GROUP, fd(), group, source, 0);
+}
+
 prefix_ void senf::INet6MulticastSocketProtocol::mcLeaveSSMSource(INet6Address const & group,
                                                                   INet6Address const & source,
                                                                   std::string const & iface)
@@ -356,6 +366,7 @@ prefix_ void senf::INet6MulticastSocketProtocol::mcLeaveSSMSource(INet6Address c
 {
     mc6SSMSourceRequest(MCAST_LEAVE_SOURCE_GROUP, fd(), group, source, iface);
 }
+
 
 ///////////////////////////////cc.e////////////////////////////////////////
 #undef prefix_
