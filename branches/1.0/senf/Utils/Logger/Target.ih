@@ -1,0 +1,215 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Target internal header */
+
+#ifndef IH_SENF_Utils_Logger_Target_
+#define IH_SENF_Utils_Logger_Target_ 1
+
+// Custom includes
+#include <memory>
+#include <boost/type_traits/is_same.hpp>
+#include <boost/static_assert.hpp>
+#include <boost/shared_ptr.hpp>
+#include <senf/Utils/Console/LazyDirectory.hh>
+#include <senf/Utils/Console/Parse.hh>
+
+///////////////////////////////ih.p////////////////////////////////////////
+
+namespace senf {
+
+    namespace console { class DirectoryNode; }
+
+namespace log {
+namespace detail {
+
+    struct LogParameters {
+        StreamBase const * stream;
+        AreaBase const * area;
+        unsigned level;
+        void clear();
+        void setDefaults();
+        static LogParameters defaultParameters();
+    };
+
+    std::ostream & operator<<(std::ostream & os, LogParameters const & pm);
+
+    void senf_console_parse_argument(console::ParseCommandInfo::TokensRange const & tokens, 
+                                     LogParameters & out);
+
+    /** \brief Internal: Target registry */
+    class TargetRegistry
+        : public senf::singleton<TargetRegistry>
+    {
+    public:
+        enum Level { 
+            VERBOSE = senf::log::VERBOSE::value, 
+            NOTICE = senf::log::NOTICE::value, 
+            MESSAGE = senf::log::MESSAGE::value, 
+            IMPORTANT = senf::log::IMPORTANT::value, 
+            CRITICAL = senf::log::CRITICAL::value, 
+            FATAL = senf::log::FATAL::value
+        };
+
+        using senf::singleton<TargetRegistry>::instance;
+
+        void write(StreamBase const & stream, AreaBase const & area, unsigned level, 
+                   std::string const & msg);
+
+        void routed();
+        bool fallbackRouting();
+
+        senf::console::ScopedDirectory<> & consoleDir();
+
+        void dynamicTarget(std::auto_ptr<Target> target);
+
+    private:
+        TargetRegistry();
+        ~TargetRegistry();
+        
+        void registerTarget(Target * target, std::string const & name);
+        void unregisterTarget(Target * target);
+
+        void consoleAreas(std::ostream & os);
+        void consoleStreams(std::ostream & os);
+        void consoleWrite(LogParameters parameters, std::string const & msg);
+        void consoleRemoveTarget(Target * target);
+        boost::shared_ptr<senf::console::DirectoryNode> consoleSelf(std::ostream & os);
+
+        typedef std::set<Target *> Targets;
+        Targets targets_;
+
+        bool fallbackRouting_;
+
+        console::LazyDirectory consoleDir_;
+
+        Targets dynamicTargets_;
+        
+        friend class senf::log::Target;
+        friend class senf::singleton<TargetRegistry>;
+    };
+
+    /** \brief Internal: Write log message */
+    template <class Stream, class Area, class Level>
+    void write(std::string const & msg);
+
+#ifndef DOXYGEN
+
+    // This code takes the routing target template arguments in any order and sorts them 
+    // by type (Stream, Area and Level).
+
+    senf::mpl::rv<0u> RouteParameterCheck_(...);
+    senf::mpl::rv<1u> RouteParameterCheck_(StreamBase *);
+    senf::mpl::rv<2u> RouteParameterCheck_(AreaBase *);
+    template <class T> senf::mpl::rv<3u> RouteParameterCheck_(T*, typename T::SENFLogArea * = 0);
+    senf::mpl::rv<4u> RouteParameterCheck_(LevelBase *);
+
+    // For g++ 4.0 (at least) we need to provide the fully scoped name for this default value.
+    // no idea why. It works without the scope in 4.1
+    template < class T, class A2, class A1,
+               unsigned type = SENF_MPL_RV( senf::log::detail::RouteParameterCheck_(static_cast<T*>(0)) ) >
+    struct RouteParameters
+    {};
+
+    template <class A2, class A1>
+    struct RouteParameters<mpl::nil,A2,A1,0u>
+        : public RouteParameters<A2,A1,mpl::nil>
+    {};
+
+    struct NilLevel {
+        static unsigned const value = NONE::value;
+    };
+
+    template <>
+    struct RouteParameters<mpl::nil,mpl::nil,mpl::nil,0u>
+    {
+        typedef mpl::nil Stream;
+        typedef mpl::nil Area;
+        typedef NilLevel Level;
+    };
+
+    template <class T, class A2, class A1>
+    struct RouteParameters<T,A2,A1,1u>
+        : public RouteParameters<A2,A1,mpl::nil>
+    {
+        typedef RouteParameters<A2,A1,mpl::nil> base;
+        BOOST_STATIC_ASSERT(( boost::is_same<typename base::Stream, mpl::nil>::value ));
+        typedef T Stream;
+    };
+
+    template <class T, class A2, class A1>
+    struct RouteParameters<T,A2,A1,2u>
+        : public RouteParameters<A2,A1,mpl::nil>
+    {
+        typedef RouteParameters<A2,A1,mpl::nil> base;
+        BOOST_STATIC_ASSERT(( boost::is_same<typename base::Area, mpl::nil>::value ));
+        typedef T Area;
+    };
+
+    template <class T, class A2, class A1>
+    struct RouteParameters<T,A2,A1,3u>
+        : public RouteParameters<A2,A1,mpl::nil>
+    {
+        typedef RouteParameters<A2,A1,mpl::nil> base;
+        BOOST_STATIC_ASSERT(( boost::is_same<typename base::Area, mpl::nil>::value ));
+        typedef typename T::SENFLogArea Area;
+    };
+
+    template <class T, class A2, class A1>
+    struct RouteParameters<T,A2,A1,4u>
+        : public RouteParameters<A2,A1,mpl::nil>
+    {
+        typedef RouteParameters<A2,A1,mpl::nil> base;
+        BOOST_STATIC_ASSERT(( boost::is_same<typename base::Level, NilLevel>::value ));
+        typedef T Level;
+    };
+
+    template <class T, class RV>
+    struct InstanceP
+    {
+        static RV * value() { return & T::instance(); }
+    };
+
+    template <class RV>
+    struct InstanceP<mpl::nil, RV>
+    {
+        static RV * value() { return 0; }
+    };
+
+#endif
+
+}}}
+
+///////////////////////////////ih.e////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

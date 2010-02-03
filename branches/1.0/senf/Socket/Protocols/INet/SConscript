@@ -1,0 +1,9 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons, glob
+
+###########################################################################
+
+SENFSCons.AllIncludesHH(env, exclude=['INet.hh'])
+SENFSCons.AutoRules(env)

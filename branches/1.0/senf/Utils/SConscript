@@ -1,0 +1,8 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons
+
+###########################################################################
+
+SENFSCons.AutoRules(env, subdirs=['impl'])

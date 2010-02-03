@@ -1,0 +1,119 @@
+// $Id$
+//
+// Copyright (C) 2008 
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ScopedDirectory inline template implementation */
+
+//#include "ScopedDirectory.ih"
+
+// Custom includes
+#include <boost/bind.hpp>
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::ScopedDirectory<Owner>
+
+template <class Owner>
+prefix_ senf::console::ScopedDirectory<Owner>::ScopedDirectory(Owner * owner)
+    : owner_ (owner)
+{
+    SENF_ASSERT(owner_);
+}
+
+template <class Owner>
+template <class NodeType>
+prefix_ NodeType & senf::console::ScopedDirectory<Owner>::add(std::string const & name,
+                                                              boost::shared_ptr<NodeType> othernode)
+{
+    return node().add(name, othernode);
+}
+
+template <class Owner>
+template <class NodeType>
+prefix_ NodeType & senf::console::ScopedDirectory<Owner>::
+add(std::string const & name, NodeType & othernode,
+    typename boost::enable_if< boost::is_convertible<NodeType &, GenericNode &> >::type *)
+{
+    return node().add(name,othernode);
+}
+
+template <class Owner>
+template <class Factory>
+prefix_ typename Factory::result_type senf::console::ScopedDirectory<Owner>::
+add(std::string const & name, Factory const & factory,
+    typename boost::enable_if< boost::is_convertible<Factory*, detail::OwnedNodeFactory*> >::type *)
+{
+    return factory.create(*owner_, name, node());
+}
+
+template <class Owner>
+template <class Factory>
+prefix_ typename Factory::result_type senf::console::ScopedDirectory<Owner>::
+add(std::string const & name, Factory const & factory,
+    typename boost::enable_if< boost::is_convertible<Factory*, detail::NodeFactory*> >::type *,
+    typename boost::disable_if< boost::is_convertible<Factory*, detail::OwnedNodeFactory*> >::type *)
+{
+    return node().add(name, factory);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::ScopedDirectory<void>
+
+
+template <class NodeType>
+prefix_ NodeType & senf::console::ScopedDirectory<void>::add(std::string const & name,
+                                                             boost::shared_ptr<NodeType> othernode)
+{
+    return node().add(name,othernode);
+}
+
+template <class NodeType>
+prefix_ NodeType & senf::console::ScopedDirectory<void>::
+add(std::string const & name, NodeType & othernode,
+    typename boost::enable_if< boost::is_convertible<NodeType &, GenericNode &> >::type *)
+{
+    return node().add(name,othernode);
+}
+
+template <class Factory>
+prefix_ typename Factory::result_type senf::console::ScopedDirectory<void>::
+add(std::string const & name, Factory const & factory,
+    typename boost::enable_if< boost::is_convertible<Factory*, detail::NodeFactory*> >::type *)
+{
+    return node().add(name,factory);
+}
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

@@ -1,0 +1,4 @@
+@INCLUDE = "$(TOPDIR)/doclib/Doxyfile.global"
+
+PROJECT_NAME = Scheduler
+ALPHABETICAL_INDEX = NO

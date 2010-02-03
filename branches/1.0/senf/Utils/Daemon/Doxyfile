@@ -1,0 +1,4 @@
+@INCLUDE = "$(TOPDIR)/doclib/Doxyfile.global"
+
+PROJECT_NAME = Utils_Daemon
+ALPHABETICAL_INDEX = NO

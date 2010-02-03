@@ -1,0 +1,44 @@
+{
+   gethostbyname2_r-suppression-1
+   Memcheck:Addr4
+   ...
+   fun:_dl_open
+   ...
+   fun:gethostbyname2_r
+}
+{
+   gethostbyname2_r-suppression-2
+   Memcheck:Cond
+   ...
+   fun:_dl_open
+   ...
+   fun:gethostbyname2_r
+}
+
+{
+   inet_ntop-suppression-1
+   Memcheck:Cond
+   fun:inet_ntop
+}
+
+{
+   if_indextoname-suppression-1
+   Memcheck:Param
+   ioctl(SIOCGIFINDEX)
+}
+
+{
+   boost_unittest_sigaltstack-suppression-1
+   Memcheck:Param
+   sigaltstack(ss)
+   ...
+   fun:_ZN5boost17execution_monitor13catch_signalsERKNS_9unit_test9callback0IiEE
+}
+
+{
+   senf_writeablepolicy_writeto-supression-1
+   Memcheck:Param
+   socketcall.sendto(msg)
+   ...
+   fun:_ZN4senf15WriteablePolicy7writeto*
+}

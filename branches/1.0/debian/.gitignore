@@ -1,0 +1,6 @@
+/changelog
+/files
+/*.debhelper.log
+/libsenf*/
+/tmp/
+/*.substvars

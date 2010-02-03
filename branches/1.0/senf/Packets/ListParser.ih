@@ -1,0 +1,114 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ListParser internal header */
+
+#ifndef IH_SENF_Packets_ListParser_
+#define IH_SENF_Packets_ListParser_ 1
+
+// Custom includes
+#include <boost/iterator/iterator_facade.hpp>
+
+///////////////////////////////ih.p////////////////////////////////////////
+
+namespace senf {
+namespace detail {
+
+    /** \brief Internal: Iterator used by ListParser
+
+        \internal
+     */
+    template <class Container>
+    class ListParser_Iterator
+        : public boost::iterator_facade< ListParser_Iterator<Container>,
+                                         typename Container::value_type,
+                                         boost::forward_traversal_tag,
+                                         typename Container::value_type >,
+#ifndef DOXYGEN
+          private Container::policy::iterator_data
+#endif
+    {
+    public:
+        typedef typename Container::value_type value_type;
+
+        ListParser_Iterator();
+        explicit ListParser_Iterator(Container const & c);
+
+        PacketParserBase::data_iterator raw() const;
+        PacketParserBase::data_iterator i() const;
+        
+        static ListParser_Iterator & get(typename Container::policy::iterator_data & d);
+        static ListParser_Iterator const & get(typename Container::policy::iterator_data const & d);
+
+    private:
+        friend class boost::iterator_core_access;
+        template <class P> friend class ListParser_Container;
+        
+        value_type dereference() const;
+        bool equal(ListParser_Iterator const & other) const;
+        void increment();
+
+        PacketParserBase::data_iterator i_;
+        Container const * c_;
+    };
+
+#ifndef DOXYGEN
+
+    template <class ElementParser, class AuxPolicy, class AuxTag>
+    struct ListParserPolicy
+    {};
+
+    template <class ElementParser>
+    struct ListParserTraits
+    {
+        template <class AuxPolicy, class AuxTag>
+        struct parser {
+            typedef senf::ListParser<
+                typename ListParserPolicy<ElementParser, AuxPolicy, AuxTag>::type > type;
+        };
+    };
+
+#   define SENF_PARSER_LIST_I(access, name, size, elt_type)                                       \
+        SENF_PARSER_REQUIRE_VAR(list)                                                             \
+            SENF_PARSER_COLLECTION_I( access,                                                     \
+                                      name,                                                       \
+                                      size,                                                       \
+                                      senf::detail::ListParserTraits<elt_type> )
+
+#endif
+
+}}
+
+///////////////////////////////ih.e////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

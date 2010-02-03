@@ -1,0 +1,7 @@
+@INCLUDE = "$(TOPDIR)/doclib/Doxyfile.global"
+
+INPUT = .
+
+PROJECT_NAME = Overview
+PROJECT_NUMBER = "(Version $(REVISION))"
+GENERATE_XML = NO

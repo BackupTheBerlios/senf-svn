@@ -1,0 +1,20 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons, glob, os.path, yaptu
+
+###########################################################################
+
+sconscripts = sorted(glob.glob("*/SConscript"))
+
+if sconscripts:
+    SENFSCons.IndexPage(env, 'Mainpage.dox', title="Extensions",
+                        text="""This folder contains additional SENF extensions which are built
+                                into the senf libarary but are not part of senf proper.""")
+
+    SConscript(sconscripts)
+
+    env.Clean('all','Mainpage.dox')
+    env.Clean('all_docs','Mainpage.dox')
+
+    SENFSCons.Doxygen(env)

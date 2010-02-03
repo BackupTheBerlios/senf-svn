@@ -1,0 +1,1436 @@
+// $Id$
+//
+// Copyright (C) 2008 
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \mainpage The Configuration and Runtime Control Library
+
+    The Console library implements a runtime interactive (network) console which allows to
+    configure, control and manipulate a running application in any way. Additionally this library
+    provides support for configuration files and command line parsing which can be used with or
+    without the network console.
+
+    \autotoc
+
+
+    \section console_intro Introduction
+
+    There are three parts to the Config/console library:
+
+    The Config/Console library is built around several components
+
+    \li The \link node_tree Node tree\endlink represents all configuration options and commands
+        organized in a filesystem like structure.
+    \li \link console_commands Actions\endlink are added to the node tree in the form of command
+        nodes.
+    \li There exist several interfaces to \link console_access access\endlink entries in the node
+        tree: interactive console, reading configuration files etc.
+    
+    The node tree works like a directory structure. Commands are entered into this directory
+    structure and can be called passing arbitrary arguments. Configuration parameters are just
+    commands which set their respective parameter, however the library allows commands to do much
+    more than just that.
+
+
+    \section console_example Example
+
+    The following example shows a \e very short summary on how to integrate the config/console
+    library. See above links for more:
+
+    \code
+    #include <senf/Console.hh>
+
+    // Define callback function.
+    void mycommand(std::ostream & os, int foo, int bar)
+    {
+        // ...
+        os << "!! Important message ...\n";
+    }
+
+    namespace kw = senf::console::kw;
+
+    int main(int argc, char** argv)
+    {
+        // Provide global documentation
+        senf::console::root()
+            .doc("This is someServer server");
+
+        // Add a command
+        senf::console::root()
+            .add("mycommand", &mycommand)
+            .doc("If <bar> is given, flurgle the <foo>, otherwise burgle it")
+            .arg("foo")
+            .arg(kw::name = "bar", kw::default_value = 0);
+
+       // Parse command line parameters
+       senf::console::parseOptions(argc,argv);
+
+        // Start the interactive console server
+        senf::console::Server::start(senf::INet4SocketAddress(senf::INet4Address::None, 23232u))
+            .name("someServer");
+
+        // Run the scheduler
+       senf::scheduler::process();
+    }
+    \endcode
+
+    after this registration, we can call the command from the command-line using
+
+    <pre>
+    $ someServer --mycommand="1 2"
+    </pre>
+
+    the console can be accessed easily via telnet:
+    
+    <pre>
+    $ telnet localhost 23232
+    Trying 127.0.0.1...
+    Connected to localhost.
+    Escape character is '^]'
+    xxxx-xx-xx xx:xx:xx.xxxxxx-0000 [NOTICE][senf::console::Server] Registered new client 0xxxxxxx
+    someServer:/# ls
+    mycommand
+    someServer:/# mycommand
+    !! Important message  ...
+    someServer:/# exit
+    xxxx-xx-xx xx:xx:xx.xxxxxx-0000 [NOTICE][senf::console::Server] Disposing client 0xxxxxxx
+    Connection closed by foreign host.
+    $
+    </pre>
+
+    \see \ref console_testserver for a complete example application
+
+
+    \section intro_usage Using the Console: Configuration files, Network console
+    \seechapter \ref console_access
+
+    There are several ways to access the node tree:
+    \li By parsing configuration files
+    \li By parsing command line parameters
+    \li By providing interactive or non-interactive network console access
+
+
+    \section intro_nodes The node tree
+    \seechapter \ref node_tree
+
+    The basic idea is, that the console/config library manages a directory structure of parameters
+    and auxiliary commands. Parameters are just commands which set a parameter value so everything
+    is either a directory entry (senf::console::DirectoryNode) or a command
+    (senf::console::CommandNode).
+    
+
+    \section intro_commands Implementing console/config commands
+    \seechapter \ref console_commands
+
+    The console/config language does not define, how arguments are passed to the commands, it just
+    tokenizes the input and passes the tokens to the commands which then handle the
+    conversion.
+
+    Since parsing the tokens into something usable is quite tedious and error prone, the library
+    implements automatic argument parsing where the argument tokens are automatically parsed
+    depending on argument types. This enables you to register a command taking an integer argument
+    which will be called with an already parsed integer value (or throw a
+    senf::console::SyntaxErrorException if the conversion fails). This will be the most often used
+    command.
+ */
+
+/** \defgroup console_access Accessing the Console/Config tree
+
+    The Console/Config library provides several ways to use the node tree to configure and control
+    an application.
+
+    \autotoc
+
+
+    \section console_access_config Configuration support
+
+    The configuration support of the Console/Config library revolves around the ConfigSource
+    concept. Each ConfigSource will somehow provide commands which will then be executed against the
+    node tree.
+
+    To simplify the usage, there will always be three interfaces to a specific config source:
+    \li A constructor to build a bare config source which is then added to a
+        senf::console::ConfigBundle (see \ref console_access_multiple)
+    \li A class parsing and executing a single config source. The visible interface of this class is
+        a combination of the constructor and the senf::console::ConfigBundle interfaces.
+    \li A helper function which will do the complete parsing of a single source with default
+        parameters.
+
+    When parsing these configuration sources, it is always possible to optionally change the root
+    node used during parsing and it is also possible to restrict parsing to a command subset. See
+    \ref console_access_partial.
+
+
+    \subsection console_access_file Configuration files
+
+    <table class="senf fixedwidth">
+    <tr><td><b>Constructor</b></td> <td>senf::console::FileConfig()</td></tr>
+    <tr><td><b>Class</b></td>       <td>senf::console::ConfigFile</td></tr>
+    <tr><td><b>Helper</b></td>      <td>senf::console::parseFile()</td></tr>
+    </table>
+
+    In it's simplest form, parsing a configuration file consists of calling
+    senf::console::parseFile() with the name of the respective config file as argument.
+
+    \code
+    senf::console::parseFile("some.conf");
+    \endcode
+
+    To get more flexible, instantiate a senf::console::ConfigFile instance at use that to parse the
+    file
+    
+    \code
+    senf::console::ConfigFile cf ("some.conf");
+    // The following line is optional: Call to ignore mussing files
+    cf.ignoreMissing();
+    cf.parse();
+    \endcode
+
+    If the application supports other configuration sources besides a single configuration file
+    (like command line options) or if it supports multiple configuration files (e.g. a system-wide
+    and a user specific configuration file) see \ref console_access_multiple and add one (or more)
+    senf::console::FileConfig() source to a senf::console::ConfigBundle.
+
+
+    \subsubsection console_access_file_syntax Configuration file syntax
+
+    Configuration files are written in a simple configuration language. This language is almost
+    declarative (e.g. it does not have any control-flow statements) but is processed imperatively
+    from top to bottom. This is very simple and flexible.
+
+    Commands are referenced by their path in the node tree. To simplify working with deeply nested
+    directory structures, the current directory may be changed persistently or temporarily for some
+    commands.
+    \code
+    /server/port 1234;
+    
+    /logger/targets/console {
+        accept senf::log::Debug IMPORTANT;
+        accept server::ServerLog CRITICAL;
+    }
+    \endcode
+
+    \see \ref console_parser
+
+
+    \subsection console_access_options Command line options
+
+    <table class="senf fixedwidth">
+    <tr><td><b>Constructor</b></td> <td>senf::console::OptionsConfig()</td></tr>
+    <tr><td><b>Class</b></td>       <td>senf::console::ProgramOptions</td></tr>
+    <tr><td><b>Helper</b></td>      <td>senf::console::parseOptions()</td></tr>
+    </table>
+
+    Command line options can either be parsed by calling the senf::console::parseOptions() helper
+
+    \code
+    senf::console::parseOptions(argc, argv)
+    \endcode
+
+    or more flexibly by instantiating a senf::console::ProgramOptions class
+
+    \code
+    std::vector<std::string> args;
+    senf::console::ProgramOptions opts (argc, argv);
+    opts
+        .nonOptions(args)
+        .alias('c', "--mycommand",true)
+        .alias('C', "--mycommand=2 3");
+    opts.parse();
+    \endcode
+
+    This registeres two short options and accumulates all non-option arguments in \c args.
+    
+    If the application supports other configuration sources besides the command line options (like
+    configuration files) see \ref console_access_multiple and add a senf::console::OptionsConfig()
+    source to a senf::console::ConfigBundle.
+
+    See \ref senf::console::ProgramOptions for the source specific additional parameters. These
+    apply to senf::console::ProgramOptions and to the senf::console::OptionsConfig() source.
+
+
+    \subsubsection console_access_options_syntax Options syntax
+
+    Command line options are primarily parsed as long-options. Long options start with '--'. Further
+    '-' characters serve as directory separators if required (that is, they are \e only interpreted
+    as directory separator is there is no entry in the current (sub-) directory matching more than a
+    single name component). This still allows using hyphens in node names.
+
+    Options can be abbreviated at each directory boundary: A command <tt>/foo/bar/do</tt> can be
+    called as <tt>--f-b-d</tt> as long as this name is unique.
+
+    Everything after the first '=' character is parsed into argument tokens using the normal
+    config/console parser. If the option has no '=' character, the list of argument tokens will be
+    empty.
+    
+    <table style="font-size:80%" class="senf">
+    <tr><th>Command</th><th>File syntax</th><th>Option syntax</th></tr>
+
+    <tr>
+      <td><tt>void doo()</tt></td>
+      <td><tt>/path/to/doo;</tt></td>
+      <td><tt>--path-to-doo</tt></td>
+    </tr>
+
+    <tr>
+      <td><tt>void doo(std::string const &)</tt></td>
+      <td><tt>/path/to/doo john.doe@everywhere.org;</tt></td>
+      <td><tt>--path-to-doo="john.doe@everywhere.org"</tt></td>
+    </tr>
+    
+    <tr>
+      <td><tt>void doo(std::string const &)</tt></td>
+      <td><tt>/path/to/doo "some test";</tt></td>
+      <td><tt>--path-to-doo='"some text"'</tt></td>
+    </tr>
+
+    <tr>
+      <td><tt>void doo(std::string const &, int)</tt></td>
+      <td><tt>/path/to/doo take 1;</tt></td>
+      <td><tt>--path-to-doo="take 1"</tt></td>
+    </tr>
+    </table>
+
+    The last column is additionally quoted using standard \c sh quoting: quotes in arguments need to
+    be additionally quoted for the shell.
+
+    Short options are registered as aliases for long options. They can be registered with or without
+    an implied parameter and can optionally take a parameter. so after
+
+    \code
+    opts
+        .alias('c', "--mycommand",true)
+        .alias('C', "--mycommand=2 3");
+    \endcode
+
+    we can call
+
+    <pre>
+    $ program -C -c "4 5"
+    $ program -Cc"4 5"
+    </pre>
+
+    which is the same as
+    
+    <pre>
+    $ program --mycommand="2 3" --mycommand="4 5"
+    </pre>
+
+    (Beware, that the second argument to \c alias() is \e not shell quoted). 
+
+
+    \subsection console_access_root Changing the root node
+
+    When used in it's default state, parsing will always interpret all commands relative to the
+    senf::console::root() node and will parse a file completely.
+
+    The first possibility to control this is to change the root node. This is done by 
+    \li passing that root node to the helper class or to the parse helper as an additional argument
+        (see the respective documentation).
+    \li passing it to the senf::console::ConfigBundle constructor when parsing multiple sources.
+    
+    for example:
+
+    \code
+    senf::console::parseFile("/etc/myserver.conf", senf::console::root()['config']);
+    \endcode
+
+    This functionality is even more powerful by combining it with \c link nodes: This allows to
+    selectively choose commands from the node tree which are to be made accessible for
+    configuration. See \ref node_tree.
+
+
+    \subsection console_access_partial Partial / incremental configuration
+
+    Another feature provided by senf::console::ConfigBundle and all helper classes is partial
+    parsing.
+
+    \code
+    // Create a console/config aware object and place it into the node tree
+    FooObject foo;
+    senf::console::root().add("foo", foo.dir);
+
+    // Open configuration file
+    senf::console::ConfigFile cf ("/etc/myserver.conf");
+    
+    // Parse only commands in the configuration file which are in the foo.dir directory
+    cf.parse(foo.dir);
+
+    ...
+
+    // Anywhere later, parse the rest of the configuration file
+    cf.parse();
+    \endcode
+
+    This feature allows to parse parts of one or more configuration sources before the
+    console/config tree has been fully established. Partial parsing can be applied any number of
+    times to arbitrary nodes. Any command already parsed will be skipped automatically.
+
+    When combining partial parsing with \c chroot() and \c link's, it is important to realize, that
+    <em>partial parsing always applies to the \e real target and ignores links</em>. This is very
+    important: It allows a subsystem to parse it's configuration parameters irrespective of any
+    links pointing to nodes of that subsystem.
+
+
+    \subsection console_access_multiple Multiple sources
+
+    Most of the time, an application will utilize multiple configuration sources: A global
+    configuration file, maybe a user specific local configuration file, command line options ...
+
+    When parsing configuration commands, especially using partial / incremental parsing, all parse
+    commands should be applied to each configuration source in turn. This is the responsibility of
+    senf::console::ConfigBundle.
+
+    \code
+    senf::console::ScopedDirectory<> config;
+    senf::console::root().add("config", config);
+
+    // Let's enable all logger commands for configuration
+    config.link("logger", senf::console::root()["logger"]);
+
+    // Create bundle and add sources
+    std::vector<std::string> args;
+    senf::console::ConfigBundle conf (senf::console::root()["config"]);
+    conf.add( senf::console::FileConfig("/etc/myserver.conf") );
+    conf.add( senf::console::FileConfig(".myserver.conf")->ignoreMissing() );
+    conf.add( senf::console::OptionsConfig(senf::Daemon::instance().argc(), 
+                                           senf::Daemon::instance().argv()) )
+        .nonOptions(args)
+        .alias('c', "--mycommand",true)
+        .alias('C', "--mycommand=2 3");
+
+    // Parse the logger subsystem commands in '/logger'
+    conf.parse(senf::console::root()['logger']);
+    
+    ...
+
+    // Parse all other configuration commands. All necessary commands and links in '/config' must by
+    // now have been created.  
+    conf.parse();
+    \endcode
+
+    This example parses three configuration sources: Two configuration files and additional
+    parameters specified on the command line. All the configuration commands are placed into the
+    <tt>/config</tt> directory (directly or via links). The configuration sources are parsed in the
+    order they are specified, so in this case, the command line options will override any options
+    specified in one of the configuration files.
+
+
+    \section console_access_console The network console
+
+    To make the network console accessible, it must be initialized when the program is started:
+    \code
+    #include <senf/Console.hh>
+
+    int main(int argc, char * argv [])
+    {
+        // Configure console nodes, add commands ...
+
+        // Start console server
+        senf::console::start(senf::INet4SocketAddress(12345u))
+           .name("myserver");
+
+        // You need to enter the scheduler main-loop for the server to work
+        senf::scheduler::process();
+       
+        // Alternatively enter the main-loop via the PPI
+        // senf::ppi::run();
+    }
+    \endcode
+
+    This will start the server on IPv4 port 12345. The servers name (as displayed in the interactive
+    console prompt) is set to 'myserver'.
+
+    After launching the application, the server can be accessed at the given port:
+    \htmlonly
+    <pre>
+    bash$ telnet localhost 12345
+    Trying 127.0.0.1...
+    Connected to localhost.
+    Escape character is '^]'.
+
+    myserver:/$ exit
+    Connection closed by foreign host.
+    bash$
+    </pre>
+    \endhtmlonly
+
+    It is possible to start multiple server consoles by calling \c start() multiple times with
+    different ports/addresses. Each server can be configured separately (e.g. root node, mode ...).q
+
+
+    \subsection console_serverclient Server and Client objects
+
+    The senf::console::Server and senf::console::Client objects offer further API calls. To access
+    the server instance you need to store away the senf::console::Server reference returned when
+    starting the server so you can later refer to it:
+    \code
+    int main(int, char**)
+    {
+        senf::console::Server & server ( senf::console::start( ... ) );
+    
+        // Do something ...
+
+        server.stop()
+    }
+    \endcode
+
+    The client instance can be accessed via the \c std::ostream arg of any command callback
+    \code
+    void someCallback(std::ostream & os, ... )
+    {
+        senf::console::Client & client (senf::console::Client::get(os));
+    
+        // Use the client's log target
+        client.route<senf::log::Debug, senf::Log::IMPORTANT>();
+    }
+    \endcode
+
+    \see 
+        senf::console::Server for the Server API \n
+        <a href="classsenf_1_1console_1_1Client-members.html">senf::console::Client / List of all
+        members</a> for the Client API
+
+
+    \subsection console_shell The interactive console shell
+
+    The interactive shell implements a fully function line editor on capable terminals. This support
+    is available when using a full featured telnet client on a fully supported terminal (like vt100
+    or xterm).
+
+    The shell supports auto-cd and auto-completion: If you enter the name of a directory at the
+    prompt, the console will change to that directory. With auto-completion, any unique beginning of
+    a path component will be completed automatically and transparently to the corresponding full
+    name.
+
+
+    \subsection console_noninteractive Non-interactive network console
+
+    After a new connection is established, the console server waits a short time for data to arrive.
+    Only if nothing happens in the first 500ms, an interactive session is initialized.
+
+    By sending data immediately after opening the connection, the console is switched into
+    non-interactive mode. In this mode, no prompt is displayed. In this mode, commands are \e not
+    terminated automatically by end-of-line (CR). This allows, to easily cat an arbitrary
+    configuration file into the network console using netcat:
+    
+    <pre>
+    $ nc -q1 localhost 23232 < some.conf
+    </pre>
+
+    The argument <tt>-q1</tt> makes netcat close the sending end of the connection on EOF and wait
+    up to 1 second for the console to terminate. Even better, use \c netcat6, which has full TCP
+    half-close support.
+
+    <pre>
+    $ echo "ls" | nc6 --half-close localhost 23232 2>/dev/null
+    console/
+    server/
+    test/
+    $
+    </pre>
+
+    Commands are executed as soon as the terminating character (';', '{' or '}') is received or when
+    the sending end of the connection is closed.    
+
+    \section console_udp Non-interactive UDP console
+
+    The UDP console allows to script the console tree via UDP packets. Every UDP packet must be a
+    complete command (or sequence of commands). The combined reply of all these commands will be
+    returned in a single UDP packet. This reply can be disabled or directed to a different address. 
+
+    To start a UDP server, just create an instance of the senf::console::UDPServer class
+    \code
+    senf::console::UDPServer server (senf::INet4SocketAddress("127.0.0.1:23232"));
+    \endcode
+    (Remember to enter the scheduler main-loop for processing)
+
+    Commands may then be sent to this UDP console e.g. using netcat
+    <pre>
+    $ echo "cd sys; ls" | nc -uq0 localhost 23232 2>/dev/null
+    </pre>
+
+    \see senf::console::UDPServer
+ */
+
+/** \defgroup console_commands Supported command types
+
+    The Console/config library supports quite a number of different command types. All these types
+    of command are registered, by passing them to DirectoryNode::add()
+
+    \autotoc
+
+
+    \section console_cmdadd Adding commands and setting attributes
+
+    Basically, all commands are added using senf::console::DirectoryNode::add(). What exactly
+    happens depends on the type of object added.
+    \code
+    dir.add("name", callback)
+    \endcode
+    will add a command 'name' which will execute 'callback' when called, where 'callback' can be a
+    lot of things as documented in the following chapters.
+
+    The add call always returns (something which can be used as) a reference to the command node
+    added:
+    \code
+    senf::console::CommandNode & node ( dir.add( ... ) );
+    \endcode
+
+    Depending on the object added, you can also bind to a more specific node type
+    (e.g. senf::console::SimpleCommand) if you know the type of node returned.
+
+    Depending on the type of object added, there are additional attributes which can be set. These
+    attributes are always set by calling them on the return value <b>before saving that value as a
+    node reference</b>. It is \e not guaranteed, you can call these members on the node
+    reference.
+    \code
+    dir.add("name", callback)
+        .doc("The documentation");
+    \endcode
+    sets the \e doc attribute (if that is available, otherwise this will fail to compile). The
+    attribute members return value is again (something which can be used as) a reference to the
+    command node
+    \code
+    senf::console::CommandNode & node (
+        dir.add("name", callback)
+            .doc("The documentation") );
+    \endcode
+
+
+    \section console_manualparse Manually parsing command arguments
+
+    This is the most primitive type of command. It will be called with an output stream and with a
+    senf::console::ParseCommandInfo reference which holds information about the command parsed.
+
+    From this information the command callback gets a list of arguments or tokens which then can be
+    interpreted in an arbitrary way.
+    \code
+    void fun1(std::ostream & os, senf::console::ParseCommandInfo const & command)
+    {
+        // Here we declare variables for the arguments
+        std::string value;
+
+        {
+            // We parse the arguments using the CheckedArgumentIteratorWrapper. This wrapper
+            // will throw a SyntaxErrorException if we access a nonexistent argument or if we
+            // do not parse all arguments.
+            senf::console::CheckedArgumentIteratorWrapper args (command.arguments());
+
+            // Extract the first argument. This is again a token range.
+            senf::console::ParseCommandInfo::TokensRange arg1Tokens ( *(args++) );
+            if (arg1Tokens.size() != 1)
+                raise senf::console::SyntaxErrorException("argument syntax error");
+            value = arg1Tokens[0].value();
+        }
+
+        os << value << std::endl;
+    }
+    \endcode
+    
+    Registering this callback is done by simply adding it. To provide online help, pass it to
+    'doc()':
+    \code
+    senf::console::root()
+        .add("test1", &fun1)
+        .doc("Usage:\n"
+             "    test1 arg\n"
+             "\n"
+             "Echo 'arg' to the console");
+    \endcode
+
+    The callback may now be called interactively on the console by it's registered name:
+    \htmlonly
+    <pre>
+    server:/$ test1
+    invalid number of arguments
+    server:/$ test1 stefan@j32.de
+    stefan@j32.de
+    server:/$ test1 (echo me)
+    argument syntax error
+    server:/$ help test1
+    Usage:
+        test1 arg
+
+    Echo 'arg' to the console
+    server:/$
+    </pre>
+    \endhtmlonly
+
+    As you can see above, the arguments and tokens are returned as <a
+    href="http://www.boost.org/doc/libs/1_33_1/libs/range/doc/utility_class.html#iter_range">
+    boost::iterator_range</a> instances. These behave much like containers: They have \c begin() and
+    \c end() and some other useful members.
+    
+    The parser will have divided the argument tokens into arguments already. This simplifies further
+    parsing. If however you want to access the list of argument tokens as a single list, you can do
+    so using senf::console::ParseCommandInfo::tokens().
+    
+    Parsing arguments is quite simple but can get very tedious. To simplify this task, the parsing
+    can be delegated to the Console/config library. See the next section.
+
+    This type of command has only a single attribute, \e doc to set the commands documentation.
+
+
+    \section console_autoparse Automatic argument parsing
+    
+    To greatly simplify parsing complex commands, we turn to automatic argument parsing. 
+
+
+    \subsection console_autoadd Adding
+
+    Automatically parsed commands are registered by just adding a callback which has the correct
+    arguments and return-value defined:
+    \code
+    std::string fun2(std::string const & arg)
+    {
+        return arg;
+    }
+    \endcode
+
+    This extremely simple callback may be registered by adding it to a senf::console::DirectoryNode.
+    \code
+    senf::console::root()
+        .add("test2", &fun2);
+    \endcode
+    The functionality is now identical to \c test1:
+    \htmlonly
+    <pre>
+    server:/$ test2
+    invalid number of arguments
+    server:/$ test2 stefan@j32.de
+    stefan@j32.de
+    server:/$ test2 (echo me)
+    argument syntax error
+    server:/$ help test2
+    Usage:
+        test2 arg11:string
+    server:/$
+    </pre>
+    \endhtmlonly
+
+
+    \subsection command_ostream Accessing the console stream
+
+    Commands may have an optional first argument of type <tt>std::ostream &</tt>. This argument is
+    not considered part of the real interface. When the command is executed, the callback will be
+    passed the current consoles output stream object in this argument. With this, the callback can
+    output arbitrary messages to the network console.
+    \code
+    void fun3(std::ostream & os, unsigned n, std::string text)
+    {
+        while (n-- > 0) os << text << std::endl;
+    }
+
+    senf::console::root()
+        .add("test3", &fun3);
+    \endcode
+
+    This simple command can now be used thus:
+    \htmlonly
+    <pre>
+    server:/$ test3
+    invalid number of arguments
+    server:/$ test3 stefan@j32.de
+    invalid number of arguments
+    server:/$ test3 2 ok
+    ok
+    ok
+    server:/$ help test3
+    Usage:
+        test3 arg11:int arg12:string
+    server:/$
+    </pre>
+    \endhtmlonly
+
+
+    \subsection command_overload Overloading
+
+    Automatically parsed commands can be overloaded: You can register multiple commands under the
+    same name. Each overload is tried in turn until no SyntaxErrorException is raised.
+    \code
+    senf::console::root()
+        .add("test4", &fun3);
+    senf::console::root()
+        .add("test4", &fun2);
+    \endcode
+    And now, we can call \c test4 with one or two args:
+    <pre>
+    server:/$ test4
+    invalid number of arguments
+    server:/$ test4 stefan@j32.de
+    stefan@j32.de
+    server:/$ test4 2 ok
+    ok
+    ok
+    server:/$ help test4
+    Usage:
+        1- test4 arg11:int arg12:string
+        2- test4 arg21:string
+    server:/$
+    </pre>
+
+    One note: When taking the address of an overloaded function (member or non-member), the C++
+    language forces you to cast that address to one of the possible types so the compiler knows,
+    which overload is requested. So to add a function which is overloaded in C++, each overload
+    needs to be added explicitly, casting to the correct type. There are some macros in
+    Utils/membind.hh to simplify this:
+
+    \code
+    void over(int);
+    void over(int,int);
+
+    senf::console::root()
+        .add("over", SENF_FNP(void, over, (int)));
+    senf::console::root()
+        .add("over", SENF_FNP(void, over, (int,int));
+        
+    class SomeModule {
+      senf::console::ScopedDirectory<SomeModule> dir;
+      
+      unsigned int overlodedMethod() const {....};
+      void overlodedMethod(unsigned int)   {....};
+        
+      void addConsoleCommands() {
+        dir.node().add("overlodedMethod", 
+                       SENF_MEMBINDFNP(unsigned int, SomeModule, overlodedMethod, () const));
+        dir.node().add("overlodedMethod", 
+                       SENF_MEMBINDFNP(unsigned int, SomeModule, overlodedMethod, (unsigned int));
+      }
+    }
+    \endcode
+
+
+    \subsection console_attributes Attributes
+
+    As have seen so far, some documentation is automatically provided. We can add more info, by
+    setting additional attributes. 
+    \code
+    senf::console::root()
+        .add("test5", &fun3)
+        .doc("Echo text to the console")
+        .overloadDoc("Repeat {arg12} for {arg11} lines");
+    senf::console::root()
+        .add("test4", &fun2)
+        .overloadDoc("Echo the {arg21} argument")
+    \endcode
+
+    This additional info is used to provide more documentation:
+    \htmlonly
+    <pre>
+    server:/$ help test5
+    Usage:
+        1- test5 arg11:int arg12:string
+        2- test5 arg21:string
+
+    Echo text to the console
+
+    Variant 1:
+    Repeat {arg12} for {arg11} lines
+    
+    Variant 2:
+    Echo the {arg21} argument
+    senf:/$
+    </pre>
+    \endhtmlonly
+
+
+    \subsection console_argattributes Argument attributes
+
+    Additional attributes can be set for each parameter. They are all passed to the
+    senf::console::ParsedArgumentAttributor::arg() attribute.
+
+    \code
+    namespace kw = senf::console::kw;
+
+    senf::console::root()
+        .add("test6", &fun3)
+        .doc("Echo text to the console")
+        .overloadDoc("Repeat {text} for {n} lines");
+        .arg( kw::name = "n", kw::description="Number of repetitions" )
+        .arg( kw::name = "text", kw::description="Text to output" );
+    senf::console::root()
+        .add("test6", &fun2)
+        .overloadDoc("Echo the {text} argument")
+        .arg( kw::name = "text" );
+    \endcode
+
+    (Sadly, there is no way to automatically find out the \e name of an argument, just it's type.)
+    Every callback argument corresponds with a call of the \c arg() attribute. Argument attributes
+    are set using keywords from the \ref senf::console::kw namespace. You will probably either use
+    this namespace via a namespace alias (as above) or via a <tt>using namespace
+    senf::console::kw</tt> declaration (but beware of name collisions).
+
+    You don't need to specify any information for an argument: To skip an argument, just call \c
+    arg() without attributes for this argument.
+
+    After adding this information, the online help is much more readable
+      \htmlonly
+    <pre>
+    server:/$ help test6
+    Usage:
+        1- test6 n:int text:string
+        2- test6 text:string
+
+    With:
+        n         Number of repetitions
+        text      Text to output
+
+    Echo text to the console
+
+    Variant 1:
+    Repeat {text} for {n} lines
+    
+    Variant 2:
+    Echo the {text} argument
+    senf:/$
+    </pre>
+    \endhtmlonly
+
+    Since most of the time, we only need to set the name and possibly a description for arguments,
+    there is a shortcut: name and description can be specified as positional arguments in this
+    order. So the following will give the exactly same result as above:
+    \code
+    namespace kw = senf::console::kw;
+
+    senf::console::root()
+        .add("test6", &fun3)
+        .doc("Echo text to the console")
+        .overloadDoc("Repeat <text> for <n> lines");
+        .arg("n",    "Number of repetitions")
+        .arg("text", "Text to output");
+    senf::console::root()
+        .add("test6", &fun2)
+        .overloadDoc("Echo the <text> argument")
+        .arg("text");
+    \endcode
+    
+    Keyword arguments should always be used if additional attributes are set. You can however mix
+    positional and keyword arguments.
+
+    
+    \subsection console_defaults Default values
+    
+    Another information which can not be automatically gathered from the type system is default
+    values. These have to be declared explicitly:
+    \code
+    namespace kw = senf::console::kw;
+
+    senf::console::root()
+        .add("test7", &fun3)
+        .doc("Echo {text} to the console, repeating {text} for {n} lines")
+        .arg("n",    "Number of repetitions", kw::default_value=1)
+        .arg("text", "Text to output");
+    \endcode
+
+    Default values can be used together with overloading. Default (optional) value support is quite
+    flexible, it is not mandatory, for default values to be specified only for the trailing
+    arguments. For the exact definition, how parsed argument values are assigned to overload
+    arguments in the presence of default values, see \ref senf::console::kw::default_value.
+    
+    \htmlonly
+    <pre>
+    server:/$ test7 echo
+    echo
+    server:/$ test7 4 ok
+    ok
+    ok
+    ok
+    ok
+    server:/$ help test7
+    Usage:
+        test4 [n:unsigned] text:string
+    
+    With:
+        n         Number of repetitions
+            default: 1
+        text      Text to output
+
+    Echo {text} to the console, repeating {text} for {n} lines
+    server:/$
+    </pre>
+    \endhtmlonly
+
+
+    \subsection console_boostfn Non-function-pointer commands
+
+    It is possible to add other callable objects besides function (and member-function)
+    pointers. However, since it is not possible to automatically deduce the argument and return
+    types in this case, the callables have to be wrapped in a \c boost::function object:
+
+    \code
+    senf::console::root()
+        .add("test8", 
+             boost::function<void (std::ostream &, std::string const &)>(
+                 boost::bind(&fun3, _1, 4u, _2)));
+    \endcode
+
+    This works with any callable object where argument types cannot be deduced automatically:
+    Boost.Bind expressions, Boost.Lambda expressions, functors and so on.
+    
+    \htmlonly
+    <pre>
+    server:/$ test8 ok
+    ok
+    ok
+    ok
+    ok
+    server:/$ help test8
+    Usage:
+        test8 arg11:string
+    server:/$
+    </pre>
+    \endhtmlonly
+
+
+    \subsection console_attr_summary Attribute summary
+
+    Here a summary of the most common attributes
+
+    <table class="senf fixedwidth">
+
+    <tr><td style="width:14em">\link senf::console::ParsedArgumentAttributorBase::doc() .doc\endlink
+    ( \e doc )</td><td>Set documentation for all overloads</td></tr>
+    
+    <tr><td>\link senf::console::ParsedArgumentAttributorBase::overloadDoc()
+    .overloadDoc\endlink ( \e doc )</td><td>Set documentation for a specific overload</td></tr>
+
+    <tr><td>\link senf::console::ParsedArgumentAttributor::arg() .arg\endlink ( \e argument \e
+    attributes )</td><td>Set argument attributes (see below)</td></tr>
+
+    </table>
+
+    The most important argument attributes (all defined in the senf::console::kw namespace) are:
+    
+    <table class="senf fixed width">
+
+    <tr><td style="width:14em">\link senf::console::kw::name kw::name\endlink</td><td>Parameter
+    name</td></tr>
+
+    <tr><td>\link senf::console::kw::description kw::description\endlink</td><td>One-line
+    description of the argument</td></tr>
+
+    <tr><td>\link senf::console::kw::default_value kw::default_value\endlink</td><td>Arguments
+    default value</td></tr>
+
+    </table>
+
+    \see <a
+        href="classsenf_1_1console_1_1ParsedArgumentAttributor-members.html">senf::console::ParsedArgumentAttributor
+        / List of all members</a> for the complete attribute interface \n
+        \ref senf::console::kw for a list of all argument attribute keywords
+
+        
+    \section console_memberfn Member functions
+    
+    Non-static member functions are supported like non-member functions (static member functions are
+    identical to non-members). They must however be added through a senf::console::ScopedDirectory
+    instance to bind them to their instance.
+    \code
+    class Test1
+    {
+    public:
+        senf::console::ScopedDirectory<Test1> dir;
+
+        Test1(std::string label) : dir(this), label_ (label) 
+            { dir.add("test", &Test::test1);
+              dir.add("test", &Test::test2); }
+    
+        std::string test1(std::string const & text)
+            { return label_ + ": " + text; }
+
+        void test2(std::ostream & os, unsigned n, std::string const & text) 
+            { while (n-- > 0) os << label << ": " << text << std::endl; }
+
+    private:
+        std::string label_;
+    };
+
+    // ...
+
+    Test1 test1ob ("test");
+    senf::console::root().add("test1ob", test1ob.dir);
+    \endcode
+
+    Binding via senf::console::ScopedDirectory ensures, that the commands are automatically removed
+    from the tree when the object is destroyed.
+
+
+    \section console_variables Variables
+    
+    \subsection console_varadd Adding
+
+    The console/config library supports the direct registration of variables as commands. A
+    variable command consists of two overloads, one to query the current value and one to change the
+    value. 
+    \code
+    class Test2
+    {
+    public:
+        senf::console::ScopedDirectory<Test2> dir;
+
+        Test2() : dir(this), var_(0)
+            { dir.add("var", var_); }
+
+    private:
+        int var_;
+    };
+
+    Test2 test2ob;
+    senf::console::root().add("test2ob", test2ob.dir);
+    \endcode
+    This shows the most common scenario: A member variable is added to a ScopedDirectory of the same
+    class. This ensures, that the variable command node is removed from the tree when the instance
+    (and thereby the variable) are destroyed. The variable can now be used like any other command:
+    \htmlonly
+    <pre>
+    server:/$ test2ob/var
+    0
+    server:/$ test2ob/var 10
+    server:/$ test2ob/var
+    10
+    server:/$ help test2ob
+    Usage:
+        1- var new_value:int
+        2- var
+    server:/$
+    </pre>
+    \endhtmlonly
+
+
+    \subsection console_varro Read-only variables
+    
+    The library also supports read-only variables. To make a variable read-only, just wrap it in \c
+    boost::cref() (where \c cref stands for \c const reference)
+    \code
+    int var (0);
+
+    senf::console::root().add("var1", boost::cref(var));
+    \endcode
+    A read-only variable only has a single overload:
+    \htmlonly
+    <pre>
+    server:/$ var1
+    0
+    server:/$ help var1
+    Usage:
+        var1
+    server:/$ 
+    </pre>
+    \endhtmlonly
+
+
+    \subsection console_varattr Attributes
+
+    The most important Variable command attributes are
+
+    <table class="senf fixedwidth">
+
+    <tr><td style="width:14em">\link senf::console::VariableAttributor::doc() .doc\endlink
+    ( \e doc )</td><td>Set variable documentation</td></tr>
+    
+    <tr><td>\link senf::console::VariableAttributor::onChange() .onChange\endlink
+    ( \e handler )</td><td>Set change handler</td></tr>
+    
+    </table>
+
+    \see senf::console::VariableAttributor for the complete attribute interface
+
+
+    \subsection console_varchange Change notification
+
+    A \e handler can be set to be called, whenever the variable is changed. It will be called with a
+    reference to the old value. The handler is called, after the value has been changed
+
+    \code
+    int var (0);
+
+    // Since this is int, it would make sense to declare the argument pass-by-value (int old)
+    // but for more complex args, use a const & here
+    void varChanged(int const & old)
+    {
+        // ...
+    }
+
+    senf::console::root().add("var2",var)
+        .onChange(&varChanged);
+    \endcode
+    
+    After this setup, \c varChanged will be called, whenever the value has changed.
+
+
+    \section console_args Console library supported types
+
+    By default, types which can be read and written using \c iostreams are automatically supported. 
+    This includes all the C++ built-in types as well as user defined streamable types.
+
+    An exception is made for all \c char types: These types are by default parsed as \e numeric
+    values not single-character data. To interpret \c char values as single-char strings, use \ref
+    senf::console::CharAsString.
+
+    \subsection console_args_stl STL container support
+
+    The %console library contains support for the STL container types: \c std::vector, \c
+    std::list, \c std::set, \c std::multiset, \c std::map and \c std::multimap.
+
+    All container types are parsed as parenthesized list of elements. Each element is parsed as
+    defined for the element type:
+
+    \c vector, \c list or \c set of integers:
+    <pre>
+    (1 2 3)
+    </pre>
+
+    \c vector, \c list or \c set of strings:
+    <pre>
+    ("String 1" "String 2" "String 3")
+    </pre>
+
+    \c vector, \c list or \c set of <tt>pair<int,string></tt>:
+    <pre>
+    ((1 "String 1") (2 "String 2") (3 "String 3"))
+    </pre>
+
+    Empty collection:
+    <pre>
+    ()
+    </pre>
+    
+    Collection's with only one element may skip the parenthesis <em>if and only if</em> the element
+    type does not need additional parenthesis
+
+    A \c vector, \c list or \c set of integer with one element may be written with or without
+    parenthesis:
+    <pre>
+    (1) 
+    1
+    </pre>
+
+    \e but a single element \c vector, \c list or \c set of <tt>pair<int,string></tt> may \e only be
+    written:
+    <pre>
+    ((1 "String 1"))
+    </pre>
+
+    In mapping containers, the key and value are separated by \c =:
+    <pre>
+    (foo=1 bar=2 "foo bar"=3)
+    </pre>
+    
+
+    \subsection console_args_bool Boolean arguments and return values
+
+    The console library by default formats boolean values using the strings \c true and \c false for
+    their representation. When parsing a boolean value, most sensible representations will be
+    accepted:
+    
+    <table class="senf">
+    <tr><td>\c true</td>    <td>\c false</td>    <td>\ref senf::console::formatTrueFalse</td></tr>
+    <tr><td>\c on</td>      <td>\c off</td>      <td>\ref senf::console::formatOnOff</td></tr>
+    <tr><td>\c enabled</td> <td>\c disabled</td> <td>\ref senf::console::formatEnabledDisabled</td></tr>
+    <tr><td>\c yes</td>     <td>\c no</td>       <td>\ref senf::console::formatYesNo</td></tr>
+    <tr><td><em>non-zero integer</em></td><td>\c 0</td><td>\ref senf::console::formatOneZero</td></tr>
+    </table>
+
+    The boolean parser will accept these values in any (mixed) case and accepts any unique initial
+    substring (e.g. \c Y / \c N).
+
+    The last column lists explicit formatters which can be set to customize the return value
+    formatting of a registered overload accordingly.
+
+    
+    \subsection console_args_enum Registering enum types
+
+    Enum types are a special case, since it is not possible, to find a string representation for the
+    enumerator values automatically. Therefore, enum types need to be registered manually.
+    \code
+    enum MyEnum { Sit, Run, Jump };
+    SENF_CONSOLE_REGISTER_ENUM( MyEnum, (Sit)(Run)(Jump) );
+
+    MyEnum fun4(MyEnum v) { return v }
+
+    senf::console::root()
+        .add("test9", &fun4);
+    \endcode
+
+    After an enum type is registered, it can be used like any other type for arguments or
+    return-values:
+
+    \htmlonly
+    <pre>
+    server:/$ test9 Sit
+    Sit
+    server:/$ test9 Crawl
+    argument syntax error: invalid enum value
+    server:/$ help test9
+    Usage:
+        test9 arg11:MyEnum
+    server:/$
+    </pre>
+    \endhtmlonly
+
+    \ref SENF_CONSOLE_REGISTER_ENUM() can only be used, to register enums at namespace scope. To
+    register enums defined within some class, use \ref SENF_CONSOLE_REGISTER_ENUM_MEMBER()
+
+    \code
+    class Test3
+    {
+    public:
+        enum Color { Red, Green, Blue };
+    
+        senf::console::ScopedDirectory<Test3> dir;
+
+        Test3();
+
+        Color mem3(Color c) { return c }
+    };
+    SENF_CONSOLE_REGISTER_ENUM_MEMBER( Test3, Color, (Red)(Green)(Blue) );
+
+    Test3::Test3() : dir(this)
+        { dir.add("test", &Test3::mem3); }
+    
+    Test3 test3ob;
+    senf::console::root().add("test3ob", test3ob.dir);
+    \endcode
+
+    Using this command/type is identical
+    \htmlonly
+    <pre>
+    server:/$ test3ob/test Red
+    Red
+    server:/$ test3ob/test White
+    argument syntax error: invalid enum value
+    server:/$ help test3ob/test
+    Usage:
+        test arg11:Color
+    </pre>
+    \endhtmlonly
+
+
+    \subsection console_args_convert Handling argument types by conversion
+
+    Sometimes an argument type is best handled by just pretending it to be of some other type. The
+    basic idea is, to us \c boost::function to convert the real argument type to some different type
+
+    \code
+    int fun4(int value)
+    {
+        return value;
+    }
+    
+    senf::console::root()
+        .add("test8", boost::function<bool (bool)>(&fun4));
+    \endcode
+    
+    Here, the type signature specified via \c boost::function is different from the real type
+    signature but is compatible. \c boost::function automatically handles the conversion
+    process. Since the console library now sees the argument and return value of type \c bool,
+    the values will be parsed and formatted as boolean values.
+
+    
+    \subsection console_args_special Special Console types
+
+    The %console library defines some special types to be used as arguments and/or return values.
+    Some of these are wrappers around basic types which provide custom formatting. Those are used
+    via argument type conversion (see previous section).
+
+    \see \ref senf_console_utilities
+
+
+    \subsection console_args_custom Extending the library to support additional types
+
+    To support or customize parsing/formatting of other types, they need to be registered. In it's
+    simplest case, this works, by just providing an appropriate overload for
+    senf_console_parse_argument() and senf_console_format_value():
+    \code
+    struct Coordinate
+    {
+        Coordinate() : x(0), y(0) {}
+        Coordinate(int x_, int y_) : x(x_), y(y_) {}
+
+        int x, y;
+    }
+
+    void senf_console_parse_argument(senf::console::ParseCommandInfo::TokensRange const & tokens,
+                                     Coordinate & out)
+    {
+        senf::console::CheckedArgumentIteratorWrapper arg (tokens);
+        senf::console::parse( *(arg++), out.x );
+        senf::console::parse( *(arg++), out.y );
+    }
+
+    void senf_console_format_value(Coordinate const & value, std::ostream & os)
+    {
+        os << '(' << value.x << ' ' << value.y << ')';
+    }
+    \endcode 
+
+    The parser will accept an argument with two tokens which are each forwarded to the integer
+    parser. The senf::console::CheckedArgumentIteratorWrapper ensures two things: That all input
+    tokens are parsed and no extra trailing tokens are left unparsed and it checks, that all
+    referenced tokens really exist.
+
+    The formatter writes out the value as a parenthesized pair.
+
+    \code
+    Coordinate fun5(Coordinate const & p) { return Coordinate(2*p.x, 2*p.y) }
+    
+    namespace kw = senf::console::kw;
+
+    senf::console::root()
+        .add("test10", &fun5)
+        .arg("x","coordinate to double",
+             kw::default_value = Coordinate())
+    \endcode
+    We can now call \c test10 with a coordinate argument:
+    \htmlonly
+    <pre>
+    server:/$ test10 (2 7)
+    (4 14)
+    server:/$ help test10
+    Usage:
+        test10 [x:Coordinate]
+
+    With:
+        x         Coordinate to double
+            default: (0 0)
+    server:/$
+    </pre>
+    \endhtmlonly
+    
+    If you want to customize the formatting of default values differently from the formating of
+    return-values or if you want to change the displayed name of a type, you will need to specialize
+    the senf::console::ArgumentTraits class instead of implementing
+    senf_console_parse_argument(). See senf::console::ArgumentTraits and
+    senf::console::ReturnValueTraits for more.
+ */
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// mode: auto-fill
+// End:
+

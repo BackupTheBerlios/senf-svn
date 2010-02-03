@@ -1,0 +1,210 @@
+// $Id$
+//
+// Copyright (C) 2008 
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief OverloadedCommand inline non-template implementation */
+
+//#include "OverloadedCommand.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::OverloadedCommandNode
+
+prefix_ senf::console::OverloadedCommandNode::ptr senf::console::OverloadedCommandNode::create()
+{
+    return ptr(new OverloadedCommandNode());
+}
+
+prefix_ senf::console::OverloadedCommandNode::ptr senf::console::OverloadedCommandNode::thisptr()
+{
+    return boost::static_pointer_cast<OverloadedCommandNode>(shared_from_this());
+}
+
+prefix_ senf::console::OverloadedCommandNode::cptr senf::console::OverloadedCommandNode::thisptr()
+    const
+{
+    return boost::static_pointer_cast<OverloadedCommandNode const>(shared_from_this());
+}
+
+prefix_ senf::console::OverloadedCommandNode &
+senf::console::OverloadedCommandNode::doc(std::string const & doc)
+{
+    doc_ = doc;
+    return *this;
+}
+
+prefix_ senf::console::OverloadedCommandNode &
+senf::console::OverloadedCommandNode::shortdoc(std::string const & doc)
+{
+    shortdoc_ = doc;
+    return *this;
+}
+
+prefix_ unsigned
+senf::console::OverloadedCommandNode::overloadIndex(CommandOverload const & overload)
+{
+    return find(overloads_.begin(), overloads_.end(), CommandOverload::cptr(&overload)) 
+        - overloads_.begin() + 1;
+}
+
+prefix_ senf::console::OverloadedCommandNode::OverloadsRange
+senf::console::OverloadedCommandNode::overloads()
+    const
+{
+    return boost::make_iterator_range(overloads_.begin(), overloads_.end());
+}
+
+prefix_ senf::console::OverloadedCommandNode::OverloadedCommandNode()
+{}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::CommandOverload
+
+prefix_ senf::console::CommandOverload::~CommandOverload()
+{}
+
+prefix_ void senf::console::CommandOverload::execute(boost::any & rv, std::ostream & os,
+                                                     ParseCommandInfo const & command)
+{
+    v_execute(rv, os, command);
+}
+
+prefix_ void senf::console::CommandOverload::operator()(boost::any & rv, std::ostream & os,
+                                                        ParseCommandInfo const & command)
+{
+    execute(rv, os, command);
+}
+
+prefix_ unsigned senf::console::CommandOverload::numArguments()
+    const
+{
+    return v_numArguments();
+}
+
+prefix_ void senf::console::CommandOverload::argumentDoc(unsigned index, ArgumentDoc & doc)
+    const
+{
+    return v_argumentDoc(index,doc);
+}
+
+prefix_ std::string senf::console::CommandOverload::doc()
+    const
+{
+    return v_doc();
+}
+
+prefix_ senf::console::OverloadedCommandNode & senf::console::CommandOverload::node()
+    const
+{
+    SENF_ASSERT( node_ );
+    return *node_;
+}
+
+prefix_ unsigned senf::console::CommandOverload::overloadIndex()
+    const
+{
+    return node().overloadIndex(*this);
+}
+
+prefix_ senf::console::CommandOverload::CommandOverload()
+    : node_(0)
+{}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::SimpleCommandOverload
+
+prefix_ senf::console::SimpleCommandOverload::ptr
+senf::console::SimpleCommandOverload::create(Function fn)
+{
+    return ptr(new SimpleCommandOverload(fn));
+}
+
+prefix_ senf::console::SimpleCommandOverload &
+senf::console::SimpleCommandOverload::doc(std::string const & doc)
+{
+    doc_ = doc;
+    return *this;
+}
+
+prefix_ senf::console::SimpleCommandOverload::SimpleCommandOverload(Function fn)
+    : fn_ (fn)
+{}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::console::SimpleOverloadAttributor
+
+prefix_ senf::console::SimpleOverloadAttributor::
+SimpleOverloadAttributor(SimpleCommandOverload::Function fn)
+    : overload_ (SimpleCommandOverload::create(fn))
+{}
+
+prefix_ senf::console::SimpleOverloadAttributor const &
+senf::console::SimpleOverloadAttributor::doc(std::string const & doc)
+    const
+{
+    doc_ = doc;
+    return *this;
+}
+
+prefix_ senf::console::SimpleOverloadAttributor const &
+senf::console::SimpleOverloadAttributor::shortdoc(std::string const & doc)
+    const
+{
+    shortdoc_ = doc;
+    return *this;
+}
+
+prefix_ senf::console::SimpleOverloadAttributor const &
+senf::console::SimpleOverloadAttributor::overloadDoc(std::string const & doc)
+    const
+{
+    overload_->doc(doc);
+    return *this;
+}
+
+prefix_ senf::console::OverloadedCommandNode &
+senf::console::SimpleOverloadAttributor::create(DirectoryNode & dir, std::string const & name)
+    const
+{
+    OverloadedCommandNode & node (OverloadedCommandNode::insertOverload(dir, name, overload_));
+    if (doc_) node.doc(*doc_);
+    if (shortdoc_) node.shortdoc(*shortdoc_);
+    return node;
+}
+
+/////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

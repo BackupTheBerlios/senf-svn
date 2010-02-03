@@ -1,0 +1,149 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief PacketParser inline non-template implementation */
+
+// Custom includes
+#include <iterator>
+#include "PacketData.hh"
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::PacketParserBase
+
+// public members
+
+prefix_ senf::PacketParserBase::data_iterator senf::PacketParserBase::i()
+    const
+{
+    return i_;
+}
+
+// private members
+
+prefix_ senf::PacketParserBase::data_iterator senf::PacketParserBase::end()
+    const
+{
+    return data_->end();
+}
+
+prefix_ senf::PacketParserBase::ParserProtector::ParserProtector(PacketParserBase const * p)
+    : safe_i_( *p), parser_(p) 
+{}
+
+prefix_ senf::PacketParserBase::ParserProtector::ParserProtector(ParserProtector const & other_)
+    : safe_i_( *other_.parser_), parser_(other_.parser_) 
+{
+    other_.parser_ = 0;
+}
+
+prefix_ senf::PacketParserBase::ParserProtector::~ParserProtector() 
+{ 
+    if (parser_) const_cast<PacketParserBase *>(parser_)->i_ = safe_i_; 
+}
+
+// protected members
+
+prefix_ senf::PacketParserBase::ParserProtector senf::PacketParserBase::protect()
+    const
+{ 
+    return ParserProtector(this); 
+}
+
+prefix_ bool senf::PacketParserBase::check(size_type size)
+    const
+{
+    return size <= size_type(std::distance(i(),end()));
+}
+
+prefix_ void senf::PacketParserBase::validate(size_type size) 
+   const
+{
+    if (! check(size))
+        throw TruncatedPacketException();
+}
+
+prefix_ senf::PacketParserBase::PacketParserBase(data_iterator i, state_type s)
+    : i_ (i), data_ (s)
+{}
+
+prefix_ senf::PacketParserBase::PacketParserBase(data_iterator i, state_type s, 
+                                                 size_type size)
+    : i_ (i), data_ (s)
+{
+    validate(size);
+}
+
+// public members
+
+prefix_ senf::PacketParserBase::data_iterator senf::PacketParserBase::i(size_type offset)
+    const
+{
+    validate(offset);
+    return boost::next(i_, offset);
+}
+
+prefix_ senf::PacketParserBase::state_type senf::PacketParserBase::state()
+    const
+{
+    return data_;
+}
+
+prefix_ senf::PacketData & senf::PacketParserBase::data()
+    const
+{
+    return * data_;
+}
+
+prefix_ void senf::PacketParserBase::init()
+    const
+{}
+
+prefix_ void senf::PacketParserBase::defaultInit()
+    const
+{}
+
+prefix_ senf::Packet senf::PacketParserBase::packet()
+    const
+{
+    // OUCH ... I hate this but for some awkward packet types, access to the packet
+    // from the parser is really needed (e.g. UDP when building the pseudo-header
+    // for calculating the checksum).
+    return Packet(PacketInterpreterBase::ptr(static_cast<PacketInterpreterBase*>(&data())));
+}
+
+///////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

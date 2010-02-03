@@ -1,0 +1,132 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Daemon internal header */
+
+#ifndef IH_SENF_Utils_Daemon_Daemon_
+#define IH_SENF_Utils_Daemon_Daemon_ 1
+
+// Custom includes
+#include <deque>
+#include <boost/intrusive/iset.hpp>
+#include <boost/intrusive/iset_hook.hpp>
+#include <boost/utility.hpp>
+#include <boost/function.hpp>
+#include <senf/Scheduler/Scheduler.hh>
+#include <senf/Scheduler/SignalEvent.hh>
+
+///////////////////////////////ih.p////////////////////////////////////////
+
+namespace senf {
+namespace detail {
+
+    /** \brief Internal: Watch daemon process for successful startup */
+    class DaemonWatcher
+        : boost::noncopyable
+    {
+    public:
+
+        DaemonWatcher(int pid, int coutpipe, int cerrpipe, int stdout, int stderr);
+
+        void run();
+
+    private:
+
+        class Forwarder 
+        {
+        public:
+            typedef boost::function<void ()> Callback;
+
+            Forwarder(int src, Callback cb);
+            ~Forwarder();
+
+            void addTarget(int fd);
+
+        private:
+
+            // This is awkward ... we'll need to erase an element from the target list given
+            // only the target object. This is best implement using an intrusive container.
+            // However, this makes memory-management explicit and we'll need to be careful.
+            typedef std::deque<char> Buffer;
+            struct TargetListTag;
+            typedef boost::intrusive::ilist_base_hook<TargetListTag> TargetListBase;
+
+            struct Target : public TargetListBase
+            {
+                Target(Forwarder & fwd, int fd);
+
+                int fd;
+                Buffer::size_type offset;
+                scheduler::FdEvent writeevent;
+            };
+            typedef boost::intrusive::ilist<TargetListBase::value_traits<Target>,false> Targets;
+
+            struct DestroyDelete
+            {
+                template <class T>
+                void operator()(T * t) { delete t; }
+            };
+
+            void readData(int event);
+            void writeData(int event, Target * target);
+
+            Buffer buffer_;
+            int src_;
+            Targets targets_;
+            Callback cb_;
+            scheduler::FdEvent readevent_;
+        };
+        
+        void pipeClosed(int id);
+        void sigChld(siginfo_t const &);
+        void childDied();
+        void childOk();
+
+        int childPid_;
+        int coutpipe_;
+        int cerrpipe_;
+        int stdout_;
+        int stderr_;
+        bool sigChld_;
+
+        scheduler::SignalEvent cldSignal_;
+        scheduler::TimerEvent timer_;
+        Forwarder coutForwarder_;
+        Forwarder cerrForwarder_;
+    };
+
+}}
+
+///////////////////////////////ih.e////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

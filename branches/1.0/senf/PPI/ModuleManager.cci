@@ -1,0 +1,138 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ModuleManager inline non-template implementation */
+
+// Custom includes
+#include <algorithm>
+
+#define prefix_ inline
+///////////////////////////////cci.p///////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::ppi::ModuleManager
+
+prefix_ senf::ppi::ModuleManager & senf::ppi::ModuleManager::instance()
+{
+    static ModuleManager manager;
+    return manager;
+}
+
+prefix_ void senf::ppi::ModuleManager::registerModule(module::Module & module)
+{
+    moduleRegistry_.push_back(&module);
+}
+
+prefix_ void senf::ppi::ModuleManager::unregisterModule(module::Module & module)
+{
+    moduleRegistry_.erase(
+        std::remove(moduleRegistry_.begin(), moduleRegistry_.end(), & module),
+        moduleRegistry_.end());
+}
+
+prefix_ void senf::ppi::ModuleManager::registerInitializable(Initializable & i)
+{
+    initQueue_.push_back(&i);
+    initRunner_.enable();
+    // This call ensures, that the senf::ppi::init() handler is called as next handler
+    // after this handler returns (this works since the senf::ppi::init() handler is registered as 
+    // PRE hook and thus has very high priority)
+    senf::scheduler::yield();
+}
+
+prefix_ void senf::ppi::ModuleManager::unregisterInitializable(Initializable & i)
+{
+    initQueue_.erase(
+        std::remove(initQueue_.begin(), initQueue_.end(), & i),
+        initQueue_.end());
+    if (initQueue_.empty())
+        initRunner_.disable();
+}
+
+prefix_ bool senf::ppi::ModuleManager::initializableRegistered(Initializable const & i)
+    const
+{
+    return std::find(initQueue_.begin(), initQueue_.end(), &i) != initQueue_.end();
+}
+
+prefix_ bool senf::ppi::ModuleManager::running()
+    const
+{
+    return running_;
+}
+
+prefix_ senf::console::DirectoryNode & senf::ppi::ModuleManager::consoleDir()
+    const
+{
+    return consoleDir_.node();
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::ppi::ModuleManager::Initializable
+
+prefix_ senf::ppi::ModuleManager::Initializable::Initializable()
+{
+    enqueueInitializable();
+}
+
+prefix_ senf::ppi::ModuleManager::Initializable::~Initializable()
+{
+    dequeueInitializable();
+}
+
+prefix_ void senf::ppi::ModuleManager::Initializable::enqueueInitializable()
+{
+    moduleManager().registerInitializable(*this);
+}
+
+prefix_ void senf::ppi::ModuleManager::Initializable::dequeueInitializable()
+{
+    moduleManager().unregisterInitializable(*this);
+}
+
+prefix_ bool senf::ppi::ModuleManager::Initializable::initializationScheduled()
+    const
+{
+    return moduleManager().initializableRegistered(*this);
+}
+
+prefix_ senf::ppi::ModuleManager::ModuleManager &
+senf::ppi::ModuleManager::Initializable::moduleManager()
+    const
+{
+    return ModuleManager::instance();
+}
+
+///////////////////////////////cci.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

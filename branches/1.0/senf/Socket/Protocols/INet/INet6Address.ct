@@ -1,0 +1,91 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief INet6Address non-inline template implementation  */
+
+#include "INet6Address.ih"
+
+// Custom includes
+
+#define prefix_
+///////////////////////////////ct.p////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::INet6Address
+
+template <class InputIterator>
+prefix_ senf::INet6Address senf::INet6Address::from_data(InputIterator i)
+{
+    INet6Address addr (senf::noinit);
+    iterator j (addr.begin());
+    iterator const j_end (addr.end());
+    for (;j!=j_end;++j,++i)
+        *j = *i;
+    return addr;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// namespace senf::detail members
+
+template <class ForwardIterator, class Function>
+prefix_ void senf::detail::apply_mask(unsigned bits, ForwardIterator b, ForwardIterator e,
+                                      Function fn)
+{
+    for(; bits>8 && b != e; bits -= 8, ++b) 
+        fn(*b, boost::lambda::make_const(0xFFu));
+    if (bits > 0 && b != e)
+        fn( *(b++), boost::lambda::make_const(~ low_bits_mask(8-bits)));
+    for(; b != e; ++b)
+        fn(*b, boost::lambda::make_const(0u));
+}
+
+template <class ForwardIterator1, class ForwardIterator2, class Function>
+prefix_ ForwardIterator1 senf::detail::find_if_mask(unsigned bits, ForwardIterator1 b1,
+                                                    ForwardIterator1 e1, ForwardIterator2 b2, 
+                                                    Function fn)
+{
+    for(; bits>8 && b1 != e1; bits -= 8, ++b1, ++b2) 
+        if (fn(*b1, *b2, boost::lambda::make_const(0xFFu)))
+            return b1;
+    if (bits > 0 && b1 != e1)
+        if (fn(*b1, *b2, boost::lambda::make_const(~ low_bits_mask(8-bits))))
+            return b1;
+    for(++b1, ++b2; b1 != e1; ++b1, ++b2)
+        if (fn(*b1, *b2, boost::lambda::make_const(0u)))
+            return b1;
+    return e1;
+}
+
+///////////////////////////////ct.e////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

@@ -1,0 +1,15 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons, glob, yaptu
+
+###########################################################################
+
+SENFSCons.IndexPage(env, 'Mainpage.dox', title="HowTo's")
+
+SConscript(glob.glob("*/SConscript"))
+
+env.Clean('all','Mainpage.dox')
+env.Clean('all_docs','Mainpage.dox')
+
+SENFSCons.Doxygen(env)

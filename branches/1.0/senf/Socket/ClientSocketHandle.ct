@@ -1,0 +1,175 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ClientSocketHandle non-inline template implementation
+ */
+
+#include "ClientSocketHandle.ih"
+
+// Custom includes
+#include <algorithm>
+#include <boost/utility/value_init.hpp>
+#include <senf/Utils/Buffer.hh>
+
+#define prefix_
+///////////////////////////////ct.p////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+// senf::detail::ReadRange<Handle,ForwardWritableRange,IsContiguous>
+
+template <class Handle, class ForwardWritableRange, bool IsContiguous>
+prefix_ typename boost::range_iterator<ForwardWritableRange>::type
+senf::detail::ReadRange<Handle,ForwardWritableRange,IsContiguous>::
+read(Handle & handle, ForwardWritableRange & range)
+{
+    typename boost::range_size<ForwardWritableRange>::type nread (boost::size(range));
+    SENF_SCOPED_BUFFER(char, buffer, nread);
+    return std::copy(buffer, handle.read(buffer,buffer+nread), boost::begin(range));
+}
+
+template <class Handle, class ForwardWritableRange, bool IsContiguous>
+prefix_ typename boost::range_iterator<ForwardWritableRange>::type
+senf::detail::ReadRange<Handle,ForwardWritableRange,IsContiguous>::
+readfrom(Handle & handle, ForwardWritableRange & range, typename Handle::Address & addr)
+{
+    typename boost::range_size<ForwardWritableRange>::type nread (boost::size(range));
+    SENF_SCOPED_BUFFER(char, buffer, nread);
+    return std::copy(buffer, handle.readfrom(buffer,buffer+nread,addr), boost::begin(range));
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::detail::WriteRange<Handle,ForwardReadableRange,IsContiguous>
+
+template <class Handle, class ForwardReadableRange, bool IsContiguous>
+prefix_ typename boost::range_const_iterator<ForwardReadableRange>::type
+senf::detail::WriteRange<Handle,ForwardReadableRange,IsContiguous>::
+write(Handle & handle, ForwardReadableRange & range)
+{
+    typename boost::range_size<ForwardReadableRange>::type nwrite (boost::size(range));
+    typename boost::range_const_iterator<ForwardReadableRange>::type i (boost::begin(range));
+    SENF_SCOPED_BUFFER(char, buffer, nwrite);
+    std::copy(i, boost::end(range), buffer);
+    std::advance(i, handle.write(std::make_pair(buffer, buffer+nwrite)) - buffer);
+    return i;
+}
+
+template <class Handle, class ForwardReadableRange, bool IsContiguous>
+prefix_ typename boost::range_const_iterator<ForwardReadableRange>::type
+senf::detail::WriteRange<Handle,ForwardReadableRange,IsContiguous>::
+writeto(Handle & handle, ForwardReadableRange & range, typename Handle::Address const & addr)
+{
+    typename boost::range_size<ForwardReadableRange>::type nwrite (boost::size(range));
+    typename boost::range_const_iterator<ForwardReadableRange>::type i (boost::begin(range));
+    SENF_SCOPED_BUFFER(char, buffer, nwrite);
+    std::copy(i, boost::end(range), buffer);
+    std::advance(i, handle.writeto(std::make_pair(buffer, buffer+nwrite), addr) - buffer);
+    return i;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// senf::ClientSocketHandle<Policy>
+
+////////////////////////////////////////
+// reading and writing
+
+// senf::ClientSocketHandle<Policy>::read
+
+template <class SPolicy>
+prefix_ std::string senf::ClientSocketHandle<SPolicy>::read(unsigned limit)
+{
+    std::string rv;
+    this->read(rv, limit);
+    return rv;
+}
+
+template <class SPolicy>
+template <class Sequence>
+prefix_ void senf::ClientSocketHandle<SPolicy>::read(Sequence & container, unsigned limit)
+{
+    if (limit == 0) 
+        limit = available();
+    container.resize(limit);
+    container.erase(read( std::make_pair(container.begin(), container.end()) ), 
+                    container.end());
+}
+
+// senf::ClientSocketHandle<SPolicy>::readfrom
+
+template <class SPolicy>
+prefix_ std::pair<std::string, typename SPolicy::AddressingPolicy::Address>
+senf::ClientSocketHandle<SPolicy>::readfrom(unsigned limit)
+{
+    std::string rv;
+    boost::value_initialized<typename SPolicy::AddressingPolicy::Address> addr;
+    this->readfrom(rv, addr.data(), limit);
+    return std::make_pair(rv, addr.data());
+}
+
+template <class SPolicy>
+template <class Sequence>
+prefix_ void senf::ClientSocketHandle<SPolicy>::readfrom(Sequence & container, Address & from,
+                                                        unsigned limit)
+{
+    unsigned nread (available());
+    if (limit>0 && nread>limit)
+        nread = limit;
+    container.resize(nread);
+    container.erase(readfrom( std::make_pair(container.begin(), container.end()), from ), 
+                    container.end());
+}
+
+////////////////////////////////////////
+// private members
+
+// senf::ClientSocketHandle<SPolicy>::available
+
+template <class SPolicy>
+prefix_ unsigned senf::ClientSocketHandle<SPolicy>::available()
+{
+    unsigned nread = this->protocol().available();
+    if (nread == 0 && this->blocking()) {
+        // We have to block explicitly here so we can return the
+        // number of bytes available explicitly. If no more date can
+        // be expected to arive (i.e. the other end has closed the
+        // connection), the socket will always be in the readable
+        // state. This is the only case when available() will return
+        // 0.
+        this->waitReadable();
+        nread = this->protocol().available();
+    }
+    return nread;
+}
+
+///////////////////////////////ct.e////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

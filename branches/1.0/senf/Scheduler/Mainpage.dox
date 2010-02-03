@@ -1,0 +1,135 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \mainpage The SENF Scheduler Library
+
+    The %Scheduler Library provides a single-threaded application event-loop multiplexing multiple
+    event sources.
+
+    \autotoc
+
+    \section scheduler_scheduler The Scheduler
+    \seechapter \ref senf::scheduler
+
+    The %scheduler provides a single threaded event dispatch architecture with reliable task
+    queueing using FIFO scheduling. The %scheduler provides event handling for
+
+    \li File descriptors
+    \li Timers
+    \li UNIX signals
+
+    \section scheduler_clockservice The ClockService
+    \seechapter senf::ClockService
+
+    To support precise event timing, the senf::ClockService class implements a reliable monotonous
+    time source. It is based on the high precision POSIX clock and adds support for reliable
+    conversion between an abstract clock type and absolute date/time
+
+    \section scheduler_helpers Miscellaneous helpers
+
+    To ease the use of the Scheduler there are some additional helpers managing callbacks and
+    registrations.
+
+    \li senf::ReadHelper reads data from an arbitrary file descritor until a use specified condition
+        is met (e.g. number of chars read or a specific character sequence is found in the input).
+    \li senf::WriteHelper writes data to an arbitrary file descriptor until all provided data has
+        been written.
+    
+    \section scheduler_i Implementation
+    \seechapter \ref scheduler_implementation
+
+    senf::Scheduler is only a wrapper around the real implementation. The real implementation is now
+    based on a modular dispatcher architecture
+
+ */
+
+/** \page scheduler_implementation The Scheduler Implementation
+
+    The implentation architecture now is based on a set of dispatchers, one for each type of
+    event.
+
+    \autotoc
+
+    \section scheduler_i_overview Overview
+
+    The %scheduler utilizes the following components
+
+    \li There is a dispatcher for each event type. This dispatcher manages the event specific
+        registration and unregistration. The dispatcher is owns the event (and task) objects.
+    
+    \li Every registered event is represented by an event specific event class instance.
+
+    \li The Dispatcher ultimately registeres with the senf::scheduler::detail::FdManager. Since the
+        event-loop is based on epoll() (it could easily be changed to be based on select() or
+        poll()), all events must ultimately be represented by some type of file descriptor (not
+        necessarily a \e different file descriptor for each event).
+
+    \li The Dispatcher registeres all callbacks as tasks with the runner
+        (senf::scheduler::detail::FIFORunner).
+
+    \li The senf::scheduler::detail::FdManager uses senf::scheduler::detail::Poller to access the
+        low-level epoll() API.
+
+    All these classes are singletons.
+
+
+    \section scheduler_i_dispatchers Dispatchers
+    
+    There is a dispatcher for each event type
+
+    \li senf::scheduler::detail::FdDispatcher manages poll-able file descriptors. This does \e not
+        include real files.
+    \li senf::scheduler::detail::FileDispatcher manages disk files
+    \li senf::scheduler::detail::TimerDispatcher manages timers
+    \li senf::scheduler::detail::SignalDispatcher manages UNIX signals
+
+    Each dispatcher has a specific API and the integration into the main-loop is not standardized
+    for performance reasons.
+
+    The Dispatcher does not own the event instances, instead those instances are owned by the
+    respective object creating the event. The implementation uses boost::intrusive containeres to
+    manage the events. This makes the Scheduler itself be completely devoid of dynamic memory
+    allocations.
+
+    
+    \section scheduler_i_mainloop The main loop
+
+    The application mainloop senf::scheduler::process() is constructed by calling the correct
+    members of all these classes repeatedly in the correct order:
+
+    \li First dispatchers are set up
+    \li then the senf::scheduler::FdManager is called to wait for an event
+    \li After cleaning up the dispatchers,
+    \li the senf::scheduler::FIFORunner is called to executed all now runnable tasks.
+ */
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// mode: flyspell
+// mode: auto-fill
+// compile-command: "scons -U doc"
+// End:

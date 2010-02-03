@@ -1,0 +1,97 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ReadPolicy and WritePolicy inline template implementation
+ */
+
+//#include "ReadWritePolicy.ih"
+
+// Custom includes
+
+#define prefix_ inline
+///////////////////////////////cti.p///////////////////////////////////////
+
+#ifndef DOXYGEN
+template <class SPolicy>
+prefix_ unsigned senf::ReadablePolicy::
+readfrom(ClientSocketHandle<SPolicy> handle, char * buffer, unsigned size,
+         typename SPolicy::AddressingPolicy::Address & address,
+         typename IfCommunicationPolicyIs<SPolicy,UnconnectedCommunicationPolicy>::type *)
+{
+    return do_readfrom(handle, buffer, size, address.sockaddr_p(), address.socklen_p());
+}
+#else
+template <class SPolicy>
+prefix_ unsigned senf::ReadablePolicy::
+readfrom(ClientSocketHandle<SPolicy> handle, char * buffer, unsigned size,
+         typename Policy::AddressingPolicy::Address & address)
+{}
+#endif
+
+#ifndef DOXYGEN
+template <class SPolicy>
+prefix_ unsigned senf::WriteablePolicy::
+write(ClientSocketHandle<SPolicy> handle, char const * buffer, unsigned size,
+      typename IfCommunicationPolicyIs<SPolicy,ConnectedCommunicationPolicy>::type *)
+{
+    return do_write(handle,buffer,size);
+}
+#else
+template <class SPolicy>
+prefix_ unsigned senf::WriteablePolicy::
+write(ClientSocketHandle<SPolicy> handle, char const * buffer, unsigned size)
+{}
+#endif
+
+#ifndef DOXYGEN
+template <class SPolicy>
+prefix_ unsigned senf::WriteablePolicy::
+writeto(ClientSocketHandle<SPolicy> handle,
+        typename boost::call_traits<typename SPolicy::AddressingPolicy::Address>::param_type addr,
+        char const * buffer, unsigned size,
+        typename IfCommunicationPolicyIs<SPolicy,UnconnectedCommunicationPolicy>::type *)
+{
+    return do_writeto(handle, buffer, size, addr.sockaddr_p(), addr.socklen());
+}
+#else
+template <class SPolicy>
+prefix_ unsigned senf::WriteablePolicy::
+writeto(ClientSocketHandle<SPolicy> handle,
+        typename Policy::AddressingPolicy::Address const & addr,
+        char const * buffer, unsigned size)
+{}
+#endif
+
+///////////////////////////////cti.e///////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

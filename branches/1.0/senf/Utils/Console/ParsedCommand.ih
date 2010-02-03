@@ -1,0 +1,216 @@
+// $Id$
+//
+// Copyright (C) 2008 
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ParsedCommand internal header */
+
+#ifndef IH_SENF_Scheduler_Console_ParsedCommand_
+#define IH_SENF_Scheduler_Console_ParsedCommand_ 1
+
+// Custom includes
+#include <boost/function.hpp>
+#include <boost/intrusive_ptr.hpp>
+#include "Parse.hh"
+
+///////////////////////////////ih.p////////////////////////////////////////
+
+namespace senf {
+namespace console {
+
+    template < class FunctionTraits, 
+               class ReturnType=typename FunctionTraits::result_type, 
+               unsigned arity=FunctionTraits::arity >
+    class ParsedCommandOverload;
+
+    template < class Overload, 
+               unsigned index=0, 
+               bool flag=(index < unsigned(Overload::traits::arity)) >
+    class ParsedArgumentAttributor;
+
+namespace detail {
+
+    /** \brief Internal: Argument information structure
+        
+        This class is used to hold argument information for automatically parsed commands. 
+
+        \see ParsedCommandOverloadBase
+     */
+    struct ArgumentInfoBase
+        : public intrusive_refcount
+    {
+        typedef boost::intrusive_ptr<ArgumentInfoBase> ptr;
+        
+        std::string type;
+        std::string name;
+        std::string defaultDoc;
+        bool hasDefault;
+        std::string doc;
+        bool singleToken;
+        
+        explicit ArgumentInfoBase(std::string const & type, bool singleToken=false);
+        virtual ~ArgumentInfoBase();
+
+        virtual std::string defaultValueStr() const = 0;
+    };
+    
+    /** \brief Internal: Argument information structure
+        
+        This class is used to hold argument information for automatically parsed commands. 
+
+        \see ParsedCommandOverloadBase
+     */
+    template <class ParameterType>
+    struct ArgumentInfo 
+        : public ArgumentInfoBase
+    {
+        typedef boost::intrusive_ptr<ArgumentInfo> ptr;
+        typedef boost::function<void (ParseCommandInfo::TokensRange const &, 
+                                      ParameterType &)> Parser;
+
+        static ptr create();
+        ArgumentInfo();
+
+        ParameterType defaultValue;
+        Parser parser;
+
+        virtual std::string defaultValueStr() const;
+    };
+    
+#ifndef DOXYGEN
+
+    // FirstArgType returns void, if the function has no arguments, otherwise it returns arg1_type
+
+    template <class Traits, bool flag=(Traits::arity>0)>
+    struct FirstArgType
+    {
+        typedef void type;
+    };
+
+    template <class Traits>
+    struct FirstArgType<Traits,true>
+    {
+        typedef typename Traits::arg1_type type;
+    };
+
+    template <class FnunctionP, class Function, bool isFN=boost::is_function<Function>::value>
+    struct ParsedCommandTraits_i
+    {
+        static const bool is_callable = false;
+        static const bool is_member = false;
+        static const bool is_simple = false;
+    };
+
+    template <class FunctionP, class Function>
+    struct ParsedCommandTraits_i<FunctionP, Function, true>
+    {
+        typedef FunctionP base_type;
+        typedef typename senf::remove_any_pointer<base_type>::type function_type;
+        typedef boost::function_traits<function_type> base_traits;
+        typedef typename FirstArgType<base_traits>::type first_arg_type;
+
+        static const bool has_ostream_arg = boost::is_same<first_arg_type, std::ostream &>::value;
+
+        typedef typename boost::mpl::if_c<
+            has_ostream_arg, 
+            typename function_traits_remove_arg<base_traits>::type, 
+            base_traits>
+        ::type traits;
+
+        typedef typename senf::remove_cvref<typename base_traits::result_type>::type result_type;
+
+        static const bool is_callable = true;
+        static const bool is_member = boost::is_member_pointer<base_type>::value;
+        static const bool is_simple = false;
+        
+        typedef typename senf::member_class<base_type>::type class_type;
+
+        typedef ParsedCommandOverload<traits> Overload;
+        typedef ParsedArgumentAttributor<Overload> Attributor;
+    };
+
+    // Disable auto-parsing for ParseCommandInfo arg -> register manually parsed command
+    template <class FunctionP>
+    struct ParsedCommandTraits_i<FunctionP, void (std::ostream &, ParseCommandInfo const &), true>
+    {
+        static const bool is_simple = true;
+    };
+
+    template <class FunctionP>
+    struct ParsedCommandTraits
+        : public ParsedCommandTraits_i< FunctionP, 
+                                        typename senf::remove_any_pointer<FunctionP>::type >
+    {};
+
+    struct ParsedCommandAddNodeAccess;
+
+    // What is THIS about ??
+
+    // Ok, here's the dope: parsed commands may optionally have an std::ostream & first argument. If
+    // this argument is given, then the function will be called with the console output stream as
+    // it's first argument.
+    //
+    // This is implemented in the following way: ParsedCommandOverload (the class responsible for
+    // calling the callback) will ALWAYS pass the stream as first argument. If the user callback
+    // expects os as it's first argument, 'ignoreOneArg' will be false and the user supplied
+    // function will be directly passed to ParsedCommandOverload.
+    //
+    // If however, it does NOT take an std::ostream first argument, 'ignoreOneArg' will be true and
+    // the create member will use boost::bind to DROP the first argument.
+    
+    template <class Traits, 
+              bool ignoreOneArg=! Traits::has_ostream_arg, 
+              unsigned arity=Traits::traits::arity>
+    struct CreateParsedCommandOverload
+    {};
+
+    template <class Traits, unsigned arity>
+    struct CreateParsedCommandOverload<Traits, false, arity>
+    {
+        typedef typename Traits::traits traits;
+        
+        template <class Function>
+        static typename senf::console::ParsedCommandOverload<traits>::ptr create(Function fn) 
+            { return senf::console::ParsedCommandOverload<traits>::create(fn); };
+    };
+
+#   define BOOST_PP_ITERATION_PARAMS_1 (4, (0, SENF_CONSOLE_MAX_COMMAND_ARITY,                     \
+                                            SENF_ABSOLUTE_INCLUDE_PATH(Utils/Console/ParsedCommand.mpp), \
+                                            4))
+#   include BOOST_PP_ITERATE()
+
+#endif
+
+}}}
+
+///////////////////////////////ih.e////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:
