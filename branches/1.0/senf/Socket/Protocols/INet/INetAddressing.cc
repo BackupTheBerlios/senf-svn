@@ -35,6 +35,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <senf/Utils/senfassert.hh>
+#include <senf/Socket/Protocols/AddressExceptions.hh>
 
 //#include "INetAddressing.mpp"
 #define prefix_
@@ -52,7 +53,7 @@ prefix_ senf::INet4SocketAddress::INet4SocketAddress(std::string const & addr)
                                                  ? addr : std::string(addr,portIx+1)) );
     }
     catch (boost::bad_lexical_cast const &) {
-        throw AddressSyntaxException() << "invalid port number";
+        throw AddressSyntaxException(addr) << ": invalid port number";
     }
     if (portIx != std::string::npos)
         address( INet4Address::from_string(std::string(addr,0,portIx)) );
@@ -111,7 +112,7 @@ prefix_ senf::INet6SocketAddress::INet6SocketAddress(std::string const & addr,
 
     boost::smatch match;
     if (! regex_match(addr, match, addressRx))
-        throw AddressSyntaxException();
+        throw AddressSyntaxException(addr);
 
     if (match[ZoneId].matched)
         assignIface(match[ZoneId]);
@@ -147,7 +148,7 @@ prefix_ void senf::INet6SocketAddress::assignIface(std::string const & iface)
     else {
         sockaddr_.sin6_scope_id = if_nametoindex(iface.c_str());
         if (sockaddr_.sin6_scope_id == 0)
-            throw AddressSyntaxException();
+            throw AddressSyntaxException(iface);
     }
 }
 
