@@ -315,7 +315,7 @@
     directory and use the following subversion command
 
     <pre>
-    $ svn checkout http://svn.berlios.de/svnroot/repos/senf/trunk senf
+    $ svn checkout http://svn.berlios.de/svnroot/repos/senf/branches/1.0 senf
     </pre>
 
     This will create a new directory \c senf within the current directory. For further documentation
