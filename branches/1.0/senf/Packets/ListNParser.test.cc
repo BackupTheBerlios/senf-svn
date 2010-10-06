@@ -46,8 +46,23 @@ namespace {
 
         SENF_PARSER_PRIVATE_FIELD( size, senf::UInt8Parser );
         SENF_PARSER_VECTOR( vec, size, senf::UInt16Parser );
-        
+
         SENF_PARSER_FINALIZE(MyVec);
+
+        typedef std::vector<boost::uint16_t> value_type;
+
+        value_type value() const {
+            value_type v (vec().begin(), vec().end());
+            return v;
+        }
+        void value(value_type const & v) {
+            vec_t::container container (vec());
+            container.clear();
+            for (value_type::const_iterator i=v.begin(); i!=v.end(); ++i)
+                container.push_back( *i);
+        }
+        operator value_type() const { return value(); }
+        MyVec const & operator= (value_type const & other) { value(other); return *this; }
     };
 
     typedef senf::ListParser<
@@ -124,7 +139,7 @@ SENF_AUTO_UNIT_TEST(ListNParser)
         BOOST_CHECK_EQUAL( p.size(), 2u );
         BOOST_CHECK_EQUAL( p.bytes(), 8u );
         BOOST_CHECK_EQUAL( p.back().vec().size(), 0u );
-        
+
         p.back().vec().push_front(0x0123u);
         BOOST_CHECK_EQUAL( p.front().vec().size(), 2u );
         BOOST_CHECK_EQUAL( p.back().vec().size(), 1u );
@@ -132,7 +147,7 @@ SENF_AUTO_UNIT_TEST(ListNParser)
         p.push_front_space(2u);
         BOOST_CHECK_EQUAL( p.size(), 4u );
         BOOST_CHECK_EQUAL( p.front().vec().size(), 0u);
-        
+
         p.resize(3u);
         BOOST_CHECK_EQUAL( p.size(), 3u );
         BOOST_CHECK_EQUAL( p.back().vec()[0], 0x1234u );
@@ -143,7 +158,7 @@ SENF_AUTO_UNIT_TEST(ListNParser)
 }
 
 namespace {
-    
+
     struct TestTransform
     {
         typedef unsigned value_type;
@@ -151,19 +166,43 @@ namespace {
         static unsigned set(unsigned v) { return 2*v; }
     };
 
-    struct TestListParser
+    struct TestListParserBase
         : public senf::PacketParserBase
     {
 #       include SENF_PARSER()
 
-        SENF_PARSER_PRIVATE_FIELD ( size1 , senf::UInt8Parser );
-        SENF_PARSER_PRIVATE_FIELD ( size2 , senf::UInt8Parser );
-        SENF_PARSER_FIELD         ( dummy , senf::UInt32Parser );
-        SENF_PARSER_LIST          ( list1  , transform(TestTransform, size1) , MyVec );
-        SENF_PARSER_LIST          ( list2  , size2 , MyVec );
+        SENF_PARSER_FIELD_RO ( size1 , senf::UInt8Parser );
+        SENF_PARSER_FIELD_RO ( size2 , senf::UInt8Parser );
+
+        SENF_PARSER_FINALIZE(TestListParserBase);
+    };
+
+    struct TestListParser
+        : public TestListParserBase
+    {
+#       include SENF_PARSER()
+        SENF_PARSER_INHERIT ( TestListParserBase );
+
+        SENF_PARSER_FIELD   ( dummy , senf::UInt32Parser );
+        SENF_PARSER_LIST    ( list1  , transform(TestTransform, size1) , MyVec );
+        SENF_PARSER_LIST    ( list2  , size2 , MyVec );
 
         SENF_PARSER_FINALIZE(TestListParser);
     };
+
+    struct TestListPacketType
+        : public senf::PacketTypeBase,
+          public senf::PacketTypeMixin<TestListPacketType>
+    {
+        typedef senf::PacketTypeMixin<TestListPacketType> mixin;
+        typedef senf::ConcretePacket<TestListPacketType> packet;
+        typedef TestListParser parser;
+
+        using mixin::nextPacketRange;
+        using mixin::initSize;
+        using mixin::init;
+    };
+    typedef senf::ConcretePacket<TestListPacketType> TestListPacket;
 
 }
 
@@ -183,10 +222,10 @@ SENF_AUTO_UNIT_TEST(listMacro)
                              0x0D, 0x0E,             // list2()[1].vec()[1]
                              0x01,                   // list2()[2].size()
                              0x0F, 0x10 };           // list2()[2].vec()[0]
-    
+
     senf::DataPacket p (senf::DataPacket::create(data));
     TestListParser parser (p.data().begin(), &p.data());
-    
+
     BOOST_CHECK_EQUAL( parser.list1().size(), 2u );
     BOOST_CHECK_EQUAL( parser.list2().size(), 3u );
     BOOST_CHECK_EQUAL( parser.dummy(), 0x01020304u );
@@ -205,7 +244,7 @@ SENF_AUTO_UNIT_TEST(listMacro)
         BOOST_CHECK_EQUAL( i->vec().size(), 2u );
         BOOST_CHECK_EQUAL( i->vec()[0], 0x0708u );
         BOOST_CHECK_EQUAL( i->vec()[1], 0x090Au );
-        
+
         ++i;
         BOOST_CHECK( i == list.end() );
     }
@@ -221,14 +260,24 @@ SENF_AUTO_UNIT_TEST(listMacro)
         BOOST_CHECK_EQUAL( i->vec().size(), 2u );
         BOOST_CHECK_EQUAL( i->vec()[0], 0x0B0Cu );
         BOOST_CHECK_EQUAL( i->vec()[1], 0x0D0Eu );
-        
+
         ++i;
         BOOST_CHECK_EQUAL( i->vec().size(), 1u );
         BOOST_CHECK_EQUAL( i->vec()[0], 0x0F10u );
-        
+
         ++i;
         BOOST_CHECK( i == list.end() );
     }
+}
+
+SENF_AUTO_UNIT_TEST(listMacro_stress)
+{
+    TestListPacket testListPacket (TestListPacket::create());
+    for (unsigned i=0; i<42; ++i) {
+        MyVec::value_type vec( 4, 42);
+        testListPacket->list2().push_back( vec);
+    }
+    BOOST_CHECK_EQUAL( testListPacket->list2().size(), 42u );
 
 }
 

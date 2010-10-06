@@ -88,7 +88,7 @@ namespace detail {
 
         /** \brief Internal: ListBParser container/wrapper policy */
         struct container_policy
-            : public AuxPolicy
+            : public AuxPolicy::WrapperPolicy
         {
             typedef PacketParserBase::data_iterator data_iterator;
             typedef PacketParserBase::state_type state_type;
@@ -138,8 +138,8 @@ namespace detail {
     };
 
     template <class ElementParser, class AuxPolicy, class Transform>
-    struct ListParserPolicy<ElementParser, AuxPolicy, 
-                            senf::detail::auxtag::transform<Transform, 
+    struct ListParserPolicy<ElementParser, AuxPolicy,
+                            senf::detail::auxtag::transform<Transform,
                                                             senf::detail::auxtag::bytes> >
     {
         typedef ListBParser_Policy< ElementParser,
