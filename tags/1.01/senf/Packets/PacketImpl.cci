@@ -1,0 +1,253 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief PacketImpl inline non-template implementation */
+
+// Custom includes
+
+#define prefix_ inline
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::detail::AnnotationRegistry
+
+prefix_ std::string senf::detail::AnnotationRegistry::name(key_type key)
+    const
+{
+    Registry::const_iterator i (registry_.find(key));
+    return i == registry_.end() ? "" : i->second->v_name();
+}
+
+prefix_ bool senf::detail::AnnotationRegistry::isComplex(key_type key)
+    const
+{
+    Registry::const_iterator i (registry_.find(key));
+    return i != registry_.end() && i->second->v_isComplex();
+}
+
+prefix_ unsigned senf::detail::AnnotationRegistry::size(key_type key)
+    const
+{
+    Registry::const_iterator i (registry_.find(key));
+    return i == registry_.end() ? 0 : i->second->v_size();
+}
+
+prefix_ senf::detail::AnnotationRegistry::iterator senf::detail::AnnotationRegistry::begin()
+    const
+{
+    return boost::make_transform_iterator(index_.begin(),
+                                          __gnu_cxx::select2nd<Index::value_type>());
+}
+
+prefix_ senf::detail::AnnotationRegistry::iterator senf::detail::AnnotationRegistry::end()
+    const
+{
+    return boost::make_transform_iterator(index_.end(),
+                                          __gnu_cxx::select2nd<Index::value_type>());
+}
+
+prefix_ senf::detail::AnnotationRegistry::AnnotationRegistry()
+    : simpleAnnotationCount_ (0), complexAnnotationCount_ (0)
+{}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Memory management:
+//
+// * The PacketImpl destructor will *explicitly* clean-up the interpreters_ list by removing
+//   each element from the list and deleting it if it's (intrusive) refcount is 0
+// * The PacketInterpreters use safe hooks -> they know whether they are part of a list or not
+// * PacketHandle has an intrusive_ptr to PacketInterpreterBase. The intrusive_ptr_add_ref
+//   will refcount both the PacketImpl as well as the PacketInterpreterBase
+// * intrusive_ptr_remove will only delete the object if it's not in a container
+// * removing an object from the list will decrement the PacketImpl refcount accordingly
+// * inserting an object into the list will increment the PacketImpl refcount accordingly
+// * each PacketInterpreterBase instance holds a *raw* pointer to the PacketImpl
+//
+// The following operations change refcounts:
+//
+// * intrusive_ptr_add_ref(PacketInterpreterBase *);
+// * intrusive_ptr_remove(PacketInterpreterBase *);
+// * PacketImpl::appendInterpreter();
+// * PacketImpl::prependInterpreter();
+// * PacketImpl::truncateInterpreters();
+//
+// The last three also modify the impl_ member accordingly by calling
+// PacketInterpreterBase::assign/release
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::detail::PacketImpl
+
+prefix_ senf::detail::PacketImpl::PacketImpl()
+    : refcount_(0)
+{
+    ::memset(simpleAnnotations_, 0, sizeof(simpleAnnotations_));
+}
+
+prefix_ senf::detail::PacketImpl::PacketImpl(size_type size, byte initValue)
+    : refcount_(0), data_(size,initValue)
+{
+    ::memset(simpleAnnotations_, 0, sizeof(simpleAnnotations_));
+}
+
+// reference/memory management
+
+prefix_ void senf::detail::PacketImpl::add_ref()
+{
+    ++ refcount_;
+}
+
+prefix_ senf::detail::PacketImpl::refcount_t senf::detail::PacketImpl::refcount()
+    const
+{
+    return refcount_;
+}
+
+// Interpreter chain
+
+prefix_ senf::PacketInterpreterBase * senf::detail::PacketImpl::first()
+{
+    return interpreters_.empty() ? 0 : & interpreters_.front();
+}
+
+prefix_ senf::PacketInterpreterBase * senf::detail::PacketImpl::last()
+{
+    return interpreters_.empty() ? 0 : & interpreters_.back();
+}
+
+prefix_ senf::PacketInterpreterBase * senf::detail::PacketImpl::next(PacketInterpreterBase * p)
+{
+    interpreter_list::iterator i (interpreter_list::current(*p));
+    return (++i == interpreters_.end()) ? 0 : &*i;
+}
+
+prefix_ senf::PacketInterpreterBase * senf::detail::PacketImpl::prev(PacketInterpreterBase * p)
+{
+    interpreter_list::iterator i (interpreter_list::current(*p));
+    return (i == interpreters_.begin()) ? 0 : &*(--i);
+}
+
+prefix_ void senf::detail::PacketImpl::truncateInterpreters(PacketInterpreterBase * p)
+{
+    Guard guard (this);
+    eraseInterpreters(interpreter_list::current(*p),interpreters_.end());
+}
+
+prefix_ void senf::detail::PacketImpl::truncateInterpretersBackwards(PacketInterpreterBase * p)
+{
+    Guard guard (this);
+    eraseInterpreters(interpreters_.begin(),boost::next(interpreter_list::current(*p)));
+}
+
+// Data container
+
+prefix_ senf::detail::PacketImpl::iterator senf::detail::PacketImpl::begin()
+{
+    return data_.begin();
+}
+
+prefix_ senf::detail::PacketImpl::iterator senf::detail::PacketImpl::end()
+{
+    return data_.end();
+}
+
+prefix_ senf::detail::PacketImpl::size_type senf::detail::PacketImpl::size()
+{
+    return data_.size();
+}
+
+prefix_ void senf::detail::PacketImpl::insert(PacketData * self, iterator pos, byte v)
+{
+    difference_type ix (std::distance(begin(),pos));
+    data_.insert(pos,v);
+    updateIterators(self,ix,1);
+}
+
+prefix_ void senf::detail::PacketImpl::insert(PacketData * self, iterator pos, size_type n,
+                                              byte v)
+{
+    difference_type ix (std::distance(begin(),pos));
+    data_.insert(pos,n,v);
+    updateIterators(self,ix,n);
+}
+
+prefix_ void senf::detail::PacketImpl::erase(PacketData * self, iterator pos)
+{
+    difference_type ix (std::distance(begin(),pos));
+    data_.erase(pos);
+    updateIterators(self,ix,-1);
+}
+
+prefix_ void senf::detail::PacketImpl::erase(PacketData * self, iterator first, iterator last)
+{
+    difference_type ix (std::distance(begin(),first));
+    difference_type delta (std::distance(first,last));
+    data_.erase(first,last);
+    updateIterators(self,ix,-delta);
+}
+
+prefix_ void senf::detail::PacketImpl::reserve(size_type n)
+{
+    data_.reserve(n);
+}
+
+prefix_ senf::detail::PacketImpl::size_type senf::detail::PacketImpl::capacity()
+    const
+{
+    return data_.capacity();
+}
+
+// Annotations
+
+prefix_ void * senf::detail::PacketImpl::annotation(AnnotationRegistry::key_type key)
+{
+    return key >= 0 ? & simpleAnnotations_[key] : complexAnnotation(key);
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::detail::PacketImpl::Guard
+
+prefix_ senf::detail::PacketImpl::Guard::Guard(PacketImpl * impl)
+    : p (impl)
+{
+    p->add_ref();
+}
+
+prefix_ senf::detail::PacketImpl::Guard::~Guard()
+{
+    p->release();
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

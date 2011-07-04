@@ -1,0 +1,9 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons
+
+###########################################################################
+
+SENFSCons.AllIncludesHH(env, exclude=['Logger.hh','SenfLog.hh'])
+SENFSCons.AutoRules(env)

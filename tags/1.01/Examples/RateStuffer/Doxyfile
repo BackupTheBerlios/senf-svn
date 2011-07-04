@@ -1,0 +1,8 @@
+@INCLUDE = "$(TOPDIR)/doclib/Doxyfile.global"
+
+SHOW_NAMESPACES = NO
+ALPHABETICAL_INDEX = NO
+PROJECT_NAME = Examples
+EXAMPLE_PATH = .
+
+# extra_source: env.Dia2Png('RateStuffer/ratestuffer.dia')

@@ -1,0 +1,8 @@
+# -*- python -*-
+import senfutil, os
+
+env = Environment(ENV = os.environ)
+senfutil.SetupForSENF(env)
+senfutil.DefaultOptions(env)
+
+env.Default( env.Program('sniffer', senfutil.Glob(env)[0] + ['$BUNDLEDIR/AllBundles.o']) )

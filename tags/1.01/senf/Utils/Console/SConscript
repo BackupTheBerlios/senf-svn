@@ -1,0 +1,9 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons
+
+###########################################################################
+
+SENFSCons.AutoRules(env,  exclude=['testServer.cc'])
+env.Alias('examples', env.Program('testServer', ['testServer.cc']))

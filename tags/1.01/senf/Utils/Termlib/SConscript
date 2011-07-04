@@ -1,0 +1,9 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons
+
+###########################################################################
+
+SENFSCons.AutoRules(env,  exclude=[ 'telnetServer.cc'])
+env.Alias('examples', env.Program('telnetServer', ['telnetServer.cc']))

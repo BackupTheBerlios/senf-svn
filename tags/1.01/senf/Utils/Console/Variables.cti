@@ -1,0 +1,243 @@
+// $Id$
+//
+// Copyright (C) 2008
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Variables inline template implementation */
+
+#include "Variables.ih"
+
+// Custom includes
+
+#define prefix_ inline
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::console::detail::QueryVariable<Variable>
+
+template <class Variable>
+prefix_ senf::console::detail::QueryVariable<Variable>::QueryVariable(Variable const & var)
+    : var_ (var)
+{}
+
+template <class Variable>
+prefix_ typename senf::console::detail::QueryVariable<Variable>::Traits::Overload::ptr
+senf::console::detail::QueryVariable<Variable>::create(Variable const & var)
+{
+    return CreateOverload::create(Function(QueryVariable(var)));
+}
+
+template <class Variable>
+prefix_ Variable const & senf::console::detail::QueryVariable<Variable>::operator()()
+    const
+{
+    return var_;
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::console::detail::SetVariable<Variable>
+
+template <class Variable>
+prefix_ senf::console::detail::SetVariable<Variable>::SetVariable(Variable & var,
+                                                                  OnChangeHandler handler)
+    : var_ (var), handler_ (handler)
+{}
+
+template <class Variable>
+prefix_ typename senf::console::detail::SetVariable<Variable>::Traits::Overload::ptr
+senf::console::detail::SetVariable<Variable>::create(Variable & var)
+{
+    typename Traits::Overload::ptr overload (CreateOverload::create(Function(SetVariable(var))));
+    overload->arg(0).name = "new_value";
+    return overload;
+}
+
+template <class Variable>
+prefix_ void senf::console::detail::SetVariable<Variable>::operator()(Variable const & value)
+    const
+{
+    if (handler_) {
+        Variable old (var_);
+        var_ = value;
+        handler_(old);
+    }
+    else
+        var_ = value;
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::console::ConstVariableFactory<Variable>
+
+template <class Variable>
+prefix_ senf::console::factory::ConstVariableFactory<Variable>
+senf::console::factory::ConstVariableFactory<Variable>::doc(std::string const & doc)
+{
+    doc_ = doc;
+    return *this;
+}
+
+template <class Variable>
+prefix_ senf::console::factory::ConstVariableFactory<Variable>
+senf::console::factory::ConstVariableFactory<Variable>::shortdoc(std::string const & doc)
+{
+    shortdoc_ = doc;
+    return *this;
+}
+
+template <class Variable>
+prefix_ senf::console::factory::ConstVariableFactory<Variable>
+senf::console::factory::ConstVariableFactory<Variable>::formatter(Formatter formatter)
+{
+    queryOverload_->formatter(formatter);
+    return *this;
+}
+
+template <class Variable>
+prefix_ senf::console::OverloadedCommandNode &
+senf::console::factory::ConstVariableFactory<Variable>::create(DirectoryNode & dir,
+                                                               std::string const & name)
+    const
+{
+    OverloadedCommandNode & node (OverloadedCommandNode::insertOverload(dir, name, queryOverload_));
+    if (doc_) node.doc(*doc_);
+    if (shortdoc_) node.shortdoc(*shortdoc_);
+    return node;
+}
+
+template <class Variable>
+prefix_ senf::console::factory::ConstVariableFactory<Variable>::
+ConstVariableFactory(Variable const & var)
+    : queryOverload_ (detail::QueryVariable<Variable>::create(var))
+{}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::console::VariableFactory<Variable>
+
+template <class Variable>
+prefix_ typename senf::console::factory::VariableFactory<Variable>
+senf::console::factory::VariableFactory<Variable>::parser(Parser parser)
+{
+    setOverload_->template arg<0>().parser = parser;
+    return *this;
+}
+
+template <class Variable>
+prefix_ typename senf::console::factory::VariableFactory<Variable>
+senf::console::factory::VariableFactory<Variable>::typeName(std::string const & name)
+{
+    setOverload_->arg(0).type = name;
+    return *this;
+}
+
+template <class Variable>
+prefix_ typename senf::console::factory::VariableFactory<Variable>
+senf::console::factory::VariableFactory<Variable>::onChange(OnChangeHandler handler)
+{
+    setOverload_->function(
+        boost::bind(detail::SetVariable<Variable>(var_, handler),_2));
+    return *this;
+}
+
+template <class Variable>
+prefix_ typename senf::console::factory::VariableFactory<Variable>
+senf::console::factory::VariableFactory<Variable>::doc(std::string const & doc)
+{
+    ConstVariableFactory<Variable>::doc(doc);
+    return *this;
+}
+
+template <class Variable>
+prefix_ typename senf::console::factory::VariableFactory<Variable>
+senf::console::factory::VariableFactory<Variable>::shortdoc(std::string const & doc)
+{
+    ConstVariableFactory<Variable>::shortdoc(doc);
+    return *this;
+}
+
+template <class Variable>
+prefix_ typename senf::console::factory::VariableFactory<Variable>
+senf::console::factory::VariableFactory<Variable>::formatter(Formatter formatter)
+{
+    ConstVariableFactory<Variable>::formatter(formatter);
+    return *this;
+}
+
+template <class Variable>
+prefix_ senf::console::OverloadedCommandNode &
+senf::console::factory::VariableFactory<Variable>::create(DirectoryNode & dir,
+                                                          std::string const & name)
+    const
+{
+    OverloadedCommandNode & node (ConstVariableFactory<Variable>::create(dir,name));
+    node.add(setOverload_);
+    return node;
+}
+
+template <class Variable>
+prefix_ senf::console::factory::VariableFactory<Variable>::VariableFactory(Variable & var)
+    : ConstVariableFactory<Variable> (var),
+      setOverload_ (detail::SetVariable<Variable>::create(var)),
+      var_ (var)
+{}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <class Var>
+prefix_ senf::console::factory::VariableFactory<Var>
+senf::console::factory::Variable(Var & var)
+{
+    return VariableFactory<Var>(var);
+}
+
+template <class Var>
+prefix_ senf::console::factory::VariableFactory<Var>
+senf::console::factory::Variable(boost::reference_wrapper<Var> var)
+{
+    return VariableFactory<Var>(var);
+}
+
+template <class Var>
+prefix_ senf::console::factory::ConstVariableFactory<Var>
+senf::console::factory::Variable(Var const & var)
+{
+    return ConstVariableFactory<Var>(var);
+}
+
+template <class Var>
+prefix_ senf::console::factory::ConstVariableFactory<Var>
+senf::console::factory::Variable(boost::reference_wrapper<Var const> var)
+{
+    return ConstVariableFactory<Var>(var);
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

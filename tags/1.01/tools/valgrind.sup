@@ -1,0 +1,79 @@
+{
+   gethostbyname2_r-suppression-1
+   Memcheck:Addr4
+   ...
+   fun:_dl_open
+   ...
+   fun:gethostbyname2_r
+}
+{
+   gethostbyname2_r-suppression-2
+   Memcheck:Cond
+   ...
+   fun:_dl_open
+   ...
+   fun:gethostbyname2_r
+}
+
+{
+   dl_main-suppression-1
+   Memcheck:Cond
+   fun:strlen
+   fun:_dl_init_paths
+   ...
+   fun:_dl_start
+}
+{
+   dl_main-suppression-2
+   Memcheck:Cond
+   fun:_dl_relocate_object
+   ...
+   fun:_dl_start
+}
+
+{
+   nss_dl_open-supression-1
+   Memcheck:Cond
+   fun:_dl_relocate_object
+   ...
+   fun:__nss_lookup
+}
+
+{
+   inet_ntop-suppression-1
+   Memcheck:Cond
+   fun:inet_ntop
+}
+
+{
+   siocgifindex-suppression-1
+   Memcheck:Param
+   ioctl(SIOCGIFINDEX)
+   ...
+   fun:_ZN4senf15LLSocketAddress9interfaceERKSs
+}
+
+{
+   boost_unittest_sigaltstack-suppression-1
+   Memcheck:Param
+   sigaltstack(ss)
+   ...
+   fun:_ZN5boost17execution_monitor13catch_signalsERKNS_9unit_test9callback0IiEE
+}
+{
+   boost_unittest_cleanup-suppression-1
+   Memcheck:Addr4
+   fun:_ZN5boost9unit_test14framework_implD1Ev
+}
+{
+   boost_unittest_cleanup-suppression-2
+   Memcheck:Addr8
+   fun:_ZN5boost9unit_test14framework_implD1Ev
+}
+{
+   senf_writeablepolicy_writeto-supression-1
+   Memcheck:Param
+   socketcall.sendto(msg)
+   ...
+   fun:_ZN*
+}

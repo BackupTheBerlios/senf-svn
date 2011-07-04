@@ -1,0 +1,80 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ListNParser non-inline template implementation  */
+
+#include "ListNParser.ih"
+
+// Custom includes
+#include <senf/Utils/senfassert.hh>
+
+#define prefix_
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <class ElementParser, class AuxPolicy>
+prefix_ void
+senf::detail::ListNParser_Policy<ElementParser,AuxPolicy>::setFromPosition(container_type const & c,
+                                                                           iterator_data & d,
+                                                                           data_iterator p)
+    const
+{
+    if (p == c.data().end()) {
+        d.n_ = 0;
+        return;
+    }
+    d.n_ = this->aux(c.i(),c.state());
+    data_iterator j (this->adjust(c.i(),c.state()));
+    for (; d.n_; --d.n_, j += ElementParser(j,c.state()).bytes())
+        if (j==p)
+            return;
+    SENF_ASSERT( false, "setFromPosition: position does not point to any list element" );
+}
+
+template <class ElementParser, class AuxPolicy>
+prefix_ typename senf::detail::ListNParser_Policy<ElementParser,AuxPolicy>::data_iterator
+senf::detail::ListNParser_Policy<ElementParser,AuxPolicy>::raw(container_type const & c,
+                                                               iterator_data const & d)
+    const
+{
+    if (container_type::iterator::get(d).i() != c.data().end())
+        return container_type::iterator::get(d).i();
+    size_type n (this->aux(c.i(),c.state()));
+    data_iterator j (this->adjust(c.i(),c.state()));
+    for (; n; --n)
+        j += ElementParser(j,c.state()).bytes();
+    return j;
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

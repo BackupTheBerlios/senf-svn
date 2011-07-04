@@ -1,0 +1,142 @@
+// $Id$
+//
+// Copyright (C) 2008
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Traits inline template implementation */
+
+#include "Traits.ih"
+
+// Custom includes
+#include <sstream>
+#include <boost/format.hpp>
+#include <senf/Utils/TypeInfo.hh>
+
+#define prefix_ inline
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::console::detail::ReturnValueTraits<Type>
+
+template <class Type>
+prefix_ void senf::console::ReturnValueTraits<Type>::format(Type const & value,
+                                                            std::ostream & os)
+{
+    senf_console_format_value(value, os);
+}
+
+template <class Type>
+prefix_ void senf::console::senf_console_format_value(Type const & value, std::ostream & os)
+{
+    os << value;
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::console::ArgumentTraits<Type>
+
+template <class Type>
+prefix_ void senf::console::ArgumentTraits<Type>::
+parse(ParseCommandInfo::TokensRange const & tokens, Type & out)
+{
+    senf_console_parse_argument(tokens,out);
+}
+
+template <class Type>
+prefix_ void senf::console::parse(ParseCommandInfo::TokensRange const & tokens, Type & out)
+{
+    ArgumentTraits<Type>::parse(tokens, out);
+}
+
+template <class Type>
+prefix_ std::string senf::console::str(Type const & value)
+{
+    return ArgumentTraits<Type>::str(value);
+}
+
+template <class Type>
+prefix_ void senf::console::format(Type const & value, std::ostream & os)
+{
+    ReturnValueTraits<Type>::format(value, os);
+}
+
+template <class Type>
+prefix_ std::string senf::console::ArgumentTraits<Type>::description()
+{
+    return prettyBaseName(typeid(Type));
+}
+
+template <class Type>
+prefix_ std::string senf::console::ArgumentTraits<Type>::str(Type const & value)
+{
+    std::stringstream ss;
+    senf::console::format(value, ss);
+    std::string rv (ss.str());
+
+    if (rv.empty() || ! boost::algorithm::all(rv, CommandParser::isWordChar)) {
+        for (std::string::size_type i (0); i < rv.size(); ++i)
+            if (rv[i] == '"' || rv[i] == '\\')
+                rv.insert(i++,"\\");
+            else if (rv[i] < ' ' || rv[i] > 126) {
+                rv.insert(i+1, (boost::format("x%02x")
+                                % unsigned(static_cast<unsigned char>(rv[i]))).str().c_str());
+                rv[i] = '\\';
+                i += 3;
+            }
+
+        rv.insert(0,"\"");
+        rv.push_back('"');
+        return rv;
+    }
+
+    return ss.str();
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::console::detail::CharArgumentTraits<CharT>
+
+template <class CharT>
+prefix_ void senf::console::detail::CharArgumentTraits<CharT>::
+parse(ParseCommandInfo::TokensRange const & tokens, CharT & out)
+{
+    typename base::type v;
+    base::parse(tokens,v);
+    out = v;
+}
+
+template <class CharT>
+prefix_ std::string senf::console::detail::CharArgumentTraits<CharT>::description()
+{
+    return std::numeric_limits<CharT>::is_signed ? "byte" : "ubyte";
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

@@ -1,0 +1,8 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons, glob
+
+###########################################################################
+
+SENFSCons.AutoPacketBundle(env, 'MPEGDVBBundle')

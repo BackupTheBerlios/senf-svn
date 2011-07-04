@@ -1,0 +1,206 @@
+// $Id$
+//
+// Copyright (C) 2009
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Format inline non-template implementation */
+
+#include "Format.ih"
+
+// Custom includes
+
+#define prefix_ inline
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::format::eng
+
+prefix_ senf::format::eng::eng(float v, float d)
+    : v_ (v), d_ (d), haveWidth_ (false), width_ (0), havePrecision_ (false), precision_ (0),
+      haveFill_ (false), fill_ (' '), mask_ (), flags_ ()
+{}
+
+prefix_ senf::format::eng const & senf::format::eng::setw(unsigned w)
+    const
+{
+    haveWidth_ = true;
+    width_ = w;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::setprecision(unsigned p)
+    const
+{
+    havePrecision_ = true;
+    precision_ = p;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::setfill(char c)
+    const
+{
+    haveFill_ = true;
+    fill_ = c;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::showbase()
+    const
+{
+    mask_ |= std::ios_base::showbase;
+    flags_ |= std::ios_base::showbase;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::noshowbase()
+    const
+{
+    mask_ |= std::ios_base::showbase;
+    flags_ &= ~std::ios_base::showbase;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::showpos()
+    const
+{
+    mask_ |= std::ios_base::showpos;
+    flags_ |= std::ios_base::showpos;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::noshowpos()
+    const
+{
+    mask_ |= std::ios_base::showpos;
+    flags_ &= ~std::ios_base::showpos;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::showpoint()
+    const
+{
+    mask_ |= std::ios_base::showpoint;
+    flags_ |= std::ios_base::showpoint;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::noshowpoint()
+    const
+{
+    mask_ |= std::ios_base::showpoint;
+    flags_ &= ~std::ios_base::showpoint;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::uppercase()
+    const
+{
+    mask_ |= std::ios_base::uppercase;
+    flags_ |= std::ios_base::uppercase;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::nouppercase()
+    const
+{
+    mask_ |= std::ios_base::uppercase;
+    flags_ &= ~std::ios_base::uppercase;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::left()
+    const
+{
+    mask_ |= std::ios_base::adjustfield;
+    flags_ &= ~std::ios_base::adjustfield;
+    flags_ |= std::ios_base::left;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::internal()
+    const
+{
+    mask_ |= std::ios_base::adjustfield;
+    flags_ &= ~std::ios_base::adjustfield;
+    flags_ |= std::ios_base::internal;
+    return *this;
+}
+
+prefix_ senf::format::eng const & senf::format::eng::right()
+    const
+{
+    mask_ |= std::ios_base::adjustfield;
+    flags_ &= ~std::ios_base::adjustfield;
+    flags_ |= std::ios_base::right;
+    return *this;
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::format::IndentHelper
+
+prefix_ senf::format::IndentHelper::IndentHelper()
+    : instance_level(1)
+{
+    ++static_level;
+}
+
+prefix_ senf::format::IndentHelper::~IndentHelper()
+{
+    static_level -= instance_level;
+}
+
+prefix_ void senf::format::IndentHelper::increase()
+{
+    ++static_level;
+    ++instance_level;
+}
+
+prefix_ unsigned int senf::format::IndentHelper::level()
+    const
+{
+    return static_level;
+}
+
+prefix_ std::ostream & senf::format::operator<<(std::ostream & os, senf::format::IndentHelper const & indent)
+{
+    for (unsigned int i=0, j=indent.level(); i<j; ++i)
+        os << "  ";
+    return os;
+}
+
+
+
+
+
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

@@ -1,0 +1,6 @@
+@INCLUDE = "$(TOPDIR)/doclib/Doxyfile.global"
+
+SHOW_NAMESPACES = NO
+ALPHABETICAL_INDEX = NO
+PROJECT_NAME = Examples
+EXAMPLE_PATH = .

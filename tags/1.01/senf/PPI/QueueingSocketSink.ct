@@ -1,0 +1,152 @@
+// $Id$
+//
+// Copyright (C) 2010
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Thorsten Horstmann <tho@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief QueueingSocketSink non-inline template implementation  */
+
+//#include "QueueingSocketSink.ih"
+
+// Custom includes
+#include <senf/Utils/Console/ParsedCommand.hh>
+
+#define prefix_
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::ppi::QueueingAlgorithmRegistry
+
+template <class QAlgorithm>
+prefix_ void senf::ppi::QueueingAlgorithmRegistry::registerQAlgorithm(std::string key)
+{
+    if (qAlgoMap_.find( key) == qAlgoMap_.end() )
+        qAlgoMap_.insert(key, new detail::QueueingAlgorithmRegistry_Entry<QAlgorithm>() );
+    else
+        throw Exception("Duplicated QAlgorithm Registration ") << key;
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::ppi::detail::QueueingAlgorithmRegistry_Entry<QAlgorithm>
+
+template <class QAlgorithm>
+prefix_ senf::ppi::QueueingAlgorithm::ptr senf::ppi::detail::QueueingAlgorithmRegistry_Entry<QAlgorithm>::create()
+    const
+{
+    return QAlgorithm::create();
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::ppi::module::PassiveQueueingSocketSink<Writer>
+
+template <class Writer>
+prefix_ senf::ppi::module::PassiveQueueingSocketSink<Writer>::PassiveQueueingSocketSink(Handle const & handle, QueueingAlgorithm::ptr qAlgorithm)
+    : dir( this),
+      handle_( handle), writer_( ),
+      qAlgo_( qAlgorithm),
+      event_( handle_, IOEvent::Write)
+{
+    namespace fty = console::factory;
+    dir.add( "active", qAlgo_->consoleDir());
+    dir.add( "set", fty::Command(
+            &PassiveQueueingSocketSink<Writer>::setQAlgorithm, this) );
+    dir.add( "list", fty::Command(
+            &QueueingAlgorithmRegistry::dump, &QueueingAlgorithmRegistry::instance()));
+    registerEvent( event_, &PassiveQueueingSocketSink::writable );
+    event_.enabled( false);
+    noroute(input);
+    input.onRequest( &PassiveQueueingSocketSink::write);
+    input.qdisc( QueueingDiscipline::NONE);
+    checkThrottle();
+}
+
+template <class Writer>
+prefix_ void senf::ppi::module::PassiveQueueingSocketSink<Writer>::handle(Handle const & handle)
+{
+    handle_ = handle;
+    event_.set( handle_, IOEvent::Write);
+    qAlgo_->clear();
+    checkThrottle();
+}
+
+template <class Writer>
+prefix_ void senf::ppi::module::PassiveQueueingSocketSink<Writer>::write()
+{
+    PacketType p ( input());
+    if (qAlgo_->size() > 0) {
+        qAlgo_->enqueue( p);
+        return;
+    }
+    if (! writer_( handle_, p)) {
+        if (qAlgo_->enqueue( p) && !event_.enabled()) {
+          event_.enabled( true);
+        }
+    }
+}
+
+template <class Writer>
+prefix_ void senf::ppi::module::PassiveQueueingSocketSink<Writer>::writable()
+{
+    PacketType p (qAlgo_->dequeue());
+    if (p)
+        writer_( handle_, p);
+    if (qAlgo_->size() == 0) {
+        event_.enabled( false);
+    }
+}
+
+template <class Writer>
+prefix_ void senf::ppi::module::PassiveQueueingSocketSink<Writer>::checkThrottle()
+{
+    if (handle_.valid())
+        input.unthrottle();
+    else
+        input.throttle();
+}
+
+template <class Writer>
+prefix_ void senf::ppi::module::PassiveQueueingSocketSink<Writer>::qAlgorithm(QueueingAlgorithm::ptr qAlgorithm)
+{
+//    dir.remove( "active");
+    qAlgo_.reset( qAlgorithm);
+    dir.add( "active", qAlgo_->consoleDir());
+    if (event_.enabled())
+        event_.enabled( false);
+}
+
+template <class Writer>
+prefix_ void senf::ppi::module::PassiveQueueingSocketSink<Writer>::setQAlgorithm(std::string const & key)
+{
+    qAlgorithm( QueueingAlgorithmRegistry::instance().createQAlgorithm( key));
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End::

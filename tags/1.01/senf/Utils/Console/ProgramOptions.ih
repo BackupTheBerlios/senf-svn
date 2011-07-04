@@ -1,0 +1,111 @@
+// $Id$
+//
+// Copyright (C) 2008
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief ProgramOptions internal header */
+
+#ifndef IH_SENF_Scheduler_Console_ProgramOptions_
+#define IH_SENF_Scheduler_Console_ProgramOptions_ 1
+
+// Custom includes
+#include <boost/scoped_ptr.hpp>
+#include "Parse.hh"
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace senf {
+namespace console {
+namespace detail {
+
+#ifndef DOXYGEN
+
+    class ProgramOptionsSource : public ConfigSource
+    {
+    public:
+        typedef boost::intrusive_ptr<ProgramOptionsSource> ptr;
+
+        static ptr create(int argc, char const ** argv);
+
+        template <class Container>
+        ProgramOptionsSource & nonOptions(Container & container);
+        ProgramOptionsSource & alias(char letter, std::string const & longOpt, bool withArg=false);
+
+    private:
+        ProgramOptionsSource(int argc, char const ** argv);
+
+        virtual void v_parse(RestrictedExecutor & executor);
+
+        void parseLongOption(std::string const & arg, RestrictedExecutor & executor);
+        void parseNonOption(std::string const & arg, RestrictedExecutor & executor);
+
+        struct NonOptionContainer
+        {
+            virtual ~NonOptionContainer();
+            virtual void clear() = 0;
+            virtual void push_back(std::string const & value) = 0;
+        };
+
+        template <class Container>
+        struct NonOptionContainerImpl
+            : public NonOptionContainer
+        {
+            NonOptionContainerImpl(Container & c);
+
+            void clear();
+            void push_back(std::string const & value);
+
+            Container & c_;
+        };
+
+        struct ShortOption
+        {
+            ShortOption(bool withArg, std::string const & longOpt);
+            bool withArg;
+            std::string longOpt;
+        };
+
+        typedef std::map<char, ShortOption> ShortOptions;
+
+        int argc_;
+        char const ** argv_;
+        CommandParser parser_;
+        ShortOptions shortOptions_;
+        boost::scoped_ptr<NonOptionContainer> nonOptions_;
+    };
+
+#endif
+
+}}}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

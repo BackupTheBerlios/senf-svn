@@ -1,0 +1,267 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief FileHandle inline non-template implementation
+ */
+
+//#include "FileHandle.ih"
+
+// Custom includes
+#include <senf/Utils/senfassert.hh>
+#include <errno.h>
+
+#define prefix_ inline
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::FileBody
+
+prefix_ senf::FileBody::FileBody(int fd)
+    : fd_(fd)
+{}
+
+prefix_ senf::FileHandle senf::FileBody::handle()
+{
+    return FileHandle(ptr(this));
+}
+
+prefix_ int senf::FileBody::fd()
+    const
+{
+    return fd_;
+}
+
+prefix_ void senf::FileBody::fd(int fd)
+{
+    fd_ = fd;
+}
+
+prefix_ bool senf::FileBody::eof()
+    const
+{
+    return v_eof();
+}
+
+prefix_ bool senf::FileBody::valid()
+    const
+{
+    return fd_!=-1 && v_valid();
+}
+
+prefix_ bool senf::FileBody::readable()
+    const
+{
+    return pollCheck(fd(),true,0);
+}
+
+prefix_ bool senf::FileBody::waitReadable(senf::ClockService::clock_type timeout)
+    const
+{
+    return pollCheck(fd(), true,
+                     (timeout==-1?-1:senf::ClockService::in_milliseconds(timeout)) );
+}
+
+prefix_ bool senf::FileBody::writeable()
+    const
+{
+    return pollCheck(fd(),false,0);
+}
+
+prefix_ bool senf::FileBody::waitWriteable(senf::ClockService::clock_type timeout)
+    const
+{
+    return pollCheck(fd(), false,
+                     (timeout==-1?-1:senf::ClockService::in_milliseconds(timeout)) );
+}
+
+prefix_ bool senf::FileBody::oobReadable()
+    const
+{
+    return pollCheck(fd(),true,0,true);
+}
+
+prefix_ bool senf::FileBody::waitOOBReadable(senf::ClockService::clock_type timeout)
+    const
+{
+    return pollCheck(fd(), true,
+                     (timeout==-1?-1:senf::ClockService::in_milliseconds(timeout)), true);
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::FileHandle
+
+prefix_ senf::FileBody & senf::FileHandle::body()
+{
+    SENF_ASSERT(body_, "dereferencing in-valid() FileHandle");
+    return *body_;
+}
+
+prefix_ senf::FileBody const & senf::FileHandle::body()
+    const
+{
+    SENF_ASSERT(body_, "dereferencing in-valid() FileHandle");
+    return *body_;
+}
+
+prefix_ void senf::FileHandle::close()
+{
+    body().close();
+}
+
+prefix_ void senf::FileHandle::terminate()
+{
+    body().terminate();
+}
+
+prefix_ bool senf::FileHandle::readable()
+    const
+{
+    return body().readable();
+}
+
+prefix_ bool senf::FileHandle::waitReadable(senf::ClockService::clock_type timeout)
+    const
+{
+    return body().waitReadable(timeout);
+}
+
+prefix_ bool senf::FileHandle::writeable()
+    const
+{
+    return body().writeable();
+}
+
+prefix_ bool senf::FileHandle::waitWriteable(senf::ClockService::clock_type timeout)
+    const
+{
+    return body().waitWriteable(timeout);
+}
+
+prefix_ bool senf::FileHandle::oobReadable()
+    const
+{
+    return body().oobReadable();
+}
+
+prefix_ bool senf::FileHandle::waitOOBReadable(senf::ClockService::clock_type timeout)
+    const
+{
+    return body().waitOOBReadable(timeout);
+}
+
+prefix_ bool senf::FileHandle::blocking()
+    const
+{
+    return body().blocking();
+}
+
+prefix_ void senf::FileHandle::blocking(bool status)
+{
+    body().blocking(status);
+}
+
+prefix_ bool senf::FileHandle::eof()
+    const
+{
+    return body().eof();
+}
+
+prefix_ bool senf::FileHandle::valid()
+    const
+{
+    return body_ && body().valid();
+}
+
+prefix_ bool senf::FileHandle::boolean_test()
+    const
+{
+    return valid() && !eof();
+}
+
+prefix_ int senf::FileHandle::fd()
+    const
+{
+    return body().fd();
+}
+
+prefix_ senf::FileHandle::FileHandle()
+    : body_(0)
+{}
+
+prefix_ senf::FileHandle::~FileHandle()
+{
+    if (body_ && ! body().is_shared())
+        body().destroyClose();
+}
+
+prefix_  senf::FileHandle::FileHandle(std::auto_ptr<FileBody> body)
+    : body_(body.release())
+{}
+
+prefix_ senf::FileHandle::FileHandle(FileBody::ptr body)
+    : body_(body)
+{}
+
+prefix_ senf::FileBody & senf::FileHandle::body(FileHandle & handle)
+{
+    return handle.body();
+}
+
+prefix_ senf::FileBody const & senf::FileHandle::body(FileHandle const & handle)
+{
+    return handle.body();
+}
+
+prefix_ void senf::FileHandle::fd(int fd)
+{
+    body().fd(fd);
+}
+
+prefix_ senf::FileHandle senf::FileHandle::cast_static(FileHandle handle)
+{
+    return handle;
+}
+
+prefix_ senf::FileHandle senf::FileHandle::cast_dynamic(FileHandle handle)
+{
+    return handle;
+}
+
+prefix_ int senf::retrieve_filehandle(FileHandle handle)
+{
+    return handle.fd();
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

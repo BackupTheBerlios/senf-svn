@@ -1,0 +1,153 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief SocketSource non-inline template implementation  */
+
+//#include "SocketSource.ih"
+
+// Custom includes
+
+#define prefix_
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::ppi::DgramReader<Packet,MaxSize>
+
+template <class Packet, unsigned MaxSize>
+prefix_ Packet senf::ppi::DgramReader<Packet,MaxSize>::operator()(Handle & handle)
+{
+    Packet packet (Packet::create(senf::noinit));
+    handle.read(packet.data(), MaxSize);
+    return packet;
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::ppi::module::ActiveSocketSource<Reader>
+
+template <class Reader>
+prefix_ senf::ppi::module::ActiveSocketSource<Reader>::ActiveSocketSource()
+{
+    registerEvent( event_, &ActiveSocketSource::read );
+    route(event_, output);
+}
+
+template <class Reader>
+prefix_ senf::ppi::module::ActiveSocketSource<Reader>::ActiveSocketSource(Reader reader)
+    : reader_(reader)
+{
+    registerEvent( event_, &ActiveSocketSource::read );
+    route(event_, output);
+}
+
+template <class Reader>
+prefix_ senf::ppi::module::ActiveSocketSource<Reader>::ActiveSocketSource(Handle const & handle)
+    : handle_(handle), event_(handle_, IOEvent::Read)
+{
+    registerEvent( event_, &ActiveSocketSource::read );
+    route(event_, output);
+}
+
+template <class Reader>
+prefix_ senf::ppi::module::ActiveSocketSource<Reader>::ActiveSocketSource(Handle const & handle,
+                                                                          Reader reader)
+    : handle_(handle), event_(handle_, IOEvent::Read), reader_(reader)
+{
+    registerEvent( event_, &ActiveSocketSource::read );
+    route(event_, output);
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::ppi::module::ActiveBurstSocketSource<Reader>
+
+template <class Reader>
+prefix_ senf::ppi::module::ActiveBurstSocketSource<Reader>::ActiveBurstSocketSource(unsigned max_burst)
+    : maxBurst_(max_burst)
+{
+    registerEvent( event_, &ActiveBurstSocketSource::read );
+    route(event_, output);
+}
+
+template <class Reader>
+prefix_ senf::ppi::module::ActiveBurstSocketSource<Reader>::ActiveBurstSocketSource(Reader reader, unsigned max_burst)
+    : reader_(reader), maxBurst_(maxBurst)
+{
+    registerEvent( event_, &ActiveBurstSocketSource::read );
+    route(event_, output);
+}
+
+template <class Reader>
+prefix_ senf::ppi::module::ActiveBurstSocketSource<Reader>::ActiveBurstSocketSource(Handle const & handle, unsigned max_burst)
+    : handle_(handle), event_(handle_, IOEvent::Read), maxBurst_(max_burst)
+{
+    registerEvent( event_, &ActiveBurstSocketSource::read );
+    route(event_, output);
+}
+
+template <class Reader>
+prefix_ senf::ppi::module::ActiveBurstSocketSource<Reader>::ActiveBurstSocketSource(Handle const & handle,
+                                                                          Reader reader, unsigned max_burst)
+    : handle_(handle), event_(handle_, IOEvent::Read), reader_(reader), maxBurst_(max_burst)
+{
+    registerEvent( event_, &ActiveBurstSocketSource::read );
+    route(event_, output);
+}
+
+template <class Reader>
+prefix_ void senf::ppi::module::ActiveBurstSocketSource<Reader>::maxBurst(unsigned max_burst)
+{
+    maxBurst_ = max_burst;
+}
+
+template <class Reader>
+prefix_ unsigned senf::ppi::module::ActiveBurstSocketSource<Reader>::maxBurst()
+    const
+{
+    return maxBurst_;
+}
+
+template <class Reader>
+prefix_ void senf::ppi::module::ActiveBurstSocketSource<Reader>::read()
+{
+    output(reader_(handle_));
+    for (unsigned int i = 0; i < maxBurst_; ++i) {
+        typename Reader::PacketType p (reader_(handle_));
+        if (p.data().size() > 0)
+            output( p);
+        else
+            break;
+    }
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

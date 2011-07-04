@@ -1,0 +1,35 @@
+# File name patters to ignore in all directories
+*.pyc
+*.png
+*.o
+*.a
+*.os
+*.so
+*.test.checked
+.sconsign*
+*~
+*#
+.#*
+*.gcda
+*.gcno
+*.gcov
+
+# File names to ignore in all directories
+all_includes.hh
+doc/
+.test.bin
+.test.stamp
+.test-valgrind.stamp
+.sconf_temp/
+config.log
+
+# Local files (files in this directory)
+/SConscript.local
+/*-stamp
+/*.conf
+/linklint
+/TODO
+/dist/
+/lcov.info
+/build/
+/lcov-build/

@@ -1,0 +1,148 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief MACAddress inline non-template implementation */
+
+// Custom includes
+#include <algorithm>
+#include <boost/lambda/lambda.hpp>
+#include "EUI64.hh"
+
+#define prefix_ inline
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::MACAddress
+
+prefix_ senf::MACAddress::MACAddress()
+{
+    std::fill(begin(),end(),0u);
+}
+
+prefix_ senf::MACAddress::MACAddress(senf::NoInit_t)
+{}
+
+prefix_ senf::MACAddress::MACAddress(boost::uint64_t v)
+{
+    (*this)[0] = boost::uint8_t( v>>40 );
+    (*this)[1] = boost::uint8_t( v>>32 );
+    (*this)[2] = boost::uint8_t( v>>24 );
+    (*this)[3] = boost::uint8_t( v>>16 );
+    (*this)[4] = boost::uint8_t( v>> 8 );
+    (*this)[5] = boost::uint8_t( v     );
+}
+
+prefix_ bool senf::MACAddress::local()
+    const
+{
+    return (*this)[0] & 0x02;
+}
+
+prefix_ bool senf::MACAddress::multicast()
+    const
+{
+    return (*this)[0] & 0x01;
+}
+
+prefix_ bool senf::MACAddress::broadcast()
+    const
+{
+    using  boost::lambda::_1;
+    return std::find_if(begin(),end(), _1 != 0xffu) == end();
+}
+
+prefix_ bool senf::MACAddress::boolean_test()
+    const
+{
+    using boost::lambda::_1;
+    return std::find_if(begin(),end(), _1 != 0x00u) != end();
+}
+
+prefix_ boost::uint32_t senf::MACAddress::oui()
+    const
+{
+    return
+        (boost::uint32_t((*this)[0])<<16) |
+        (boost::uint32_t((*this)[1])<<8) |
+        (*this)[2];
+}
+
+prefix_ boost::uint32_t senf::MACAddress::nic()
+    const
+{
+    return
+        (boost::uint32_t((*this)[3])<<16) |
+        (boost::uint32_t((*this)[4])<<8) |
+        (*this)[5];
+}
+
+prefix_ boost::uint64_t senf::MACAddress::eui64()
+    const
+{
+    return
+        (boost::uint64_t( (*this)[0] ) << 56) |
+        (boost::uint64_t( (*this)[1] ) << 48) |
+        (boost::uint64_t( (*this)[2] ) << 40) |
+        (boost::uint64_t( 0xfffe     ) << 24) |
+        (boost::uint64_t( (*this)[3] ) << 16) |
+        (boost::uint64_t( (*this)[4] ) <<  8) |
+        (boost::uint64_t( (*this)[5] )      );
+}
+
+prefix_ boost::uint64_t senf::MACAddress::uint64()
+    const
+{
+    return
+        (boost::uint64_t( (*this)[0] ) << 40) |
+        (boost::uint64_t( (*this)[1] ) << 32) |
+        (boost::uint64_t( (*this)[2] ) << 24) |
+        (boost::uint64_t( (*this)[3] ) << 16) |
+        (boost::uint64_t( (*this)[4] ) <<  8) |
+        (boost::uint64_t( (*this)[5] )      );
+}
+
+prefix_ bool senf::operator==(MACAddress const & mac, EUI64 const & eui64)
+{
+    return eui64.isMACCompatible()
+        && std::equal(eui64.begin(), eui64.begin()+3, mac.begin())
+        && std::equal(eui64.begin()+5, eui64.end(), mac.begin()+3);
+}
+
+prefix_ bool senf::operator==(EUI64 const & eui64, MACAddress const & mac)
+{
+    return mac == eui64;
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

@@ -1,0 +1,19 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons, glob
+
+###########################################################################
+
+SENFSCons.IndexPage(env, 'Mainpage.dox', title="Examples")
+
+SENFSCons.Doxygen(env)
+
+for sconstruct in glob.glob("*/SConstruct"):
+    SENFSCons.BuildExample(env, sconstruct)
+
+for dox in glob.glob("*/Doxyfile"):
+    extra_sources = [ eval(line.split(':',1)[1])
+                      for line in file(dox) 
+                      if line.startswith("# extra_source: ") ]
+    SENFSCons.Doxygen(env, doxyfile=dox, extra_sources=extra_sources)

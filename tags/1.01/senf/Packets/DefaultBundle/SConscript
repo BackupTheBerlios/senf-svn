@@ -1,0 +1,8 @@
+# -*- python -*-
+
+Import('env')
+import SENFSCons
+
+###########################################################################
+
+SENFSCons.AutoPacketBundle(env, 'DefaultBundle')

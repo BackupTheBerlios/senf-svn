@@ -1,0 +1,201 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief PacketRegistry internal header */
+
+#ifndef IH_SENF_Packets_PacketRegistry_
+#define IH_SENF_Packets_PacketRegistry_ 1
+
+// Custom includes
+#include <limits>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/intrusive_ptr.hpp>
+#include <boost/utility.hpp> // for boost::noncopyable
+#include <senf/Utils/TypeIdValue.hh>
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace senf {
+namespace detail {
+
+    struct TypeInfoCompare
+    {
+        bool operator()(std::type_info const & a, std::type_info const & b) const
+            { return a.before(b); }
+    };
+
+    /** \brief Internal: Registry implementation base-class and registry of registries
+
+        \internal
+     */
+    class PacketRegistryImplBase
+        : private boost::noncopyable
+    {
+    public:
+        virtual ~PacketRegistryImplBase();
+
+        static void dump(std::ostream & os);
+        static void clear();
+
+    protected:
+        typedef std::map<std::string, PacketRegistryImplBase*>  RegistryMap;
+        static RegistryMap & registries();
+
+    private:
+        virtual bool v_empty() const = 0;
+        virtual void v_dump(std::ostream & os) const = 0;
+        virtual void v_clear() = 0;
+    };
+
+    /** \brief Internal: Singleton class implementing the packet registry.
+
+        \internal
+     */
+    template <class KeyType>
+    class PacketRegistryImpl
+        : public PacketRegistryImplBase
+    {
+    public:
+        typedef KeyType key_t;
+
+        struct Entry : public intrusive_refcount
+        {
+            typedef boost::intrusive_ptr<Entry> ptr;
+
+            Entry(KeyType const & key_, int priority_);
+            virtual ~Entry();
+
+            virtual Packet::factory_t factory() const = 0;
+
+            virtual std::string name() const = 0;
+            virtual std::type_info const & type() const = 0;
+
+            KeyType key;
+            int priority;
+        };
+
+    private:
+        struct ByKey {};
+        struct ByType {};
+
+        struct RegistryIndices
+            : public boost::multi_index::indexed_by<
+                boost::multi_index::ordered_unique<
+                    boost::multi_index::tag<ByKey>,
+                    boost::multi_index::composite_key<
+                        Entry,
+                        boost::multi_index::member<Entry,KeyType,&Entry::key>,
+                        boost::multi_index::member<Entry,int,&Entry::priority> >,
+                    boost::multi_index::composite_key_compare<
+                        std::less<KeyType>,
+                        std::greater<int> > >,
+                boost::multi_index::ordered_unique<
+                    boost::multi_index::tag<ByType>,
+                    boost::multi_index::mem_fun<Entry const,std::type_info const &,&Entry::type>,
+                    TypeInfoCompare> >
+        {};
+
+        typedef boost::multi_index_container<typename Entry::ptr, RegistryIndices> Registry;
+
+        template <class PacketType>
+        struct EntryImpl : public Entry
+        {
+            EntryImpl(KeyType const & key, int priority);
+
+            virtual Packet::factory_t factory() const;
+            virtual std::string name() const;
+            virtual std::type_info const & type() const;
+        };
+
+    public:
+        //-/////////////////////////////////////////////////////////////////////////////////////////
+        // Types
+
+        typedef typename Registry::template index<ByKey>::type::const_iterator iterator;
+
+        //-/////////////////////////////////////////////////////////////////////////////////////////
+        ///\name Structors and default members
+        //\{
+
+        PacketRegistryImpl(std::string const & name);
+
+        //\}
+        //-/////////////////////////////////////////////////////////////////////////////////////////
+
+        template <class PacketType>
+        void registerPacket(key_t key, int priority=0);
+
+        template <class PacketType>
+        void unregisterPacket();
+        void unregisterPacket(key_t key, int priority=0);
+
+        key_t key(senf::TypeIdValue const & type);
+        boost::optional<key_t> key(senf::TypeIdValue const & type, bool);
+
+        Entry const & lookup(key_t key);
+        Entry const * lookup(key_t key, bool);
+
+        iterator begin() const;
+        iterator end() const;
+
+    protected:
+
+    private:
+        virtual bool v_empty() const;
+        virtual void v_dump(std::ostream & os) const;
+        virtual void v_clear();
+
+        Registry registry_;
+    };
+
+    template <class KeyType, bool is_integral=std::numeric_limits<KeyType>::is_integer>
+    struct DumpKey
+    {
+        static void dump(KeyType const & v, std::ostream & os);
+    };
+
+    template <class KeyType>
+    struct DumpKey<KeyType, true>
+    {
+        static void dump(KeyType const & v, std::ostream & os);
+    };
+
+}}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

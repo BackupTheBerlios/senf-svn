@@ -1,0 +1,105 @@
+// $Id$
+//
+// Copyright (C) 2006
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief SocketProtocol and ConcreteSocketProtocol inline template implementation
+ */
+
+//#include "SocketProtocol.ih"
+
+// Custom includes
+#include "SocketHandle.hh"
+
+#define prefix_ inline
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// senf::ConcreteSocketProtocol<SocketPolicy,Self>
+
+template <class SocketPolicy, class Self>
+prefix_ senf::ConcreteSocketProtocol<SocketPolicy,Self>::~ConcreteSocketProtocol()
+{}
+
+template <class SocketPolicy, class Self>
+prefix_ typename senf::ConcreteSocketProtocol<SocketPolicy,Self>::Policy const &
+senf::ConcreteSocketProtocol<SocketPolicy,Self>::policy()
+    const
+{
+    return policy_;
+}
+
+template <class SocketPolicy, class Self>
+prefix_ std::auto_ptr<senf::SocketBody>
+senf::ConcreteSocketProtocol<SocketPolicy,Self>::clone(bool isServer)
+    const
+{
+    return std::auto_ptr<SocketBody>(new ProtocolSocketBody<Self>(isServer));
+}
+
+template <class SocketPolicy, class Self>
+prefix_ std::auto_ptr<senf::SocketBody>
+senf::ConcreteSocketProtocol<SocketPolicy,Self>::clone(int fd, bool isServer)
+    const
+{
+    return std::auto_ptr<SocketBody>(new ProtocolSocketBody<Self>(isServer, fd));
+}
+
+template <class SocketPolicy, class Self>
+prefix_ senf::SocketBody & senf::ConcreteSocketProtocol<SocketPolicy,Self>::body()
+    const
+{
+    return const_cast< ProtocolSocketBody<Self> &>(
+        static_cast< ProtocolSocketBody<Self> const & >(*this));
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// protected members
+
+template <class SocketPolicy, class Self>
+prefix_ senf::ClientSocketHandle<SocketPolicy>
+senf::ConcreteSocketProtocol<SocketPolicy,Self>::clientHandle()
+    const
+{
+    return static_socket_cast< ClientSocketHandle<Policy> >(fh());
+}
+
+template <class SocketPolicy, class Self>
+prefix_ senf::ServerSocketHandle<SocketPolicy>
+senf::ConcreteSocketProtocol<SocketPolicy,Self>::serverHandle()
+    const
+{
+    return static_socket_cast< ServerSocketHandle<Policy> >(fh());
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:

@@ -1,0 +1,146 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Stefan Bund <g0dil@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief Config internal header */
+
+#ifndef IH_SENF_Utils_Logger_Config_
+#define IH_SENF_Utils_Logger_Config_ 1
+
+// Custom includes
+#include <boost/preprocessor/expand.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
+#include <boost/preprocessor/seq/to_tuple.hpp>
+#include <boost/preprocessor/seq/fold_right.hpp>
+#include <boost/preprocessor/seq/pop_back.hpp>
+#include <boost/preprocessor/if.hpp>
+#include <boost/preprocessor/facilities/is_empty.hpp>
+#include <senf/Utils/preprocessor.hh>
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace senf {
+namespace log {
+namespace detail {
+
+    struct na {};
+
+    /// Internal: Compile time configuration for given \a Stream and \a Area
+    template <class Stream, class Area, class QueryStream=Stream, bool Query=true>
+    struct Config
+    {
+        typedef typename Config<na, Area, Stream, Query>::compileLimit compileLimit;
+    };
+
+#   ifndef DOXYGEN
+
+    template <class Area, class QueryStream, bool Query>
+    struct Config<na, Area, QueryStream, Query>
+    {
+        typedef typename Config<QueryStream, na, QueryStream, Query>::compileLimit compileLimit;
+    };
+
+    template <class Stream, class QueryStream, bool Query>
+    struct Config<Stream, na, QueryStream, Query>
+    {
+        typedef typename Config<na, na, QueryStream, Query>::compileLimit compileLimit;
+    };
+
+    template <class QueryStream, bool Query>
+    struct Config<na, na, QueryStream, Query>
+    {
+        typedef typename QueryStream::compileLimit compileLimit;
+    };
+
+#   endif
+
+}}}
+
+#define SENF_LOG_CHECK_NA_
+
+#define SENF_LOG_CAT(a,b) SENF_LOG_CAT_I(a,b)
+#define SENF_LOG_CAT_I(a,b) a ## b
+
+#define SENF_LOG_IS_NA(elt) BOOST_PP_IS_EMPTY( SENF_LOG_CAT(SENF_LOG_CHECK_NA, elt) )
+
+#define SENF_LOG_SEQ_TO_NAME_(s,state,elem)                                                       \
+    BOOST_PP_IF( SENF_LOG_IS_NA(elem), senf::log::detail::na, state::elem )
+
+#define SENF_LOG_SEQ_TO_NAME(seq)                                                                 \
+    BOOST_PP_SEQ_FOLD_LEFT(SENF_LOG_SEQ_TO_NAME_, , seq)
+
+#define SENF_LOG_PREDECL_(s, state, elem)                                                         \
+    namespace elem { state }
+
+#define SENF_LOG_PREDECL_long(seq)                                                                \
+    BOOST_PP_SEQ_FOLD_RIGHT( SENF_LOG_PREDECL_,                                                   \
+                             class SENF_PP_SEQ_BACK(seq);,                                        \
+                             BOOST_PP_SEQ_POP_BACK(seq) )
+
+#define SENF_LOG_PREDECL_short(seq)                                                               \
+   BOOST_PP_IF( SENF_LOG_IS_NA( SENF_PP_SEQ_BACK(seq) ), ; , class SENF_PP_SEQ_BACK(seq); )
+
+#define SENF_LOG_PREDECL(seq)                                                                     \
+    BOOST_PP_CAT(SENF_LOG_PREDECL_,                                                               \
+                 BOOST_PP_IF(BOOST_PP_DEC(BOOST_PP_SEQ_SIZE(seq)),long,short))(seq)
+
+#define SENF_LOG_NIL(x)
+
+#define SENF_LOG_CONF_DEFINE(stream, area, level)                                                 \
+    SENF_LOG_PREDECL(stream)                                                                      \
+    SENF_LOG_PREDECL(area)                                                                        \
+    namespace senf { namespace log { namespace detail {                                           \
+        template <class QueryStream>                                                              \
+        struct Config< SENF_LOG_SEQ_TO_NAME(stream),                                              \
+                       SENF_LOG_SEQ_TO_NAME(area),                                                \
+                       QueryStream,                                                               \
+                       true >                                                                     \
+        { typedef senf::log::level compileLimit; };                                               \
+    }}}
+
+#ifdef SENF_LOG_CONF
+
+#   define SLC_elt(r, data, elt) \
+        SENF_LOG_CONF_DEFINE elt
+
+    BOOST_PP_SEQ_FOR_EACH(SLC_elt, none, SENF_LOG_CONF)
+
+#   undef SLC_elt
+
+#endif
+
+
+
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#endif
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// comment-column: 40
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// End:

@@ -1,0 +1,171 @@
+// $Id$
+//
+// Copyright (C) 2007
+// Fraunhofer Institute for Open Communication Systems (FOKUS)
+// Competence Center NETwork research (NET), St. Augustin, GERMANY
+//     Thorsten Horstmann <tho@berlios.de>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the
+// Free Software Foundation, Inc.,
+// 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+/** \file
+    \brief TLVParser inline non-template implementation */
+
+//#include "TLVParser.ih"
+
+// Custom includes
+
+#define prefix_ inline
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// MIHTLVLengthParser
+
+prefix_ senf::MIHTLVLengthParser::size_type senf::MIHTLVLengthParser::bytes() const
+{
+    return 1 + ( length_field()<=128 ? 0 : fixed_length_field());
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// MIHFIdTLVParser::binaryNAIDecoder
+
+prefix_ senf::MIHFIdTLVParser::binaryNAIDecoder::binaryNAIDecoder()
+    : readNextByte_( true)
+{}
+
+prefix_ bool senf::MIHFIdTLVParser::binaryNAIDecoder::operator()(boost::uint8_t v)
+{
+    readNextByte_ = readNextByte_ ? false : true;
+    return readNextByte_;
+}
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// MIHFIdTLVParser
+
+prefix_ senf::PacketParserBase::data_iterator senf::MIHFIdTLVParser::valueBegin()
+    const
+{
+    return i( idValue_offset());
+}
+
+prefix_ senf::PacketParserBase::data_iterator senf::MIHFIdTLVParser::valueEnd()
+    const
+{
+    return i( idValue_offset() + idLength());
+}
+
+prefix_ std::string senf::MIHFIdTLVParser::valueAsString()
+    const
+{
+    return std::string( valueBegin(), valueEnd());
+}
+
+prefix_ senf::MACAddress senf::MIHFIdTLVParser::valueAsMACAddress()
+    const
+{
+    if (idLength() != 6*2) throw WrapException<std::bad_cast>(std::bad_cast())
+        << "length of MIHF_ID does not match for a MAC address";
+    return MACAddress::from_data( getNAIDecodedIterator( valueBegin(), valueEnd()));
+}
+
+prefix_ senf::INet4Address senf::MIHFIdTLVParser::valueAsINet4Address()
+    const
+{
+    if (idLength() != 4*2) throw WrapException<std::bad_cast>(std::bad_cast())
+        << "length of MIHF_ID does not match for a INet4 address";
+    return INet4Address::from_data( getNAIDecodedIterator( valueBegin(), valueEnd()));
+}
+
+prefix_ senf::INet6Address senf::MIHFIdTLVParser::valueAsINet6Address()
+    const
+{
+    if (idLength() != 16*2) throw WrapException<std::bad_cast>(std::bad_cast())
+        << "length of MIHF_ID does not match for a INet6 address";
+    return INet6Address::from_data( getNAIDecodedIterator( valueBegin(), valueEnd()));
+}
+
+prefix_ senf::EUI64 senf::MIHFIdTLVParser::valueAsEUI64()
+    const
+{
+    if (idLength() != 8*2) throw WrapException<std::bad_cast>(std::bad_cast())
+        << "length of MIHF_ID does not match for a EUI64 address";
+    return EUI64::from_data( getNAIDecodedIterator( valueBegin(), valueEnd()));
+}
+
+prefix_ bool senf::MIHFIdTLVParser::valueEquals( std::string const &id)
+    const
+{
+    return id == valueAsString();
+}
+
+prefix_ bool senf::MIHFIdTLVParser::valueEquals( senf::MACAddress const & addr)
+    const
+{
+    return idLength()==12 && addr==valueAsMACAddress();
+}
+
+prefix_ bool senf::MIHFIdTLVParser::valueEquals( senf::INet4Address const & addr)
+    const
+{
+    return idLength()==8 && addr==valueAsINet4Address();
+}
+
+prefix_ bool senf::MIHFIdTLVParser::valueEquals( senf::INet6Address const & addr)
+    const
+{
+    return idLength()==32 && addr==valueAsINet6Address();
+}
+
+prefix_ bool senf::MIHFIdTLVParser::valueEquals( senf::EUI64 const & addr)
+    const
+{
+    return idLength()==16 && addr==valueAsEUI64();
+}
+
+prefix_ bool senf::MIHFIdTLVParser::valueEquals( MIHFId const & id)
+    const
+{
+    return boost::apply_visitor( ValueEqualsVisitor(*this), id);
+}
+
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+// MIHBaseTLVParser
+
+prefix_ void senf::MIHBaseTLVParser::maxLength(MIHTLVLengthParser::value_type maxl)
+    const
+{
+    protect(), length_().capacity(maxl);
+}
+
+prefix_ void senf::MIHBaseTLVParser::finalize()
+{
+    protect(), length_().finalize();
+};
+
+
+//-/////////////////////////////////////////////////////////////////////////////////////////////////
+#undef prefix_
+
+
+// Local Variables:
+// mode: c++
+// fill-column: 100
+// c-file-style: "senf"
+// indent-tabs-mode: nil
+// ispell-local-dictionary: "american"
+// compile-command: "scons -u test"
+// comment-column: 40
+// End:
